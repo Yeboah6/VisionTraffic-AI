@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartTraffic AI | Traffic Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --dark: #1b263b;
+            --light: #f8f9fa;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --danger: #f72585;
+            --gray: #adb5bd;
+            --dark-gray: #495057;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .logo img {
+            width: 36px;
+            margin-right: 10px;
+        }
+
+        .logo h1 {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-link i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-link.active {
+            border-left: 4px solid var(--accent);
+            padding-left: calc(1.5rem - 4px);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .page-title p {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+        }
+
+        .notification {
+            position: relative;
+            margin-right: 1.5rem;
+            cursor: pointer;
+        }
+
+        .notification i {
+            font-size: 1.3rem;
+            color: var(--dark-gray);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        /* Dashboard Cards */
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--dark-gray);
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .card-icon.blue {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+
+        .card-icon.green {
+            background-color: rgba(76, 201, 240, 0.1);
+            color: var(--success);
+        }
+
+        .card-icon.orange {
+            background-color: rgba(248, 150, 30, 0.1);
+            color: var(--warning);
+        }
+
+        .card-icon.pink {
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--danger);
+        }
+
+        .card-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-change {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-change.positive {
+            color: #2ecc71;
+        }
+
+        .card-change.negative {
+            color: var(--danger);
+        }
+
+        .card-change i {
+            margin-right: 5px;
+        }
+
+        /* Traffic Map */
+        .traffic-map-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .map-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .map-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .map-control-btn {
+            background-color: var(--light);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .map-control-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .traffic-map {
+            width: 100%;
+            height: calc(100% - 50px);
+            background-color: #e9ecef;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Traffic Incidents */
+        .traffic-incidents {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .incidents-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .incidents-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .view-all {
+            color: var(--primary);
+            font-size: 0.9rem;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .incidents-list {
+            list-style: none;
+        }
+
+        .incident-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .incident-item:last-child {
+            border-bottom: none;
+        }
+
+        .incident-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .incident-icon.accident {
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--danger);
+        }
+
+        .incident-icon.congestion {
+            background-color: rgba(248, 150, 30, 0.1);
+            color: var(--warning);
+        }
+
+        .incident-icon.construction {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+
+        .incident-details {
+            flex: 1;
+        }
+
+        .incident-title {
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+        }
+
+        .incident-location {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        .incident-time {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        .incident-severity {
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .severity-high {
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--danger);
+        }
+
+        .severity-medium {
+            background-color: rgba(248, 150, 30, 0.1);
+            color: var(--warning);
+        }
+
+        .severity-low {
+            background-color: rgba(76, 201, 240, 0.1);
+            color: var(--success);
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -100%;
+                width: 280px;
+                height: 100vh;
+                transition: left 0.3s ease;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+                font-size: 1.5rem;
+                cursor: pointer;
+                margin-right: 1rem;
+                color: var(--dark);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .dashboard-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .user-menu {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
+        /* Map Simulation */
+        .intersection {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: var(--dark);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .road {
+            position: absolute;
+            background-color: var(--dark-gray);
+        }
+
+        .road.horizontal {
+            height: 10px;
+            width: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .road.vertical {
+            width: 10px;
+            height: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .vehicle {
+            position: absolute;
+            width: 12px;
+            height: 20px;
+            border-radius: 3px;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s linear;
+        }
+
+        .traffic-light {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .traffic-light.red {
+            background-color: #e63946;
+            box-shadow: 0 0 10px #e63946;
+        }
+
+        .traffic-light.green {
+            background-color: #2a9d8f;
+            box-shadow: 0 0 10px #2a9d8f;
+        }
+
+        .traffic-light.yellow {
+            background-color: #ffbe0b;
+            box-shadow: 0 0 10px #ffbe0b;
+        }
+
+        /* Animation */
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="https://via.placeholder.com/36" alt="SmartTraffic AI Logo">
+                <h1>SmartTraffic AI</h1>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <span>Traffic Map</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-traffic-light"></i>
+                        <span>Signal Control</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Incidents</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Help & Support</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <div class="page-title">
+                    <h2>Traffic Management Dashboard</h2>
+                    <p>Real-time monitoring and control of city traffic</p>
+                </div>
+                <div class="user-menu">
+                    <div class="notification">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-avatar">
+                            <img src="https://via.placeholder.com/40" alt="User Avatar">
+                        </div>
+                        <div>
+                            <div class="user-name">Admin User</div>
+                            <div class="user-role">System Administrator</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-cards">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Traffic Flow</h3>
+                        <div class="card-icon blue">
+                            <i class="fas fa-car"></i>
+                        </div>
+                    </div>
+                    <div class="card-value">78%</div>
+                    <div class="card-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>5.2% from yesterday</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Active Incidents</h3>
+                        <div class="card-icon pink">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                    </div>
+                    <div class="card-value">14</div>
+                    <div class="card-change negative">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>2 new in last hour</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Signal Efficiency</h3>
+                        <div class="card-icon green">
+                            <i class="fas fa-traffic-light"></i>
+                        </div>
+                    </div>
+                    <div class="card-value">92%</div>
+                    <div class="card-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>3.1% from last week</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Average Speed</h3>
+                        <div class="card-icon orange">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                    </div>
+                    <div class="card-value">42 km/h</div>
+                    <div class="card-change negative">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>1.8 km/h from peak</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="traffic-map-container">
+                <div class="map-header">
+                    <h3 class="map-title">Live Traffic Map</h3>
+                    <div class="map-controls">
+                        <button class="map-control-btn active">
+                            <i class="fas fa-layer-group"></i>
+                            <span>Traffic</span>
+                        </button>
+                        <button class="map-control-btn">
+                            <i class="fas fa-traffic-light"></i>
+                            <span>Signals</span>
+                        </button>
+                        <button class="map-control-btn">
+                            <i class="fas fa-camera"></i>
+                            <span>Cameras</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="traffic-map" id="trafficMap">
+                    <!-- Map will be rendered here with JavaScript -->
+                </div>
+            </div>
+
+            <div class="traffic-incidents">
+                <div class="incidents-header">
+                    <h3 class="incidents-title">Recent Traffic Incidents</h3>
+                    <a href="#" class="view-all">View All</a>
+                </div>
+                <ul class="incidents-list">
+                    <li class="incident-item">
+                        <div class="incident-icon accident">
+                            <i class="fas fa-car-crash"></i>
+                        </div>
+                        <div class="incident-details">
+                            <h4 class="incident-title">Vehicle Collision</h4>
+                            <p class="incident-location">Main St & 5th Avenue</p>
+                        </div>
+                        <div class="incident-time">15 min ago</div>
+                        <div class="incident-severity severity-high">High</div>
+                    </li>
+                    <li class="incident-item">
+                        <div class="incident-icon congestion">
+                            <i class="fas fa-road"></i>
+                        </div>
+                        <div class="incident-details">
+                            <h4 class="incident-title">Heavy Congestion</h4>
+                            <p class="incident-location">Central Highway Northbound</p>
+                        </div>
+                        <div class="incident-time">42 min ago</div>
+                        <div class="incident-severity severity-medium">Medium</div>
+                    </li>
+                    <li class="incident-item">
+                        <div class="incident-icon construction">
+                            <i class="fas fa-cone"></i>
+                        </div>
+                        <div class="incident-details">
+                            <h4 class="incident-title">Road Construction</h4>
+                            <p class="incident-location">Riverfront Drive</p>
+                        </div>
+                        <div class="incident-time">1 hour ago</div>
+                        <div class="incident-severity severity-low">Low</div>
+                    </li>
+                    <li class="incident-item">
+                        <div class="incident-icon congestion">
+                            <i class="fas fa-road"></i>
+                        </div>
+                        <div class="incident-details">
+                            <h4 class="incident-title">Traffic Backup</h4>
+                            <p class="incident-location">I-90 Westbound Exit 14</p>
+                        </div>
+                        <div class="incident-time">2 hours ago</div>
+                        <div class="incident-severity severity-medium">Medium</div>
+                    </li>
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            // For demo purposes, we'll add a mobile menu button
+            const header = document.querySelector('.header');
+            const mobileMenuBtn = document.createElement('div');
+            mobileMenuBtn.className = 'mobile-menu-btn';
+            mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+            mobileMenuBtn.addEventListener('click', function() {
+                document.querySelector('.sidebar').classList.toggle('active');
+            });
+            header.insertBefore(mobileMenuBtn, header.firstChild);
+
+            // Simulate traffic map
+            const trafficMap = document.getElementById('trafficMap');
+            if (trafficMap) {
+                simulateTrafficMap(trafficMap);
+            }
+
+            // Add active class to clicked nav items
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Map controls
+            const mapControls = document.querySelectorAll('.map-control-btn');
+            mapControls.forEach(control => {
+                control.addEventListener('click', function() {
+                    mapControls.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+
+        function simulateTrafficMap(container) {
+            // Clear container
+            container.innerHTML = '';
+
+            // Create roads
+            const horizontalRoad = document.createElement('div');
+            horizontalRoad.className = 'road horizontal';
+            container.appendChild(horizontalRoad);
+
+            const verticalRoad = document.createElement('div');
+            verticalRoad.className = 'road vertical';
+            container.appendChild(verticalRoad);
+
+            // Create intersection
+            const intersection = document.createElement('div');
+            intersection.className = 'intersection';
+            intersection.style.left = '50%';
+            intersection.style.top = '50%';
+            container.appendChild(intersection);
+
+            // Create traffic lights
+            const lightPositions = [
+                { left: '50%', top: '30%', color: 'red' },
+                { left: '70%', top: '50%', color: 'green' },
+                { left: '50%', top: '70%', color: 'red' },
+                { left: '30%', top: '50%', color: 'green' }
+            ];
+
+            lightPositions.forEach(pos => {
+                const light = document.createElement('div');
+                light.className = `traffic-light ${pos.color}`;
+                light.style.left = pos.left;
+                light.style.top = pos.top;
+                if (pos.color === 'red' || pos.color === 'green') {
+                    light.classList.add('pulse');
+                }
+                container.appendChild(light);
+            });
+
+            // Create vehicles
+            const vehicles = [
+                { left: '20%', top: '50%', color: '#4361ee', direction: 'right' },
+                { left: '80%', top: '50%', color: '#f72585', direction: 'left' },
+                { left: '50%', top: '20%', color: '#4cc9f0', direction: 'down' },
+                { left: '50%', top: '80%', color: '#f8961e', direction: 'up' }
+            ];
+
+            vehicles.forEach(vehicle => {
+                const veh = document.createElement('div');
+                veh.className = 'vehicle';
+                veh.style.left = vehicle.left;
+                veh.style.top = vehicle.top;
+                veh.style.backgroundColor = vehicle.color;
+                container.appendChild(veh);
+
+                // Animate vehicle
+                if (vehicle.direction === 'right') {
+                    animateVehicle(veh, { left: '20%' }, { left: '80%' }, 8000);
+                } else if (vehicle.direction === 'left') {
+                    animateVehicle(veh, { left: '80%' }, { left: '20%' }, 8000);
+                } else if (vehicle.direction === 'down') {
+                    animateVehicle(veh, { top: '20%' }, { top: '80%' }, 8000);
+                } else if (vehicle.direction === 'up') {
+                    animateVehicle(veh, { top: '80%' }, { top: '20%' }, 8000);
+                }
+            });
+
+            function animateVehicle(element, from, to, duration) {
+                const startTime = performance.now();
+                
+                function updateAnimation(time) {
+                    const elapsed = time - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    if (from.left && to.left) {
+                        const start = parseFloat(from.left);
+                        const end = parseFloat(to.left);
+                        const current = start + (end - start) * progress;
+                        element.style.left = `${current}%`;
+                    }
+                    
+                    if (from.top && to.top) {
+                        const start = parseFloat(from.top);
+                        const end = parseFloat(to.top);
+                        const current = start + (end - start) * progress;
+                        element.style.top = `${current}%`;
+                    }
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(updateAnimation);
+                    } else {
+                        // Reverse direction when animation completes
+                        if (from.left && to.left) {
+                            animateVehicle(element, to, from, duration);
+                        } else if (from.top && to.top) {
+                            animateVehicle(element, to, from, duration);
+                        }
+                    }
+                }
+                
+                requestAnimationFrame(updateAnimation);
+            }
+
+            // Change traffic lights periodically
+            setInterval(() => {
+                const lights = container.querySelectorAll('.traffic-light');
+                lights.forEach(light => {
+                    if (light.classList.contains('red')) {
+                        light.classList.remove('red', 'pulse');
+                        light.classList.add('green');
+                        light.classList.add('pulse');
+                    } else if (light.classList.contains('green')) {
+                        light.classList.remove('green', 'pulse');
+                        light.classList.add('yellow');
+                        setTimeout(() => {
+                            light.classList.remove('yellow');
+                            light.classList.add('red');
+                            light.classList.add('pulse');
+                        }, 2000);
+                    }
+                });
+            }, 10000);
+        }
+    </script>
+</body>
+</html>
