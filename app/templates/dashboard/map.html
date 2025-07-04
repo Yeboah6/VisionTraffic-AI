@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+<!-- {% block title %}Traffic Map | VisionTraffic AI{% endblock %} -->
+
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
+{% endblock %}
+
+<!-- {% block page_title %}Live Traffic Map{% endblock %} -->
+<!-- {% block page_subtitle %}Real-time monitoring and visualization{% endblock %} -->
+
+{% block content %}
+<div class="traffic-map-container glass-panel">
+    <div class="map-controls">
+        <button class="control-btn active" id="traffic-layer">
+            <i class="fas fa-car"></i> Traffic
+        </button>
+        <button class="control-btn" id="incidents-layer">
+            <i class="fas fa-exclamation-circle"></i> Incidents
+        </button>
+        <button class="control-btn" id="cameras-layer">
+            <i class="fas fa-video"></i> Cameras
+        </button>
+        <div class="map-legend">
+            <div class="legend-item">
+                <span class="legend-color" style="background: #FF375F;"></span>
+            <span>Heavy Traffic</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: #FF9F0A;"></span>
+                <span>Moderate</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: #30D158;"></span>
+                <span>Clear</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="map-wrapper">
+        <div class="map" id="trafficMap">
+            <!-- Map will be rendered here by JavaScript -->
+            <div class="intersection" style="top: 30%; left: 40%;"></div>
+            <div class="road horizontal"></div>
+            <div class="road vertical"></div>
+            
+            <!-- Traffic indicators -->
+            <div class="traffic-indicator" style="top: 35%; left: 20%; background: #FF375F;"></div>
+            <div class="traffic-indicator" style="top: 35%; left: 60%; background: #FF9F0A;"></div>
+            <div class="traffic-indicator" style="top: 65%; left: 50%; background: #30D158;"></div>
+            
+            <!-- Camera markers -->
+            <div class="camera-marker" style="top: 25%; left: 30%;">
+                <i class="fas fa-video"></i>
+            </div>
+        </div>
+        
+        <div class="map-sidebar">
+            <h3 class="sidebar-title">Active Incidents</h3>
+            <div class="incidents-list">
+                <div class="incident-item">
+                    <div class="incident-icon accident">
+                        <i class="fas fa-car-crash"></i>
+                    </div>
+                    <div class="incident-details">
+                        <h4>Multi-vehicle Collision</h4>
+                        <p>Main St & 5th Avenue</p>
+                    </div>
+                    <span class="incident-time">12 min ago</span>
+                </div>
+                <!-- More incidents... -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script>
+    // Initialize map controls
+    document.querySelectorAll('.control-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.control-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            // Layer switching logic would go here
+        });
+    });
+    
+    // Simulate live traffic updates
+    setInterval(() => {
+        const indicators = document.querySelectorAll('.traffic-indicator');
+        indicators.forEach(ind => {
+            const rand = Math.random();
+            ind.style.backgroundColor = rand > 0.7 ? '#FF375F' : 
+                                      rand > 0.4 ? '#FF9F0A' : '#30D158';
+        });
+    }, 5000);
+</script>
+{% endblock %}

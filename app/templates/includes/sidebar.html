@@ -1,0 +1,50 @@
+<aside class="sidebar">
+            <div class="logo">
+                <!-- <img src="https://via.placeholder.com/40" alt="VisionTraffic AI Logo"> -->
+                <h1>VisionTraffic AI</h1>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{{ url_for('main.dashboard') }}" class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('main.trafficMap') }}" class="nav-link {% if request.endpoint == 'main.trafficMap' %}active{% endif %}">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <span>Traffic Map</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="" class="nav-link">
+                        <i class="fas fa-traffic-light"></i>
+                        <span>Signal Control</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="" class="nav-link">
+                        <i class="fas fa-video"></i>
+                        <span>Camera Network</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Incidents</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>

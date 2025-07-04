@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: none;">
+  Current endpoint: {{ request.endpoint }}<br>
+  Dashboard URL: {{ url_for('main.dashboard') }}<br>
+  Map URL: {{ url_for('main.trafficMap') }}
+</div>
+
+<div class="dashboard-cards">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Traffic Flow Efficiency</h3>
+            <div class="card-icon blue">
+                <i class="fas fa-car"></i>
+            </div>
+        </div>
+        <div class="card-value">82%</div>
+        <div class="card-change positive">
+            <i class="fas fa-arrow-up"></i>
+            <span>5.2% from yesterday</span>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Active Incidents</h3>
+            <div class="card-icon red">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+        </div>
+        <div class="card-value">9</div>
+        <div class="card-change negative">
+            <i class="fas fa-arrow-up"></i>
+            <span>2 new in last hour</span>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Signal Optimization</h3>
+            <div class="card-icon green">
+                <i class="fas fa-traffic-light"></i>
+            </div>
+        </div>
+        <div class="card-value">94%</div>
+        <div class="card-change positive">
+            <i class="fas fa-arrow-up"></i>
+            <span>3.1% from last week</span>
+        </div>
+    </div>
+</div>
+
+<div class="cameras-grid">
+    <div class="camera-card">
+        <div class="camera-preview">
+            <img src="https://via.placeholder.com/400x180/2C2C2E/8E8E93?text=Downtown+Intersection" alt="Camera Feed">
+            <div class="camera-overlay">
+                <div class="camera-location">Main & 5th</div>
+                <div class="camera-status">LIVE</div>
+            </div>
+        </div>
+        <div class="camera-info">
+            <h3 class="camera-title">Downtown Core Camera</h3>
+            <div class="camera-meta">
+                <span><i class="fas fa-eye"></i> 124 views</span>
+                <span><i class="fas fa-clock"></i> Updated 2 min ago</span>
+            </div>
+        </div>
+    </div>
+    <div class="camera-card">
+        <div class="camera-preview">
+            <img src="https://via.placeholder.com/400x180/2C2C2E/8E8E93?text=Central+Highway" alt="Camera Feed">
+            <div class="camera-overlay">
+                <div class="camera-location">I-90 W</div>
+                <div class="camera-status">LIVE</div>
+            </div>
+        </div>
+        <div class="camera-info">
+            <h3 class="camera-title">Central Highway Cam</h3>
+            <div class="camera-meta">
+                <span><i class="fas fa-eye"></i> 89 views</span>
+                <span><i class="fas fa-clock"></i> Updated 1 min ago</span>
+            </div>
+        </div>
+    </div>
+    <div class="camera-card">
+        <div class="camera-preview">
+            <img src="https://via.placeholder.com/400x180/2C2C2E/8E8E93?text=Riverfront+Drive" alt="Camera Feed">
+            <div class="camera-overlay">
+                <div class="camera-location">Riverfront Dr</div>
+                <div class="camera-status offline">OFFLINE</div>
+            </div>
+        </div>
+        <div class="camera-info">
+            <h3 class="camera-title">Riverfront Camera</h3>
+            <div class="camera-meta">
+                <span><i class="fas fa-eye"></i> 67 views</span>
+                <span><i class="fas fa-clock"></i> Updated 15 min ago</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="traffic-map-container">
+    <div class="map-header">
+        <h3 class="map-title">Live Traffic Visualization</h3>
+        <div class="map-controls">
+            <button class="map-control-btn active">
+                <i class="fas fa-car"></i>
+                <span>Traffic</span>
+            </button>
+            <button class="map-control-btn">
+                <i class="fas fa-traffic-light"></i>
+                <span>Signals</span>
+            </button>
+            <button class="map-control-btn">
+                <i class="fas fa-video"></i>
+                <span>Cameras</span>
+            </button>
+        </div>
+    </div>
+    <div class="traffic-map" id="trafficMap">
+        <!-- Map will be rendered here with JavaScript -->
+    </div>
+</div>
+
+<div class="traffic-incidents">
+    <div class="incidents-header">
+        <h3 class="incidents-title">Active Traffic Incidents</h3>
+        <a href="#" class="view-all">
+            <span>View All</span>
+            <i class="fas fa-chevron-right"></i>
+        </a>
+    </div>
+    <ul class="incidents-list">
+        <li class="incident-item">
+            <div class="incident-icon accident">
+                <i class="fas fa-car-crash"></i>
+            </div>
+            <div class="incident-details">
+                <h4 class="incident-title">Multi-Vehicle Collision</h4>
+                <p class="incident-location">Main St & 5th Avenue</p>
+            </div>
+            <div class="incident-time">12 min ago</div>
+            <div class="incident-severity severity-high">High</div>
+        </li>
+        <li class="incident-item">
+            <div class="incident-icon congestion">
+                <i class="fas fa-road"></i>
+            </div>
+            <div class="incident-details">
+                <h4 class="incident-title">Heavy Congestion</h4>
+                <p class="incident-location">Central Highway Northbound</p>
+            </div>
+            <div class="incident-time">38 min ago</div>
+            <div class="incident-severity severity-medium">Medium</div>
+        </li>
+        <li class="incident-item">
+            <div class="incident-icon construction">
+                <i class="fas fa-cone"></i>
+            </div>
+            <div class="incident-details">
+                <h4 class="incident-title">Road Construction</h4>
+                <p class="incident-location">Riverfront Drive</p>
+            </div>
+            <div class="incident-time">1 hour ago</div>
+            <div class="incident-severity severity-low">Low</div>
+        </li>
+    </ul>
+</div>
+{% endblock %}
