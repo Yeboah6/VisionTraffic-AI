@@ -1,24 +1,32 @@
-<div class="header">
-    <div class="mobile-menu-btn">
-        <i class="fas fa-bars"></i>
-    </div>
-    <div class="page-title">
-        <h2>Traffic Intelligence Dashboard</h2>
-        <p>Real-time monitoring powered by Vision AI</p>
-    </div>
-    <div class="user-menu">
-        <div class="notification">
-            <i class="fas fa-bell"></i>
-            <span class="notification-badge">3</span>
-        </div>
-        <div class="user-profile">
-            <div class="user-avatar">
-                <img src="../static/images/user.png" alt="User Avatar">
-            </div>
-            <div class="user-info">
-                <div class="user-name">Admin User</div>
-                <div class="user-role">System Administrator</div>
+<header class="bg-white shadow-sm">
+    <div class="flex items-center justify-between px-6 py-4">
+        <div class="flex items-center">
+            <h1 class="text-xl font-semibold text-slate-800">Traffic Control Dashboard</h1>
+            <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
+                July 4, 2025 • 09:45 AM
             </div>
         </div>
+        
+        <div class="flex items-center space-x-4">
+            <div class="relative">
+                <input type="search" placeholder="Search..." class="w-64 pl-10 pr-4 py-2 bg-slate-100 rounded-full text-sm border-none focus:outline-none focus:ring-2 focus:ring-primary">
+                <div class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 flex items-center justify-center text-slate-500">
+                    <i class="ri-search-line"></i>
+                </div>
+            </div>
+            
+            <button class="relative w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                <div class="w-5 h-5 flex items-center justify-center text-slate-600">
+                    <i class="ri-notification-3-line"></i>
+                </div>
+                <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+            </button>
+            
+            <button class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                <div class="w-5 h-5 flex items-center justify-center text-slate-600">
+                    <i class="ri-settings-4-line"></i>
+                </div>
+            </button>
+        </div>
     </div>
-</div>
+</header>

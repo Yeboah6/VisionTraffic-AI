@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Main Content -->
+<main class="main-content min-h-screen pb-8">
+  <!-- Header -->
+<header class="bg-white shadow-sm">
+    <div class="flex items-center justify-between px-6 py-4">
+        <div class="flex items-center">
+            <a href="{{ url_for('main.signalControl') }}" class="flex items-center text-slate-600 hover:text-primary mr-4">
+                <div class="w-5 h-5 flex items-center justify-center">
+                    <i class="ri-arrow-left-line"></i>
+                </div>
+                <span class="ml-1 text-sm">Back</span>
+            </a>
+            <h1 class="text-xl font-semibold text-slate-800">Signal Control & Optimization</h1>
+            <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
+                July 4, 2025 • 09:45 AM
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="relative">
+                <input type="search" placeholder="Search..." class="w-64 pl-10 pr-4 py-2 bg-slate-100 rounded-full text-sm border-none focus:outline-none focus:ring-2 focus:ring-primary">
+                <div class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 flex items-center justify-center text-slate-500">
+                    <i class="ri-search-line"></i>
+                </div>
+            </div>
+            
+            <button class="relative w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                <div class="w-5 h-5 flex items-center justify-center text-slate-600">
+                    <i class="ri-notification-3-line"></i>
+                </div>
+                <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+            </button>
+            
+            <button class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                <div class="w-5 h-5 flex items-center justify-center text-slate-600">
+                    <i class="ri-settings-4-line"></i>
+                </div>
+            </button>
+        </div>
+    </div>
+</header>
+
+  <!-- Registration Form -->
+  <div class="px-6 py-6">
+    <div class="grid grid-cols-1 gap-6">
+      <!-- Card for New Signal Registration -->
+      <div class="card">
+        <div class="p-4 border-b">
+          <h2 class="font-semibold">Add New Traffic Signal</h2>
+        </div>
+        <div class="p-6">
+          <form id="signalRegistrationForm">
+            <!-- Section 1: Basic Information -->
+            <div class="mb-8">
+              <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
+                <span class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-sm mr-2">1</span>
+                Signal Identification
+              </h3>
+              <div class="grid grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Signal ID*</label>
+                  <input type="text" required class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm">
+                  <p class="text-xs text-slate-500 mt-1">Unique identifier (e.g., SIG_MAIN_001)</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Intersection Name*</label>
+                  <input type="text" required class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm">
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 2: Location Details -->
+            <div class="mb-8">
+              <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
+                <span class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-sm mr-2">2</span>
+                Location Configuration
+              </h3>
+              <div class="grid grid-cols-3 gap-6">
+                <div class="col-span-2">
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Address</label>
+                  <input type="text" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Direction*</label>
+                  <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
+                    <option value="">Select...</option>
+                    <option>Northbound</option>
+                    <option>Southbound</option>
+                    <option>Eastbound</option>
+                    <option>Westbound</option>
+                  </select>
+                </div>
+              </div>
+              <div class="mt-4 grid grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Latitude*</label>
+                  <input type="number" step="0.000001" required class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Longitude*</label>
+                  <input type="number" step="0.000001" required class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm">
+                </div>
+              </div>
+              <div class="mt-4">
+                <button type="button" class="text-primary text-sm flex items-center">
+                  <i class="ri-map-pin-line mr-1"></i> Pick from map
+                </button>
+              </div>
+            </div>
+
+            <!-- Section 3: Technical Specifications -->
+            <div class="mb-8">
+              <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
+                <span class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-sm mr-2">3</span>
+                Technical Configuration
+              </h3>
+              <div class="grid grid-cols-3 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Controller Type*</label>
+                  <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
+                    <option value="">Select...</option>
+                    <option>NTCIP</option>
+                    <option>SCATS</option>
+                    <option>Siemens</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">IP Address</label>
+                  <input type="text" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Protocol*</label>
+                  <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
+                    <option>TCP/IP</option>
+                    <option>RS-485</option>
+                    <option>Wireless</option>
+                  </select>
+                </div>
+              </div>
+              <div class="mt-4 grid grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Default Cycle (seconds)*</label>
+                  <input type="number" value="120" min="30" max="300" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Phases*</label>
+                  <input type="number" value="4" min="2" max="8" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm">
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 4: Camera Association -->
+            <div class="mb-8">
+              <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
+                <span class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-sm mr-2">4</span>
+                Camera Association
+              </h3>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 border rounded-lg">
+                  <div class="flex items-center">
+                    <i class="ri-camera-line text-slate-500 mr-2"></i>
+                    <span>CAM_MAIN_001</span>
+                  </div>
+                  <button type="button" class="text-primary text-sm">Associate</button>
+                </div>
+                <div class="flex items-center justify-between p-3 border rounded-lg">
+                  <div class="flex items-center">
+                    <i class="ri-camera-line text-slate-500 mr-2"></i>
+                    <span>CAM_MAIN_002</span>
+                  </div>
+                  <button type="button" class="text-primary text-sm">Associate</button>
+                </div>
+                <button type="button" class="text-primary text-sm flex items-center mt-2">
+                  <i class="ri-add-line mr-1"></i> Add another camera
+                </button>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex justify-end space-x-3 pt-4 border-t">
+              <button type="button" class="px-4 py-2 border border-slate-200 rounded-button text-sm">Cancel</button>
+              <button type="submit" class="px-4 py-2 bg-primary text-white rounded-button text-sm">Register Signal</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Bulk Upload Section -->
+      <div class="card">
+        <div class="p-4 border-b">
+          <h2 class="font-semibold">Bulk Upload Signals</h2>
+        </div>
+        <div class="p-6">
+          <div class="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center">
+            <div class="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+              <i class="ri-upload-cloud-2-line text-primary"></i>
+            </div>
+            <h4 class="text-sm font-medium text-slate-700 mb-1">Upload CSV file</h4>
+            <p class="text-xs text-slate-500 mb-3">CSV template must include Signal ID, Location, and Controller Type</p>
+            <input type="file" id="csvUpload" accept=".csv" class="hidden">
+            <label for="csvUpload" class="px-4 py-2 bg-primary text-white rounded-button text-sm inline-block cursor-pointer">
+              Select File
+            </label>
+          </div>
+          <div class="mt-4 flex items-center text-sm text-slate-500">
+            <i class="ri-information-line mr-1"></i>
+            <span>Download <a href="#" class="text-primary">CSV template</a> for reference</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+{% endblock %}
