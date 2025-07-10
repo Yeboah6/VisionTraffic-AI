@@ -1,52 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VisionTraffic AI | Login</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% extends "auth-base.html" %}
 
-</head>
-<body>
-    <div class="floating-circle circle-1"></div>
-    <div class="floating-circle circle-2"></div>
+{% block content %}
     
     <div class="login-container">
         <div class="login-header">
             <div class="logo">
-                <h1>VisionTraffic AI</h1>
+                <h1 class="text-2xl font-['Delius'] text-white">VisionTraffic AI</h1>
             </div>
             <h2>Welcome Back</h2>
             <p>Sign-in to access your dashboard</p>
         </div>
         
-        <form action="/login" method="POST">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                            {% if request.args.get('expired') %}
+                                <p>Your session has expired. Please login again.</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
             <div class="form-group">
-                <label for="email">Email Address</label>
+                <label for="email">{{ form.email.label() }}</label>
                 <div class="input-wrapper">
                     <i class="fas fa-envelope"></i>
-                    <input type="email" id="email" name="email" class="form-control" placeholder="your@email.com" required>
+                    {{ form.email(class="form-control", placeholder="your@email.com") }}
+                    {% if form.email.errors %}
+                        <div class="text-danger">
+                            {% for error in form.email.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
             </div>
             
             <div class="form-group">
-                <label for="password">Password</label>
+                <label for="password">{{ form.password.label() }}</label>
                 <div class="input-wrapper">
                     <i class="fas fa-lock"></i>
-                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+                    {{ form.password(class="form-control", placeholder="••••••••") }}
                 </div>
             </div>
             
             <div class="remember-forgot">
                 <div class="remember-me">
-                    <input type="checkbox" id="remember" name="remember">
+                    {{ form.remember() }}
                     <label for="remember">Remember me</label>
                 </div>
                 <a href="/forgot-password" class="forgot-password">Forgot password?</a>
             </div>
             
-            <button type="submit" class="btn btn-primary">Login</button>
+            <button type="submit" class="btn btn-primary">{{ form.submit.label() }}</button>
             
             <div class="login-footer">
                 <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Sign up</a></p>
@@ -54,6 +66,4 @@
         </form>
     </div>
 
-<!-- <script src="{{ url_for('static', filename='js/script.js') }}"></script> -->
-</body>
-</html>
+{% endblock %}

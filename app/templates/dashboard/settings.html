@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Main Content -->
+<main class="main-content min-h-screen pb-8">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="flex items-center justify-between px-6 py-4">
+            <div class="flex items-center">
+                <h1 class="text-xl font-semibold text-slate-800">System Settings</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm flex items-center">
+                    <div class="w-4 h-4 flex items-center justify-center mr-2">
+                        <i class="ri-save-line"></i>
+                    </div>
+                    <span>Save Changes</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Settings Content -->
+    <div class="px-6 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column - Main Settings -->
+            <div class="lg:col-span-2">
+                <!-- System Settings Section -->
+                <div class="card settings-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="ri-settings-3-line"></i>
+                        </div>
+                        <h2 class="text-lg font-medium">System Configuration</h2>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">System Name</label>
+                            <p class="setting-description">The display name for your traffic management system</p>
+                        </div>
+                        <input type="text" class="w-64 px-3 py-2 border border-slate-200 rounded-button text-sm" value="City Traffic Control Center">
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Time Zone</label>
+                            <p class="setting-description">Affects all timestamps and scheduling</p>
+                        </div>
+                        <select class="w-64 px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
+                            <option>(UTC-08:00) Pacific Time (US & Canada)</option>
+                            <option>(UTC-07:00) Mountain Time (US & Canada)</option>
+                            <option>(UTC-06:00) Central Time (US & Canada)</option>
+                            <option>(UTC-05:00) Eastern Time (US & Canada)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Date Format</label>
+                            <p class="setting-description">How dates are displayed throughout the system</p>
+                        </div>
+                        <select class="w-64 px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
+                            <option>MM/DD/YYYY (12/31/2023)</option>
+                            <option>DD/MM/YYYY (31/12/2023)</option>
+                            <option>YYYY-MM-DD (2023-12-31)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Auto-Refresh Interval</label>
+                            <p class="setting-description">How often the system refreshes traffic data</p>
+                        </div>
+                        <select class="w-64 px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
+                            <option>30 seconds</option>
+                            <option selected>1 minute</option>
+                            <option>5 minutes</option>
+                            <option>10 minutes</option>
+                            <option>Manual refresh only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Notification Settings Section -->
+                <div class="card settings-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="ri-notification-3-line"></i>
+                        </div>
+                        <h2 class="text-lg font-medium">Notifications</h2>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Email Notifications</label>
+                            <p class="setting-description">Receive email alerts for critical incidents</p>
+                        </div>
+                        <label class="custom-switch">
+                            <input type="checkbox" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">SMS Alerts</label>
+                            <p class="setting-description">Receive text messages for emergency situations</p>
+                        </div>
+                        <label class="custom-switch">
+                            <input type="checkbox">
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Critical Incident Alerts</label>
+                            <p class="setting-description">Immediate notifications for major incidents</p>
+                        </div>
+                        <label class="custom-switch">
+                            <input type="checkbox" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Daily Summary Report</label>
+                            <p class="setting-description">Email with daily traffic statistics</p>
+                        </div>
+                        <label class="custom-switch">
+                            <input type="checkbox" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- API Settings Section -->
+                <div class="card settings-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="ri-code-s-slash-line"></i>
+                        </div>
+                        <h2 class="text-lg font-medium">API Access</h2>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">API Access</label>
+                            <p class="setting-description">Enable external system integration</p>
+                        </div>
+                        <label class="custom-switch">
+                            <input type="checkbox" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">API Key</label>
+                            <p class="setting-description">Use this key for authenticating API requests</p>
+                        </div>
+                        <div class="api-key-container">
+                            <span class="api-key-value">traf_sec_7a3b9c2e5f1d0e8f</span>
+                            <button class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                                <i class="ri-file-copy-line mr-1"></i> Copy
+                            </button>
+                            <button class="px-3 py-1 bg-slate-100 rounded-full text-xs ml-2">
+                                <i class="ri-refresh-line mr-1"></i> Regenerate
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Rate Limit</label>
+                            <p class="setting-description">Maximum API requests per minute</p>
+                        </div>
+                        <select class="w-64 px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
+                            <option>10 requests</option>
+                            <option selected>30 requests</option>
+                            <option>60 requests</option>
+                            <option>100 requests</option>
+                            <option>Unlimited</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Danger Zone Section -->
+                <div class="card danger-zone">
+                    <div class="section-header">
+                        <div class="section-icon" style="background-color: #fee2e2; color: #dc2626;">
+                            <i class="ri-alert-line"></i>
+                        </div>
+                        <h2 class="text-lg font-medium text-red-600">Danger Zone</h2>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-red-600">Reset System Configuration</label>
+                            <p class="setting-description">Revert all settings to their default values</p>
+                        </div>
+                        <button class="px-4 py-2 border border-red-200 bg-white text-red-600 rounded-button text-sm">
+                            Reset Settings
+                        </button>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-red-600">Delete All Data</label>
+                            <p class="setting-description">Permanently remove all traffic and incident records</p>
+                        </div>
+                        <button class="px-4 py-2 border border-red-200 bg-white text-red-600 rounded-button text-sm">
+                            Purge Database
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - User and Team Settings -->
+            <div>
+                <!-- User Profile Section -->
+                <div class="card settings-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <h2 class="text-lg font-medium">Your Profile</h2>
+                    </div>
+                    
+                    <div class="flex items-center mb-4">
+                        <div class="user-avatar">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="font-medium">Sarah Johnson</h3>
+                            <p class="text-sm text-slate-500">Traffic Control Supervisor</p>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Full Name</label>
+                        </div>
+                        <input type="text" class="w-64 px-3 py-2 border border-slate-200 rounded-button text-sm" value="Sarah Johnson">
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Email</label>
+                        </div>
+                        <input type="email" class="w-64 px-3 py-2 border border-slate-200 rounded-button text-sm" value="s.johnson@citytraffic.gov">
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Change Password</label>
+                        </div>
+                        <button class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm">
+                            Update Password
+                        </button>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Two-Factor Authentication</label>
+                            <p class="setting-description">Add an extra layer of security to your account</p>
+                        </div>
+                        <label class="custom-switch">
+                            <input type="checkbox" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Team Management Section -->
+                <div class="card settings-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="ri-team-line"></i>
+                        </div>
+                        <h2 class="text-lg font-medium">Team Members</h2>
+                    </div>
+                    
+                    <div class="team-member">
+                        <div class="team-member-avatar">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-sm font-medium">Michael Chen</h3>
+                            <p class="text-xs text-slate-500">Traffic Operator</p>
+                        </div>
+                        <button class="text-slate-400 hover:text-primary">
+                            <i class="ri-more-2-line"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="team-member">
+                        <div class="team-member-avatar">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-sm font-medium">David Rodriguez</h3>
+                            <p class="text-xs text-slate-500">Traffic Analyst</p>
+                        </div>
+                        <button class="text-slate-400 hover:text-primary">
+                            <i class="ri-more-2-line"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="team-member">
+                        <div class="team-member-avatar">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-sm font-medium">Emily Wilson</h3>
+                            <p class="text-xs text-slate-500">System Administrator</p>
+                        </div>
+                        <button class="text-slate-400 hover:text-primary">
+                            <i class="ri-more-2-line"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button class="w-full px-4 py-2 border border-slate-200 bg-white rounded-button text-sm flex items-center justify-center">
+                            <i class="ri-add-line mr-2"></i> Add Team Member
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Audit Log Section -->
+                <div class="card">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="ri-history-line"></i>
+                        </div>
+                        <h2 class="text-lg font-medium">Recent Activity</h2>
+                    </div>
+                    
+                    <div class="audit-log-item">
+                        <div class="flex justify-between text-sm">
+                            <span class="font-medium">Settings updated</span>
+                            <span class="text-slate-500">2 hours ago</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Notification preferences changed by Sarah Johnson</p>
+                    </div>
+                    
+                    <div class="audit-log-item">
+                        <div class="flex justify-between text-sm">
+                            <span class="font-medium">New user added</span>
+                            <span class="text-slate-500">1 day ago</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">David Rodriguez added to team by Sarah Johnson</p>
+                    </div>
+                    
+                    <div class="audit-log-item">
+                        <div class="flex justify-between text-sm">
+                            <span class="font-medium">API key regenerated</span>
+                            <span class="text-slate-500">3 days ago</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Security action by Emily Wilson</p>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button class="text-primary text-sm flex items-center">
+                            <i class="ri-eye-line mr-1"></i> View Full Audit Log
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Copy API key functionality
+    const copyApiKeyBtn = document.querySelector('button:has(.ri-file-copy-line)');
+    if (copyApiKeyBtn) {
+        copyApiKeyBtn.addEventListener('click', function() {
+            const apiKey = document.querySelector('.api-key-value').textContent;
+            navigator.clipboard.writeText(apiKey).then(() => {
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="ri-check-line mr-1"></i> Copied';
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                }, 2000);
+            });
+        });
+    }
+
+    // Toggle switches functionality
+    const toggleSwitches = document.querySelectorAll('.custom-switch input[type="checkbox"]');
+    toggleSwitches.forEach(switchEl => {
+        switchEl.addEventListener('change', function() {
+            const settingName = this.closest('.setting-item').querySelector('.setting-label label').textContent;
+            console.log(`${settingName} changed to: ${this.checked ? 'ON' : 'OFF'}`);
+            // In real implementation, this would save to backend
+        });
+    });
+
+    // Save changes button
+    const saveBtn = document.querySelector('button:has(.ri-save-line)');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+            alert('All changes saved successfully');
+            // In real implementation, this would submit all form changes
+        });
+    }
+
+    // Danger zone buttons
+    const dangerZoneBtns = document.querySelectorAll('.danger-zone button');
+    dangerZoneBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const action = this.textContent.trim();
+            if (confirm(`Are you sure you want to ${action}? This action cannot be undone.`)) {
+                alert(`${action} initiated...`);
+                // In real implementation, this would call the appropriate API
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

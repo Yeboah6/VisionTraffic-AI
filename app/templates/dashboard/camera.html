@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Main Content -->
+<main class="main-content min-h-screen pb-8">
+    <!-- Header -->
+    {% include 'includes/header.html' %}
+
+    <!-- Filter Controls -->
+    <div class="px-6 py-4 bg-white border-b">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-4">
+                <div class="w-48">
+                    <label class="block text-xs text-slate-500 mb-1">Status</label>
+                    <div class="relative">
+                        <select class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm bg-white custom-select pr-8">
+                            <option selected>All Cameras</option>
+                            <option>Online Only</option>
+                            <option>Offline</option>
+                            <option>Maintenance</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="w-48">
+                    <label class="block text-xs text-slate-500 mb-1">Location</label>
+                    <div class="relative">
+                        <select class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm bg-white custom-select pr-8">
+                            <option selected>All Locations</option>
+                            <option>Downtown Area</option>
+                            <option>Highway 101</option>
+                            <option>Residential District</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="w-48">
+                    <label class="block text-xs text-slate-500 mb-1">Camera Type</label>
+                    <div class="relative">
+                        <select class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm bg-white custom-select pr-8">
+                            <option selected>All Types</option>
+                            <option>Fixed</option>
+                            <option>PTZ</option>
+                            <option>Traffic Light</option>
+                            <option>License Plate</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm flex items-center">
+                    <div class="w-4 h-4 flex items-center justify-center mr-2">
+                        <i class="ri-refresh-line"></i>
+                    </div>
+                    <span>Refresh</span>
+                </button>
+                <div class="relative">
+                    <input type="search" placeholder="Search cameras..." class="w-64 pl-10 pr-4 py-2 bg-slate-100 rounded-full text-sm border-none focus:outline-none focus:ring-2 focus:ring-primary">
+                    <div class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 flex items-center justify-center text-slate-500">
+                        <i class="ri-search-line"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Grid View -->
+    <div class="px-6 py-6">
+        <div class="camera-grid mb-6">
+            <!-- Camera Card 1 -->
+            <div class="card camera-card p-4">
+                <div class="camera-thumbnail" style="background-image: url('https://via.placeholder.com/400x300?text=CAM_001')">
+                    <span class="camera-status-badge bg-green-100 text-green-800">Online</span>
+                    <button class="rtsp-test-btn">Test RTSP</button>
+                </div>
+                <div class="mt-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-medium">CAM_MAIN_001</h3>
+                            <p class="text-sm text-slate-500">Main St & 5th Ave</p>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                            <span class="text-xs">AI Active</span>
+                        </div>
+                    </div>
+                    <div class="mt-2 flex justify-between text-xs text-slate-500">
+                        <div>
+                            <p>PTZ Camera</p>
+                            <p>1080p @ 30fps</p>
+                        </div>
+                        <div class="text-right">
+                            <p>Last active: 2 min ago</p>
+                            <div class="connection-strength">
+                                <span class="mr-1">Signal:</span>
+                                <div class="connection-bar active"></div>
+                                <div class="connection-bar active"></div>
+                                <div class="connection-bar active"></div>
+                                <div class="connection-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t flex justify-between">
+                    <button class="text-primary text-xs flex items-center">
+                        <i class="ri-settings-3-line mr-1"></i> Configure
+                    </button>
+                    <button class="text-primary text-xs flex items-center">
+                        <i class="ri-link mr-1"></i> Assign Signal
+                    </button>
+                    <button class="text-primary text-xs flex items-center">
+                        <i class="ri-eye-line mr-1"></i> View Live
+                    </button>
+                </div>
+            </div>
+
+            <!-- Camera Card 2 (Offline) -->
+            <div class="card camera-card offline p-4">
+                <div class="camera-thumbnail" style="background-image: url('https://via.placeholder.com/400x300?text=CAM_002')">
+                    <span class="camera-status-badge bg-red-100 text-red-800">Offline</span>
+                    <button class="rtsp-test-btn">Test RTSP</button>
+                </div>
+                <div class="mt-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-medium">CAM_HWY_101</h3>
+                            <p class="text-sm text-slate-500">Highway 101 North</p>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-2 h-2 bg-slate-300 rounded-full mr-1"></span>
+                            <span class="text-xs">AI Inactive</span>
+                        </div>
+                    </div>
+                    <div class="mt-2 flex justify-between text-xs text-slate-500">
+                        <div>
+                            <p>Fixed Camera</p>
+                            <p>4K @ 15fps</p>
+                        </div>
+                        <div class="text-right">
+                            <p>Last active: 3h ago</p>
+                            <div class="connection-strength">
+                                <span class="mr-1">Signal:</span>
+                                <div class="connection-bar"></div>
+                                <div class="connection-bar"></div>
+                                <div class="connection-bar"></div>
+                                <div class="connection-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t flex justify-between">
+                    <button class="text-primary text-xs flex items-center">
+                        <i class="ri-settings-3-line mr-1"></i> Configure
+                    </button>
+                    <button class="text-primary text-xs flex items-center">
+                        <i class="ri-link mr-1"></i> Assign Signal
+                    </button>
+                    <button class="text-primary text-xs flex items-center">
+                        <i class="ri-error-warning-line mr-1"></i> Diagnose
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add New Camera Card -->
+            <a href="{{ url_for('main.addCamera') }}" class="card p-4 flex items-center justify-center border-2 border-dashed border-slate-300 hover:border-primary cursor-pointer">
+                <div class="text-center p-4">
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <i class="ri-add-line text-primary"></i>
+                    </div>
+                    <h3 class="text-sm font-medium text-slate-700">Add New Camera</h3>
+                    <p class="text-xs text-slate-500 mt-1">Register a new camera to the network</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Camera Registration Form (Initially hidden) -->
+        <div class="card hidden" id="cameraRegistrationForm">
+            <div class="p-4 border-b">
+                <h2 class="font-semibold">Register New Camera</h2>
+            </div>
+            <div class="p-6">
+                <form>
+                    <div class="grid grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Camera ID*</label>
+                            <input type="text" required class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm">
+                            <p class="text-xs text-slate-500 mt-1">Unique identifier (e.g., CAM_MAIN_001)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Camera Type*</label>
+                            <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
+                                <option value="">Select...</option>
+                                <option>Fixed</option>
+                                <option>PTZ</option>
+                                <option>Traffic Light</option>
+                                <option>License Plate</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Resolution*</label>
+                            <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
+                                <option>1080p</option>
+                                <option>4K</option>
+                                <option>5MP</option>
+                                <option>8MP</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Frame Rate*</label>
+                            <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
+                                <option>15fps</option>
+                                <option>30fps</option>
+                                <option>60fps</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">IP Address*</label>
+                            <input type="text" required class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm">
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Stream URL*</label>
+                        <div class="flex">
+                            <select class="w-24 px-3 py-2 border border-slate-200 rounded-l-button text-sm bg-slate-100">
+                                <option>rtsp://</option>
+                                <option>http://</option>
+                                <option>https://</option>
+                            </select>
+                            <input type="text" required class="flex-1 px-3 py-2 border-t border-b border-r border-slate-200 rounded-r-button text-sm" placeholder="192.168.1.100:554/stream">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Location*</label>
+                            <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
+                                <option value="">Select...</option>
+                                <option>Main St & 5th Ave</option>
+                                <option>Highway 101 North</option>
+                                <option>Oak Street & 10th Ave</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Direction</label>
+                            <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
+                                <option>Northbound</option>
+                                <option>Southbound</option>
+                                <option>Eastbound</option>
+                                <option>Westbound</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">AI Processing</label>
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center">
+                                <input type="checkbox" class="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary" checked>
+                                <span class="ml-2 text-sm">Vehicle Detection</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary">
+                                <span class="ml-2 text-sm">Pedestrian Detection</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary" checked>
+                                <span class="ml-2 text-sm">Traffic Counting</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3 pt-4 border-t">
+                        <button type="button" id="cancelRegistration" class="px-4 py-2 border border-slate-200 rounded-button text-sm">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-button text-sm">Register Camera</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Camera Details Table -->
+        <div class="card">
+            <div class="p-4 border-b flex items-center justify-between">
+                <h2 class="font-semibold">All Cameras</h2>
+                <div class="flex items-center space-x-2">
+                    <button class="px-3 py-1.5 border border-slate-200 rounded-button text-xs flex items-center">
+                        <i class="ri-download-line mr-1"></i> Export
+                    </button>
+                    <button class="px-3 py-1.5 border border-slate-200 rounded-button text-xs flex items-center">
+                        <i class="ri-settings-3-line mr-1"></i> Bulk Configure
+                    </button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-slate-50">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Camera ID</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Location</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Signal</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Last Active</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        <tr>
+                            <td class="px-4 py-3 text-sm font-medium">CAM_MAIN_001</td>
+                            <td class="px-4 py-3 text-sm">Main St & 5th Ave</td>
+                            <td class="px-4 py-3 text-sm">PTZ</td>
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Online</span>
+                            </td>
+                            <td class="px-4 py-3 text-sm">SIG_MAIN_001</td>
+                            <td class="px-4 py-3 text-sm">2 minutes ago</td>
+                            <td class="px-4 py-3 text-sm">
+                                <button class="text-primary mr-2">View</button>
+                                <button class="text-primary">Edit</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3 text-sm font-medium">CAM_HWY_101</td>
+                            <td class="px-4 py-3 text-sm">Highway 101 North</td>
+                            <td class="px-4 py-3 text-sm">Fixed</td>
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">Offline</span>
+                            </td>
+                            <td class="px-4 py-3 text-sm">-</td>
+                            <td class="px-4 py-3 text-sm">3 hours ago</td>
+                            <td class="px-4 py-3 text-sm">
+                                <button class="text-primary mr-2">Diagnose</button>
+                                <button class="text-primary">Edit</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-3 border-t flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-500">Showing 2 of 52 cameras</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <button class="w-8 h-8 flex items-center justify-center rounded-full border border-slate-200">
+                        <div class="w-4 h-4 flex items-center justify-center text-slate-400">
+                            <i class="ri-arrow-left-s-line"></i>
+                        </div>
+                    </button>
+                    <button class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white">1</button>
+                    <button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100">2</button>
+                    <button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100">3</button>
+                    <button class="w-8 h-8 flex items-center justify-center rounded-full border border-slate-200">
+                        <div class="w-4 h-4 flex items-center justify-center text-slate-600">
+                            <i class="ri-arrow-right-s-line"></i>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+
+</script>
+{% endblock %}
