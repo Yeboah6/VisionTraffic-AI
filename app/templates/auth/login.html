@@ -14,6 +14,11 @@
         <form method="POST">
             {{ form.hidden_tag() }}
 
+            <!-- Add this to your login.html -->
+            {% if request.args.get('next') %}
+                <input type="hidden" name="next" value="{{ request.args.get('next') }}">
+            {% endif %}
+
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}

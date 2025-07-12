@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request,jsonify, redirect, url_for, flash
-from flask_jwt_extended import get_jwt_identity, create_access_token, set_access_cookies, unset_jwt_cookies
+from flask_jwt_extended import get_jwt_identity, create_access_token, set_access_cookies, unset_jwt_cookies, jwt_required, get_jwt
 from ..models.user import User
 from .. import db
 from app.forms import RegisterForm, LoginForm
@@ -59,15 +59,14 @@ def logout():
     flash('You have been logged out', 'info')
     return response
 
-@auth_bp.route('/refresh', methods=['GET'])
+@auth_bp.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)  # Requires valid refresh token
 def refresh_token():
     try:
-        # Create a new access token
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user)
-        response = redirect(url_for('main.dashboard'))
+        response = jsonify({'status': 'success'})
         set_access_cookies(response, new_token)
-        return response
-    except:
-        return redirect(url_for('auth.login'))
-
+        return response, 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 401

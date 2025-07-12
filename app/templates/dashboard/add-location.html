@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Main Content -->
+<main class="main-content min-h-screen pb-8">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="flex items-center justify-between px-6 py-4">
+            <div class="flex items-center">
+                <button class="mr-4 text-slate-500 hover:text-primary">
+                    <i class="ri-arrow-left-line"></i>
+                </button>
+                <h1 class="text-xl font-semibold text-slate-800">Add New Location</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm">
+                    <span>Cancel</span>
+                </button>
+                <button class="px-4 py-2 bg-primary text-white rounded-button text-sm">
+                    <span>Save Location</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Add Location Content -->
+    <div class="px-6 py-6">
+        <div class="location-form-container">
+            <!-- Basic Information Section -->
+            <div class="card form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="ri-information-line"></i>
+                    </div>
+                    <h2 class="text-lg font-medium">Basic Information</h2>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="location-name" class="form-label form-required">Location Name</label>
+                        <input type="text" id="location-name" class="form-control" placeholder="e.g. Main St & 5th Ave">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location-id" class="form-label">Location ID</label>
+                        <input type="text" id="location-id" class="form-control" placeholder="Auto-generated if empty">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location-zone" class="form-label form-required">Zone/District</label>
+                        <select id="location-zone" class="form-control form-select">
+                            <option value="">Select a zone</option>
+                            <option value="downtown">Downtown</option>
+                            <option value="north">North District</option>
+                            <option value="south">South District</option>
+                            <option value="east">East District</option>
+                            <option value="west">West District</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location-priority" class="form-label">Priority Level</label>
+                        <select id="location-priority" class="form-control form-select">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="location-description" class="form-label">Description</label>
+                    <textarea id="location-description" class="form-control form-textarea" placeholder="Additional details about this location"></textarea>
+                </div>
+            </div>
+
+            <!-- Location Type Section -->
+            <div class="card form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="ri-category-line"></i>
+                    </div>
+                    <h2 class="text-lg font-medium">Location Type</h2>
+                </div>
+                
+                <div class="location-type-selector">
+                    <div class="location-type-option selected" data-type="intersection">
+                        <div class="location-type-icon intersection-icon">
+                            <i class="ri-traffic-light-line"></i>
+                        </div>
+                        <h3 class="font-medium">Intersection</h3>
+                        <p class="text-sm text-slate-500">Traffic lights and signals</p>
+                    </div>
+                    
+                    <div class="location-type-option" data-type="camera">
+                        <div class="location-type-icon camera-icon">
+                            <i class="ri-camera-line"></i>
+                        </div>
+                        <h3 class="font-medium">Camera</h3>
+                        <p class="text-sm text-slate-500">Traffic monitoring cameras</p>
+                    </div>
+                    
+                    <div class="location-type-option" data-type="sensor">
+                        <div class="location-type-icon sensor-icon">
+                            <i class="ri-sensor-line"></i>
+                        </div>
+                        <h3 class="font-medium">Sensor</h3>
+                        <p class="text-sm text-slate-500">Traffic detection sensors</p>
+                    </div>
+                </div>
+                
+                <!-- Dynamic form based on selected type -->
+                <div id="intersection-config" class="device-configuration">
+                    <h3 class="font-medium mb-4">Intersection Configuration</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="intersection-type" class="form-label">Intersection Type</label>
+                            <select id="intersection-type" class="form-control form-select">
+                                <option value="standard">Standard 4-way</option>
+                                <option value="t-intersection">T-intersection</option>
+                                <option value="y-intersection">Y-intersection</option>
+                                <option value="roundabout">Roundabout</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="signal-type" class="form-label">Signal Type</label>
+                            <select id="signal-type" class="form-control form-select">
+                                <option value="fixed-time">Fixed-time</option>
+                                <option value="actuated">Actuated</option>
+                                <option value="adaptive">Adaptive</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pedestrian-crossing" class="form-label">Pedestrian Crossing</label>
+                            <select id="pedestrian-crossing" class="form-control form-select">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bicycle-lanes" class="form-label">Bicycle Lanes</label>
+                            <select id="bicycle-lanes" class="form-control form-select">
+                                <option value="none">None</option>
+                                <option value="one-side">One side</option>
+                                <option value="both-sides">Both sides</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="camera-config" class="device-configuration" style="display: none;">
+                    <h3 class="font-medium mb-4">Camera Configuration</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="camera-type" class="form-label">Camera Type</label>
+                            <select id="camera-type" class="form-control form-select">
+                                <option value="fixed">Fixed</option>
+                                <option value="ptz">PTZ (Pan-Tilt-Zoom)</option>
+                                <option value="dome">Dome</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="camera-resolution" class="form-label">Resolution</label>
+                            <select id="camera-resolution" class="form-control form-select">
+                                <option value="720p">720p HD</option>
+                                <option value="1080p">1080p Full HD</option>
+                                <option value="4k">4K Ultra HD</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="camera-direction" class="form-label">Direction</label>
+                            <select id="camera-direction" class="form-control form-select">
+                                <option value="north">Northbound</option>
+                                <option value="south">Southbound</option>
+                                <option value="east">Eastbound</option>
+                                <option value="west">Westbound</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="camera-ip" class="form-label">IP Address</label>
+                            <input type="text" id="camera-ip" class="form-control" placeholder="192.168.1.100">
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="sensor-config" class="device-configuration" style="display: none;">
+                    <h3 class="font-medium mb-4">Sensor Configuration</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="sensor-type" class="form-label">Sensor Type</label>
+                            <select id="sensor-type" class="form-control form-select">
+                                <option value="inductive-loop">Inductive Loop</option>
+                                <option value="radar">Radar</option>
+                                <option value="lidar">LiDAR</option>
+                                <option value="video">Video Detection</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sensor-lanes" class="form-label">Lanes Monitored</label>
+                            <input type="number" id="sensor-lanes" class="form-control" min="1" max="8" value="2">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sensor-direction" class="form-label">Direction</label>
+                            <select id="sensor-direction" class="form-control form-select">
+                                <option value="north">Northbound</option>
+                                <option value="south">Southbound</option>
+                                <option value="east">Eastbound</option>
+                                <option value="west">Westbound</option>
+                                <option value="all">All Directions</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sensor-id" class="form-label">Sensor ID</label>
+                            <input type="text" id="sensor-id" class="form-control" placeholder="e.g. SEN-001">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geographic Information Section -->
+            <div class="card form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="ri-map-pin-line"></i>
+                    </div>
+                    <h2 class="text-lg font-medium">Geographic Information</h2>
+                </div>
+                
+                <div class="form-group">
+                    <label for="location-address" class="form-label">Street Address</label>
+                    <input type="text" id="location-address" class="form-control" placeholder="Enter street address">
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="location-city" class="form-label">City</label>
+                        <input type="text" id="location-city" class="form-control" placeholder="City">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location-state" class="form-label">State/Province</label>
+                        <input type="text" id="location-state" class="form-control" placeholder="State">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location-zip" class="form-label">ZIP/Postal Code</label>
+                        <input type="text" id="location-zip" class="form-control" placeholder="Postal code">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location-country" class="form-label">Country</label>
+                        <input type="text" id="location-country" class="form-control" value="United States" readonly>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Coordinates</label>
+                    <div class="coordinates-input">
+                        <input type="text" id="location-lat" class="form-control" placeholder="Latitude">
+                        <input type="text" id="location-lng" class="form-control" placeholder="Longitude">
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">Click on the map to set coordinates or enter manually</p>
+                </div>
+                
+                <div class="map-preview">
+                    <div class="map-marker"></div>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="location-preview">
+                <div class="preview-header">
+                    <div class="preview-icon intersection-icon">
+                        <i class="ri-traffic-light-line"></i>
+                    </div>
+                    <h2 class="text-lg font-medium">Location Preview</h2>
+                </div>
+                
+                <div class="preview-details">
+                    <div class="preview-item">
+                        <div class="preview-label">Location Name</div>
+                        <div class="preview-value" id="preview-name">-</div>
+                    </div>
+                    
+                    <div class="preview-item">
+                        <div class="preview-label">Location ID</div>
+                        <div class="preview-value" id="preview-id">Auto-generated</div>
+                    </div>
+                    
+                    <div class="preview-item">
+                        <div class="preview-label">Type</div>
+                        <div class="preview-value" id="preview-type">Intersection</div>
+                    </div>
+                    
+                    <div class="preview-item">
+                        <div class="preview-label">Zone</div>
+                        <div class="preview-value" id="preview-zone">-</div>
+                    </div>
+                    
+                    <div class="preview-item">
+                        <div class="preview-label">Priority</div>
+                        <div class="preview-value" id="preview-priority">Medium</div>
+                    </div>
+                    
+                    <div class="preview-item">
+                        <div class="preview-label">Status</div>
+                        <div class="preview-value">Pending Activation</div>
+                    </div>
+                    
+                    <div class="preview-item">
+                        <div class="preview-label">Address</div>
+                        <div class="preview-value" id="preview-address">-</div>
+                    </div>
+                    
+                    <div class="preview-item">
+                        <div class="preview-label">Coordinates</div>
+                        <div class="preview-value" id="preview-coords">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button class="px-4 py-2 border border-slate-200 bg-white rounded-button">
+                    <span>Cancel</span>
+                </button>
+                <button class="px-4 py-2 bg-primary text-white rounded-button">
+                    <span>Save Location</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+{% endblock %}

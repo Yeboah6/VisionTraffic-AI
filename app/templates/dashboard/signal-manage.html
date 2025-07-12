@@ -9,14 +9,14 @@
     <div class="flex items-center justify-between px-6 py-4">
         <div class="flex items-center">
             <a href="{{ url_for('main.signalControl') }}" class="flex items-center text-slate-600 hover:text-primary mr-4">
-                <div class="w-5 h-5 flex items-center justify-center">
-                    <i class="ri-arrow-left-line"></i>
-                </div>
-                <span class="ml-1 text-sm">Back</span>
+              <div class="w-5 h-5 flex items-center justify-center">
+                  <i class="ri-arrow-left-line"></i>
+              </div>
+              <span class="ml-1 text-sm">Back</span>
             </a>
             <h1 class="text-xl font-semibold text-slate-800">Signal Control & Optimization</h1>
             <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
-                July 4, 2025 • 09:45 AM
+                {{ current_date }} • {{ current_time }}
             </div>
         </div>
         <div class="flex items-center space-x-4">

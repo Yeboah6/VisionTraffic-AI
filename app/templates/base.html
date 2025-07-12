@@ -16,12 +16,17 @@
 
 </head>
 <body class="min-h-screen">
+    {% if token_expires %}
+    <meta http-equiv="refresh" content="{{ (token_expires - now().timestamp())|int }};
+          url={{ url_for('auth.login', expired='true') }}">
+    {% endif %}
     <!-- Sidebar Navigation -->
     {% include 'includes/sidebar.html' %}
 
     {% block content %} {% endblock %}
 
     <script src="../static/js/script.js"></script>
+    <script src="../static/js/auth.js"></script>
 
 </body>
 </html>
