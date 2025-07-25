@@ -554,6 +554,7 @@ input:checked + .switch-slider:before {
 
 /* Settings-specific styles */
 .settings-section {
+    padding:30px;
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid #e2e8f0;
@@ -658,6 +659,7 @@ input:checked + .switch-slider:before {
 
 /* Location-specific styles */
 .location-card {
+    background-color: #fff;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     padding: 16px;
@@ -794,6 +796,7 @@ input:checked + .switch-slider:before {
 }
 
 .form-section {
+    padding: 30px;
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid #e2e8f0;

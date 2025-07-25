@@ -4,42 +4,27 @@ from app.middleware.jwt_middleware import jwt_required_redirect
 from datetime import datetime
 from ..models.user import User
 
-main_bp = Blueprint('main', __name__)
+camera_bp = Blueprint('camera', __name__)
 
-@main_bp.route('/dashboard')
-# @jwt_required()
+@camera_bp.route('/camera')
 @jwt_required_redirect
-def dashboard():
-    now = datetime.now()
-    # Get the current user's identity from the JWT
-    current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first()
-    return render_template('dashboard/index.html', 
-                       user = user, 
-                       current_date = now.strftime("%B %d, %Y"), 
-                       current_time = now.strftime("%I:%M %p"),
-                    #    token_expires=expires_at
-                    )
-
-@main_bp.route('/report')
-@jwt_required_redirect
-def report():
+def camera():
     now = datetime.now()
     current_user = get_jwt_identity()
     user = User.query.filter_by(email=current_user).first()
-    return render_template('dashboard/report.html',
+    return render_template('camera/camera.html',
                            user = user,
                            current_date = now.strftime("%B %d, %Y"), 
                            current_time = now.strftime("%I:%M %p")
                            )
-
-@main_bp.route('/settings')
+    
+@camera_bp.route('/add/camera')
 @jwt_required_redirect
-def settings():
+def addCamera():
     now = datetime.now()
     current_user = get_jwt_identity()
     user = User.query.filter_by(email=current_user).first()
-    return render_template('dashboard/settings.html',
+    return render_template('camera/add.html',
                            user = user,
                            current_date = now.strftime("%B %d, %Y"), 
                            current_time = now.strftime("%I:%M %p")

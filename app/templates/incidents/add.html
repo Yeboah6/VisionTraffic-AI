@@ -10,42 +10,7 @@
 <!-- Main Content -->
 <main class="main-content min-h-screen pb-8">
     <!-- Header with breadcrumbs -->
-    <header class="bg-white shadow-sm">
-        <div class="flex items-center justify-between px-6 py-4">
-            <div class="flex items-center">
-                <nav class="flex text-sm" aria-label="Breadcrumb">
-                    <ol class="inline-flex items-center space-x-1 md:space-x-2">
-                        <li class="inline-flex items-center">
-                            <a href="#" class="inline-flex items-center text-slate-600 hover:text-primary">
-                                <i class="ri-home-line mr-1"></i>
-                                Home
-                            </a>
-                        </li>
-                        <li>
-                            <div class="flex items-center">
-                                <i class="ri-arrow-right-s-line text-slate-400"></i>
-                                <a href="#" class="ml-1 text-slate-600 hover:text-primary md:ml-2">Incidents</a>
-                            </div>
-                        </li>
-                        <li aria-current="page">
-                            <div class="flex items-center">
-                                <i class="ri-arrow-right-s-line text-slate-400"></i>
-                                <span class="ml-1 text-slate-800 font-medium md:ml-2">Report New Incident</span>
-                            </div>
-                        </li>
-                    </ol>
-                </nav>
-            </div>
-            <div>
-                <button class="px-4 py-2 border border-slate-200 rounded-button text-sm flex items-center">
-                    <div class="w-4 h-4 flex items-center justify-center mr-2">
-                        <i class="ri-question-line"></i>
-                    </div>
-                    <span>Help</span>
-                </button>
-            </div>
-        </div>
-    </header>
+    {% include 'includes/header.html' %}
 
     <!-- Incident Report Form -->
     <div class="px-6 py-6">

@@ -233,40 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Location type selection
-    const typeOptions = document.querySelectorAll('.location-type-option');
-    const configSections = {
-        intersection: document.getElementById('intersection-config'),
-        camera: document.getElementById('camera-config'),
-        sensor: document.getElementById('sensor-config')
-    };
-    
-    typeOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            // Remove selected class from all options
-            typeOptions.forEach(opt => opt.classList.remove('selected'));
-            
-            // Add selected class to clicked option
-            this.classList.add('selected');
-            
-            // Get the selected type
-            const selectedType = this.dataset.type;
-            
-            // Hide all config sections
-            Object.values(configSections).forEach(section => {
-                section.style.display = 'none';
-            });
-            
-            // Show the selected config section
-            if (configSections[selectedType]) {
-                configSections[selectedType].style.display = 'block';
-            }
-            
-            // Update preview
-            updatePreview();
-        });
-    });
-    
+
     // Form input listeners for live preview
     const previewFields = [
         { input: 'location-name', preview: 'preview-name' },

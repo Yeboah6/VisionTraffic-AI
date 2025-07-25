@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="main-content min-h-screen pb-8">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="flex items-center justify-between px-6 py-4">
+            <div class="flex items-center">
+                <a href="{{ url_for('sensor.sensor') }}" class="mr-4 text-slate-500 hover:text-primary">
+                    <i class="ri-arrow-left-line"></i>
+                </a>
+                <h1 class="text-xl font-semibold text-slate-800">Add New Sensor</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="{{ url_for('sensor.sensor') }}" class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm">
+                    <span>Cancel</span>
+                </a>
+                <button type="submit" form="sensor-form" class="px-4 py-2 bg-primary text-white rounded-button text-sm">
+                    <span>Save Sensor</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sensor Form -->
+    <div class="px-6 py-6">
+        <form id="sensor-form" method="POST" action="">
+            <div class="card form-section">
+                <!-- Location Selection -->
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="ri-map-pin-line"></i>
+                    </div>
+                    <h2 class="text-lg font-medium">Location Assignment</h2>
+                </div>
+                
+                <div class="form-group">
+                    <label for="location" class="form-label form-required">Attach to Location</label>
+                    <select id="location" name="location_id" class="form-control form-select" required>
+                        <option value="">Select a location</option>
+                        {% for location in locations %}
+                        <option value="{{ location.id }}" {% if preset_location == location.id %}selected{% endif %}>
+                            {{ location.name }} ({{ location.id }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Sensor Configuration -->
+                <div class="section-header mt-6">
+                    <div class="section-icon">
+                        <i class="ri-sensor-line"></i>
+                    </div>
+                    <h2 class="text-lg font-medium">Sensor Specifications</h2>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="sensor-id" class="form-label">Sensor ID</label>
+                        <input type="text" id="sensor-id" name="sensor_id" class="form-control" placeholder="Auto-generated if empty">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sensor-type" class="form-label form-required">Sensor Type</label>
+                        <select id="sensor-type" name="sensor_type" class="form-control form-select" required>
+                            <option value="inductive-loop">Inductive Loop</option>
+                            <option value="radar">Radar</option>
+                            <option value="lidar">LiDAR</option>
+                            <option value="video">Video Detection</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sensor-lanes" class="form-label">Lanes Monitored</label>
+                        <input type="number" id="sensor-lanes" name="lanes" class="form-control" min="1" max="8" value="2">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sensor-direction" class="form-label">Direction</label>
+                        <select id="sensor-direction" name="direction" class="form-control form-select">
+                            <option value="north">Northbound</option>
+                            <option value="south">Southbound</option>
+                            <option value="east">Eastbound</option>
+                            <option value="west">Westbound</option>
+                            <option value="all">All Directions</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Installation Details -->
+                <div class="section-header mt-6">
+                    <div class="section-icon">
+                        <i class="ri-tools-line"></i>
+                    </div>
+                    <h2 class="text-lg font-medium">Installation Details</h2>
+                </div>
+                
+                <div class="form-group">
+                    <label for="install-date" class="form-label">Installation Date</label>
+                    <input type="date" id="install-date" name="install_date" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="install-notes" class="form-label">Installation Notes</label>
+                    <textarea id="install-notes" name="install_notes" class="form-control form-textarea" placeholder="Any special installation requirements"></textarea>
+                </div>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock %}

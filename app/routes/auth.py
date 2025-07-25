@@ -2,8 +2,9 @@ from flask import Blueprint, render_template, request,jsonify, redirect, url_for
 from flask_jwt_extended import get_jwt_identity, create_access_token, set_access_cookies, unset_jwt_cookies, jwt_required, get_jwt
 from ..models.user import User
 from .. import db
-from app.forms import RegisterForm, LoginForm
+from app.forms.forms import RegisterForm, LoginForm
 import bcrypt
+from flask_login import login_user
 from datetime import timedelta
 
 auth_bp = Blueprint('auth', __name__)
@@ -19,7 +20,7 @@ def login():
             access_token = create_access_token(
                 identity=user.email,
                 # additional_claims={"user_id": user.id}
-                expires_delta = timedelta(minutes=30)  # Set token expiration time
+                expires_delta = timedelta(minutes=60)  # Set token expiration time
             )
             
             # Prepare response
@@ -31,6 +32,7 @@ def login():
         
         flash('Invalid email or password', 'danger')
     
+    # flash('Your session has expired. Please login again.', 'danger')
     return render_template('auth/login.html', form=form)
 
 @auth_bp.route('/register', methods=['GET', 'POST'])

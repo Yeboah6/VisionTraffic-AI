@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Add this at the top of your form -->
+{% if form.errors %}
+<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+    <strong>Form Errors:</strong>
+    <ul>
+        {% for field, errors in form.errors.items() %}
+            {% for error in errors %}
+                <li>{{ field }}: {{ error }}</li>
+            {% endfor %}
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<!-- Main Content -->
+<main class="main-content min-h-screen pb-8">
+    <!-- Header -->
+    {% include 'includes/header.html' %}
+
+    <!-- Add Location Content -->
+    <div class="px-6 py-6">
+        <form action="{{ url_for('loc.addLocation') }}" method="POST">
+            {{ form.hidden_tag() }}
+        <div class="location-form-container">
+            <!-- Basic Information Section -->
+            <div class="card form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="ri-information-line"></i>
+                    </div>
+                    <h2 class="text-lg font-medium">Basic Information</h2>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        {{ form.name.label(class="form-label form-required") }}
+                        {{ form.name(class="form-control", placeholder="e.g. Main St & 5th Ave", id="location-name") }}
+                         {% for error in form.name.errors %}
+                            <span class="text-red-500 text-xs">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.id.label(class="form-label") }}
+                        {{ form.id(class="form-control", placeholder="Auto-generated") }}
+                         {% for error in form.name.errors %}
+                            <span class="text-red-500 text-xs">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.zone.label(class="form-label form-required") }}
+                        {{ form.zone(class="form-control form-select", id="location-zone") }}
+                        {% for error in form.zone.errors %}
+                            <span class="text-red-500 text-xs">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.priority.label(class="form-label") }}
+                        {{ form.priority(class="form-control form-select") }}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control form-textarea", placeholder="Additional details about this location") }}
+                </div>
+            </div>
+
+            <!-- Location Type Section -->
+            <div class="card form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="ri-category-line"></i>
+                    </div>
+                    <h2 class="text-lg font-medium">Location Type</h2>
+                </div>
+                
+                <div class="location-type-selector">
+                    <div class="location-type-option selected">
+                        <div class="location-type-icon intersection-icon">
+                            <i class="ri-traffic-light-line"></i>
+                        </div>
+                        <h3 class="font-medium">Intersection</h3>
+                        <p class="text-sm text-slate-500">Traffic lights and signals</p>
+                    </div>
+                </div>
+                
+                <!-- Dynamic form based on selected type -->
+                <div class="device-configuration">
+                    <h3 class="font-medium mb-4">Intersection Configuration</h3>
+                    <div class="form">
+                        <div class="form-group">
+                            {{ form.intersection_type.label(class="form-label") }}
+                            {{ form.intersection_type(class="form-control") }}
+                        </div>
+                        
+                        {# {{ form.pedestrian_crossing(class="form-control") }} #}
+
+                        <!-- After: -->
+                        <div class="form-check">
+                            {{ form.pedestrian_crossing(class="form-check-input") }}
+                            {{ form.pedestrian_crossing.label(class="form-check-label") }}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.bicycle_lanes.label(class="form-label") }}
+                            {{ form.bicycle_lanes(class="form-control") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geographic Information Section -->
+            <div class="card form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="ri-map-pin-line"></i>
+                    </div>
+                    <h2 class="text-lg font-medium">Geographic Information</h2>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.address.label(class="form-label") }}
+                    {{ form.address(class="form-control", placeholder="Enter Street Address", id="location-address") }}
+                    {% for error in form.address.errors %}
+                        <span class="text-red-500 text-xs">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        {{ form.city.label(class="form-label") }}
+                        {{ form.city(class="form-control", placeholder="Enter City") }}
+                        {% for error in form.city.errors %}
+                            <span class="text-red-500 text-xs">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.state.label(class="form-label") }}
+                        {{ form.state(class="form-control", placeholder="Enter State e.g, Regions") }}
+                        {% for error in form.state.errors %}
+                            <span class="text-red-500 text-xs">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.postal_code.label(class="form-label") }}
+                        {{ form.postal_code(class="form-control", placeholder="Enter Postal Code") }}
+                        {% for error in form.postal_code.errors %}
+                            <span class="text-red-500 text-xs">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.country.label(class="form-label") }}
+                        {{ form.country(class="form-control") }}
+                        {% for error in form.country.errors %}
+                            <span class="text-red-500 text-xs">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Coordinates</label>
+                    <div class="coordinates-input">
+                        {{ form.lat(class="form-control", placeholder="Latitude", id="location-lat") }}
+                        {{ form.lng(class="form-control", placeholder="Longtitude", id="location-lng") }}
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">Click on the map to set coordinates or enter manually</p>
+                </div>
+                
+                <div class="map-preview">
+                    <div class="map-marker"></div>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="location-preview">
+                <div class="preview-header">
+                    <div class="preview-icon intersection-icon">
+                        <i class="ri-traffic-light-line"></i>
+                    </div>
+                    <h2 class="text-lg font-medium">Location Preview</h2>
+                </div>
+                
+                <div class="preview-details">
+                    <div class="preview-item">
+                        <div class="preview-label">Location Name</div>
+                        <div class="preview-value" id="preview-name">-</div>
+                    </div>
+                    
+                    <div class="preview-item">
+                        <div class="preview-label">Location ID</div>
+                        <div class="preview-value" id="preview-id">Auto-generated</div>
+                    </div>
+                    
+                    <div class="preview-item">
+                        <div class="preview-label">Type</div>
+                        <div class="preview-value" id="preview-type">Intersection</div>
+                    </div>
+                    
+                    <div class="preview-item">
+                        <div class="preview-label">Zone</div>
+                        <div class="preview-value" id="preview-zone">-</div>
+                    </div>
+                    
+                    <div class="preview-item">
+                        <div class="preview-label">Priority</div>
+                        <div class="preview-value" id="preview-priority">Medium</div>
+                    </div>
+                    
+                    <div class="preview-item">
+                        <div class="preview-label">Status</div>
+                        <div class="preview-value">Pending Activation</div>
+                    </div>
+                    
+                    <div class="preview-item">
+                        <div class="preview-label">Address</div>
+                        <div class="preview-value" id="preview-address">-</div>
+                    </div>
+                    
+                    <div class="preview-item">
+                        <div class="preview-label">Coordinates</div>
+                        <div class="preview-value" id="preview-coords">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="reset" class="px-4 py-2 border border-slate-200 bg-white rounded-button">
+                    <span>Cancel</span>
+                </button>
+                <button type="submit" class="px-4 py-2 bg-primary text-white rounded-button">
+                    <span>{{ form.submit.label()}}</span>
+                </button>
+            </div>
+        </div>
+        </form>
+    </div>
+</main>
+
+// Add this to your template
+<script>
+document.querySelector('form').addEventListener('submit', function(e) {
+    console.log('Form data:', Object.fromEntries(new FormData(this)));
+});
+</script>
+
+{% endblock %}

@@ -5,49 +5,64 @@
         
         <nav class="mt-6 px-4">
             <div class="space-y-1">
-                <a href="{{ url_for('main.dashboard') }}" class="flex items-center px-4 py-3 text-white bg-primary rounded-button">
+                <a href="{{ url_for('main.dashboard') }}"
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'main.dashboard' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-dashboard-line"></i>
                     </div>
                     <span>Dashboard</span>
                 </a>
                 
-                <a href="{{ url_for('main.location') }}" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 rounded-button">
+                <a href="{{ url_for('loc.location') }}"
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'loc.location' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-map-pin-line"></i>
                     </div>
                     <span>Location</span>
                 </a>
 
-                <a href="{{ url_for('main.signalControl') }}" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 rounded-button">
+                <a href="{{ url_for('signal.signals') }}"
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'signal.signals' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-bar-chart-line"></i>
                     </div>
                     <span>Signal Control</span>
                 </a>
 
-                <a href="{{ url_for('main.camera') }}" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 rounded-button">
+                <a href="{{ url_for('camera.camera') }}"
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'camera.camera' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-camera-line"></i>
                     </div>
                     <span>Camera Network</span>
                 </a>
+
+                <a href="{{ url_for('sensor.sensor') }}"
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'sensor.sensor' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+                    <div class="w-5 h-5 flex items-center justify-center mr-3">
+                        <i class="ri-camera-line"></i>
+                    </div>
+                    <span>Sensors</span>
+                </a>
                 
-                <a href="{{ url_for('main.incident') }}" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 rounded-button">
+                <a href="{{ url_for('incident.incident') }}"
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'incident.incident' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-alert-line"></i>
                     </div>
                     <span>Incidents</span>
                 </a>
                 
-                <a href="{{ url_for('main.report') }}" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 rounded-button">
+                <a href="{{ url_for('main.report') }}"
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'main.report' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-file-chart-line"></i>
                     </div>
                     <span>Reports</span>
                 </a>
                 
-                <a href="{{ url_for('main.settings') }}" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 rounded-button">
+                <a href="{{ url_for('main.settings') }}"
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'main.settings' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-settings-line"></i>
                     </div>
