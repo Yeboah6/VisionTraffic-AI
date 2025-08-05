@@ -87,3 +87,45 @@ def addLocation():
                          user=user,
                          current_date=datetime.now().strftime("%B %d, %Y"),
                          current_time=datetime.now().strftime("%I:%M %p"))
+
+
+@loc_bp.route('/locations/<uuid:location_id>')
+@jwt_required_redirect
+def viewLocation(location_id):
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(email=current_user).first_or_404()
+    location = Location.query.get_or_404(location_id)
+    
+    return render_template('locations/view.html',
+                         location=location,
+                         user=user,
+                         current_date=datetime.now().strftime("%B %d, %Y"),
+                         current_time=datetime.now().strftime("%I:%M %p"))
+    
+
+@loc_bp.route('/locations/<uuid:location_id>/edit', methods=['GET', 'POST'])
+@jwt_required_redirect
+def editLocation(location_id):
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(email=current_user).first_or_404()
+    location = Location.query.get_or_404(location_id)
+    form = LocationForm(obj=location)  # Pre-populate form with location data
+
+    if form.validate_on_submit():
+        try:
+            form.populate_obj(location)  # Update location with form data
+            location.updated_at = datetime.utcnow()
+            db.session.commit()
+            flash('Location updated successfully!', 'success')
+            return redirect(url_for('loc.viewLocation', location_id=location.id))
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error updating location: {str(e)}")
+            flash(f'Error updating location: {str(e)}', 'error')
+
+    return render_template('locations/edit.html',
+                         form=form,
+                         location=location,
+                         user=user,
+                         current_date=datetime.now().strftime("%B %d, %Y"),
+                         current_time=datetime.now().strftime("%I:%M %p"))

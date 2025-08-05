@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Main Content -->
+<main class="main-content min-h-screen pb-8">
+    <!-- Header -->
+    {% include 'includes/header.html' %}
+
+    <!-- View Location Content -->
+    <div class="px-6 py-6">
+        <div class="location-view-container">
+            <!-- Location Details Card -->
+            <div class="card location-card">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center">
+                        <div class="location-type-icon intersection-icon mr-4">
+                            <i class="ri-traffic-light-line"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold">{{ location.name }}</h2>
+                    </div>
+                    <span class="location-status status-{{ location.status }}">
+                        {{ location.status }}
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Basic Information -->
+                    <div class="details-section">
+                        <h3 class="section-title">Basic Information</h3>
+                        <div class="detail-item">
+                            <span class="detail-label">Location ID</span>
+                            <span class="detail-value">{{ location.id }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Zone</span>
+                            <span class="detail-value">{{ location.zone }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Priority</span>
+                            <span class="detail-value">{{ location.priority }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Description</span>
+                            <span class="detail-value">{{ location.description or 'N/A' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Intersection Configuration -->
+                    <div class="details-section">
+                        <h3 class="section-title">Intersection Details</h3>
+                        <div class="detail-item">
+                            <span class="detail-label">Intersection Type</span>
+                            <span class="detail-value">{{ location.intersection_type}}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Pedestrian Crossing</span>
+                            <span class="detail-value">
+                                {% if location.pedestrian_crossing %}Yes{% else %}No{% endif %}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Bicycle Lanes</span>
+                            <span class="detail-value">{{ location.bicycle_lanes}}</span>
+                        </div>
+                    </div>
+
+                    <!-- Geographic Information -->
+                    <div class="details-section col-span-1 md:col-span-2">
+                        <h3 class="section-title">Geographic Information</h3>
+                        <div class="detail-item">
+                            <span class="detail-label">Address</span>
+                            <span class="detail-value">{{ location.address }}</span>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="detail-item">
+                                <span class="detail-label">City</span>
+                                <span class="detail-value">{{ location.city }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">State</span>
+                                <span class="detail-value">{{ location.state }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Postal Code</span>
+                                <span class="detail-value">{{ location.postal_code }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Country</span>
+                                <span class="detail-value">{{ location.country }}</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Coordinates</span>
+                            <span class="detail-value">
+                                {{ location.lat }}, {{ location.lng }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Map Preview -->
+                    <!-- <div class="map-preview col-span-1 md:col-span-2 h-64">
+                        Map integration would go here
+                        <div class="map-marker" data-lat="{{ location.lat }}" data-lng="{{ location.lng }}"></div>
+                    </div> -->
+
+                    <div id="map" class="map-container mb-6"></div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-4 mt-6">
+                <a href="{{ url_for('loc.location') }}" class="px-4 py-2 border border-slate-200 bg-white rounded-button">
+                    Back to List
+                </a>
+                <a href="{{ url_for('loc.editLocation', location_id=location.id) }}" class="px-4 py-2 bg-primary text-white rounded-button">
+                    Edit Location
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+const map = L.map('map').setView([{{ location.lat }}, {{ location.lng }}], 15);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+L.marker([{{ location.lat }}, {{ location.lng }}]).addTo(map)
+    .bindPopup('{{ location.name }}');
+</script>
+
+{% endblock %}

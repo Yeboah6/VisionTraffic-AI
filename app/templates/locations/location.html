@@ -148,10 +148,10 @@
                     </div>
                 </div>
                 <div class="location-actions">
-                    <a href="" class="px-3 py-1 border border-slate-200 rounded-button text-xs flex items-center">
+                    <a href="{{ url_for('loc.viewLocation', location_id=location.id) }}" class="px-3 py-1 border border-slate-200 rounded-button text-xs flex items-center">
                         <i class="ri-eye-line mr-1"></i> View
                     </a>
-                    <a href="#" class="px-3 py-1 border border-slate-200 rounded-button text-xs flex items-center">
+                    <a href="{{ url_for('loc.editLocation', location_id=location.id) }}" class="px-3 py-1 border border-slate-200 rounded-button text-xs flex items-center">
                         <i class="ri-pencil-line mr-1"></i> Edit
                     </a>
                     <a href="#" class="px-3 py-1 border border-slate-200 rounded-button text-xs flex items-center">

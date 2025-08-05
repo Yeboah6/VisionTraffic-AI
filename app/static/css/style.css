@@ -667,6 +667,17 @@ input:checked + .switch-slider:before {
     transition: all 0.2s ease;
 }
 
+/* .map-container {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+} */
+
+.leaflet-container {
+    height: 100%;
+    width: 100%;
+}
+
 .location-card:hover {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
@@ -739,6 +750,7 @@ input:checked + .switch-slider:before {
     margin-bottom: 20px;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .map-overlay {

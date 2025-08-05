@@ -14,7 +14,7 @@
                 </a>
                 
                 <a href="{{ url_for('loc.location') }}"
-                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'loc.location' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+                    class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('loc') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-map-pin-line"></i>
                     </div>
@@ -22,7 +22,7 @@
                 </a>
 
                 <a href="{{ url_for('signal.signals') }}"
-                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'signal.signals' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('signal') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-bar-chart-line"></i>
                     </div>
@@ -30,7 +30,7 @@
                 </a>
 
                 <a href="{{ url_for('camera.camera') }}"
-                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'camera.camera' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('camera') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-camera-line"></i>
                     </div>
@@ -38,7 +38,7 @@
                 </a>
 
                 <a href="{{ url_for('sensor.sensor') }}"
-                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'sensor.sensor' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('sensor') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-camera-line"></i>
                     </div>
@@ -46,7 +46,7 @@
                 </a>
                 
                 <a href="{{ url_for('incident.incident') }}"
-                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'incident.incident' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('incident') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-alert-line"></i>
                     </div>
@@ -54,7 +54,7 @@
                 </a>
                 
                 <a href="{{ url_for('main.report') }}"
-                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'main.report' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('main.report') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-file-chart-line"></i>
                     </div>
@@ -62,7 +62,7 @@
                 </a>
                 
                 <a href="{{ url_for('main.settings') }}"
-                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'main.settings' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('main.settings') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-settings-line"></i>
                     </div>

@@ -235,9 +235,9 @@
 
             <!-- Form Actions -->
             <div class="form-actions">
-                <button type="reset" class="px-4 py-2 border border-slate-200 bg-white rounded-button">
-                    <span>Cancel</span>
-                </button>
+                <a href="{{ url_for('loc.location') }}" class="px-4 py-2 border border-slate-200 bg-white rounded-button">
+                    Cancel
+                </a>
                 <button type="submit" class="px-4 py-2 bg-primary text-white rounded-button">
                     <span>{{ form.submit.label()}}</span>
                 </button>
