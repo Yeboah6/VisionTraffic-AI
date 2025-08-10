@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+
+<main class="main-content min-h-screen pb-8">
+  <!-- Header with back button -->
+  <header class="bg-white shadow-sm">
+    <div class="flex items-center justify-between px-6 py-4">
+      <div class="flex items-center">
+        <a href="{{ url_for('signal.list') }}" class="flex items-center text-slate-600 hover:text-primary mr-4">
+          <i class="ri-arrow-left-line"></i>
+          <span class="ml-1 text-sm">Back</span>
+        </a>
+        <h1 class="text-xl font-semibold text-slate-800">Signal Details</h1>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span class="px-3 py-1 rounded-full text-xs 
+          {{ 'bg-green-100 text-green-800' if signal.is_active else 'bg-red-100 text-red-800' }}">
+          {{ 'Active' if signal.is_active else 'Inactive' }}
+        </span>
+        <a href="{{ url_for('signal.edit', id=signal.id) }}" 
+           class="px-4 py-2 bg-primary text-white rounded-button text-sm">
+          Edit Signal
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Signal Details Card -->
+  <div class="px-6 py-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Main Details -->
+      <div class="card col-span-2">
+        <div class="p-4 border-b">
+          <h2 class="font-semibold">Basic Information</h2>
+        </div>
+        <div class="p-6 grid grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm text-slate-500 mb-1">Signal ID</label>
+            <p class="font-medium">{{ signal.id }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-slate-500 mb-1">Location</label>
+            <p class="font-medium">{{ signal.location_id }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-slate-500 mb-1">Intersection</label>
+            <p class="font-medium">{{ signal.intersection_name or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-slate-500 mb-1">Direction</label>
+            <p class="font-medium">{{ signal.direction|capitalize }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Technical Specs -->
+      <div class="card">
+        <div class="p-4 border-b">
+          <h2 class="font-semibold">Technical Specifications</h2>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                  <label class="block text-sm text-slate-500 mb-1">Status</label>
+                  <p class="font-medium">{{ 'Active' if signal.is_active else 'Inactive' }}</p>
+                </div>
+                <button onclick="toggleStatus('{{ signal.id }}')" 
+                        class="toggle-btn flex items-center {{ 'justify-end bg-primary' if signal.is_active else 'justify-start bg-slate-200' }} 
+                               w-14 h-7 rounded-full p-1 transition-all duration-300">
+                  <span class="w-5 h-5 bg-white rounded-full shadow-md"></span>
+                </button>
+              </div>
+          <div>
+            <label class="block text-sm text-slate-500 mb-1">Controller Type</label>
+            <p class="font-medium">{{ signal.controller_type }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-slate-500 mb-1">IP Address</label>
+            <p class="font-medium">{{ signal.ip_address or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-slate-500 mb-1">Protocol</label>
+            <p class="font-medium">{{ signal.protocol }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Log (Example) -->
+    </div>
+  </div>
+</main>
+
+{% endblock %}

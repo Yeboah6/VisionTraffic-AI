@@ -74,13 +74,13 @@ def addLocation():
             flash(f'Error saving location: {str(e)}', 'error')
     
     # Handle form errors
-    if form.errors:
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f'{field}: {error}', 'error')
+    # if form.errors:
+    #     for field, errors in form.errors.items():
+    #         for error in errors:
+    #             flash(f'{field}: {error}', 'error')
                 
     # Add this to your route temporarily
-    print("Database URL:", current_app.config['SQLALCHEMY_DATABASE_URI'])
+    # print("Database URL:", current_app.config['SQLALCHEMY_DATABASE_URI'])
     
     return render_template('locations/add.html',
                          form=form,

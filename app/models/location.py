@@ -37,5 +37,8 @@ class Location(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     creator = db.relationship('User', backref='locations')
     
+    # Relationship
+    signals = db.relationship('Signal', backref='locations', lazy=True)
+    
     def __repr__(self):
         return f'<Location {self.id}: {self.name}>'

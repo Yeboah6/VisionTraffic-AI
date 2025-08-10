@@ -5,12 +5,11 @@ app = create_app()
 with app.app_context():
     db.create_all()
     
-    # from sqlalchemy import text
-    # try:
-    #     db.session.execute(text('CREATE EXTENSION IF NOT EXISTS postgis'))
-    #     db.session.commit()
-    # except Exception as e:
-    #     app.logger.error(f"Failed to enable PostGIS: {str(e)}")
+# Register the template filter for datetime formatting
+@app.template_filter('datetimeformat')
+def datetimeformat(value, format='%Y-%m-%d %H:%M'):
+    """Format datetime objects for templates."""
+    return value.strftime(format) if value else ''
 
 if __name__ == '__main__':
     app.run(debug = True)
