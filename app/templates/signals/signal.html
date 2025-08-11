@@ -23,7 +23,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="w-40">
+                <!-- <div class="w-40">
                     <label class="block text-xs text-slate-500 mb-1">View Mode</label>
                     <div class="relative">
                         <select class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm bg-white custom-select pr-8">
@@ -32,26 +32,20 @@
                             <option>Simulation</option>
                         </select>
                     </div>
-                </div>
+                </div> -->
             </div>
             <div class="flex items-center space-x-3">
-                <a href="{{ url_for('auth.refresh_token') }}" class="px-4 py-2 bg-primary text-white rounded-button text-sm flex items-center">
-                    <div class="w-4 h-4 flex items-center justify-center mr-2">
-                        <i class="ri-refresh-line"></i>
-                    </div>
-                    <span>Refresh Data</span>
-                </a>
                 <a href="{{ url_for('signal.list') }}" class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm flex items-center">
                     <div class="w-4 h-4 flex items-center justify-center mr-2">
-                        <i class="ri-history-line"></i>
+                        <i class="ri-eye-line"></i>
                     </div>
                     <span>View Signals</span>
                 </a>
-                <a href="{{ url_for('signal.signalManage') }}" class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm flex items-center">
+                <a href="{{ url_for('signal.signalManage') }}" class="px-4 py-2 bg-primary text-white rounded-button text-sm flex items-center">
                     <div class="w-4 h-4 flex items-center justify-center mr-2">
-                        <i class="ri-settings-3-line"></i>
+                        <i class="ri-add-line mr-2"></i>
                     </div>
-                    <span>Signal Management</span>
+                    <span>Add Signal</span>
                 </a>
             </div>
         </div>

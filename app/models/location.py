@@ -1,6 +1,6 @@
 from app import db
 from geoalchemy2 import Geometry
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from datetime import datetime
 
@@ -8,7 +8,7 @@ class Location(db.Model):
     __tablename__ = 'locations'
     
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = db.Column(db.String(100), nullable=False, index=True)
+    name = db.Column(db.String(100), nullable=False, index=True) 
     zone = db.Column(db.String(50), nullable=False, index=True)
     priority = db.Column(db.String(20), default='medium', index=True)
     description = db.Column(db.Text)
@@ -39,6 +39,7 @@ class Location(db.Model):
     
     # Relationship
     signals = db.relationship('Signal', backref='locations', lazy=True)
+    cameras = db.relationship('Camera', back_populates='location', lazy=True)
     
     def __repr__(self):
         return f'<Location {self.id}: {self.name}>'

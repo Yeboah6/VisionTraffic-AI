@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block content %}
+
+<main class="main-content min-h-screen pb-8">
+    <!-- Header with breadcrumbs -->
+    <header class="bg-white shadow-sm">
+        <div class="flex items-center justify-between px-6 py-4">
+            <div class="flex items-center">
+                <a href="{{ url_for('camera.camera') }}" class="flex items-center text-slate-600 hover:text-primary mr-4">
+                    <i class="ri-arrow-left-line"></i>
+                    <span class="ml-1 text-sm">All Cameras</span>
+                </a>
+                <h1 class="text-xl font-semibold text-slate-800">{{ camera.display_id }}</h1>
+                <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
+                    {{ camera.location.name if camera.location else 'Unassigned' }}
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span class="px-3 py-1 rounded-full text-xs 
+                      {{ 'bg-green-100 text-green-800' if camera.is_active else 'bg-red-100 text-red-800' }}">
+                    {{ 'Online' if camera.is_active else 'Offline' }}
+                </span>
+                <a href="{{ url_for('camera.edit', id=camera.id) }}" 
+                   class="px-4 py-2 bg-primary text-white rounded-button text-sm">
+                    Edit Camera
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Camera Details Grid -->
+    <div class="px-6 py-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Camera Specifications -->
+            <div class="card col-span-2">
+                <div class="p-4 border-b">
+                    <h2 class="font-semibold">Technical Specifications</h2>
+                </div>
+                <div class="p-6 grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm text-slate-500 mb-1">Camera Type</label>
+                        <p class="font-medium">{{ camera.camera_type|title }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-500 mb-1">Manufacturer</label>
+                        <p class="font-medium">{{ camera.manufacturer|capitalize }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-500 mb-1">Resolution</label>
+                        <p class="font-medium">{{ camera.resolution }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-500 mb-1">Frame Rate</label>
+                        <p class="font-medium">{{ camera.frame_rate }} fps</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-500 mb-1">IP Address</label>
+                        <p class="font-medium">{{ camera.ip_address }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-500 mb-1">Stream URL</label>
+                        <p class="font-medium">rtsp://{{ camera.username }}:••••@{{ camera.ip_address }}:{{ camera.port }}/{{ camera.stream_url_path }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Card -->
+            <div class="card">
+                <div class="p-4 border-b">
+                    <h2 class="font-semibold">Status</h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm text-slate-500 mb-1">Connection</label>
+                        <div class="flex items-center">
+                            <span class="w-2 h-2 rounded-full mr-2 
+                                  {{ 'bg-green-500' if camera.is_active else 'bg-red-500' }}"></span>
+                            <span>{{ 'Active' if camera.is_active else 'Inactive' }}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-500 mb-1">Assigned Signal</label>
+                        {% if camera.signal %}
+                        <a href="{{ url_for('signal.view', id=camera.signal.id) }}" class="text-primary font-medium">
+                            {{ camera.signal.display_id }}
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('camera.assign_signal', id=camera.id) }}" class="text-primary text-sm">
+                            <i class="ri-add-line mr-1"></i> Assign Signal
+                        </a>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-500 mb-1">Last Active</label>
+                        <p>{{ camera.last_active|default('Never', true) }}</p>
+                    </div>
+                    <div>
+                        <button onclick="testConnection()" class="w-full px-4 py-2 border border-slate-200 rounded-button text-sm">
+                            <i class="ri-refresh-line mr-1"></i> Test Connection
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Stream Preview -->
+            <div class="card col-span-3">
+                <div class="p-4 border-b">
+                    <h2 class="font-semibold">Live Preview</h2>
+                </div>
+                <div class="p-6">
+                    <div class="aspect-video bg-slate-100 rounded-lg flex items-center justify-center">
+                        {% if camera.is_active %}
+                        <div class="relative w-full h-full">
+                            <!-- In production: RTSP stream would be embedded here -->
+                            <div class="absolute inset-0 bg-black flex items-center justify-center text-white">
+                                <div class="text-center">
+                                    <i class="ri-live-line text-2xl mb-2"></i>
+                                    <p>Live Stream: {{ camera.display_id }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center p-6">
+                            <i class="ri-error-warning-line text-3xl text-slate-400 mb-2"></i>
+                            <p class="text-slate-500">Camera is currently offline</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+async function testConnection() {
+    const response = await fetch("{{ url_for('camera.test_connection', id=camera.id) }}");
+    const result = await response.json();
+    if (result.success) {
+        alert("Connection test successful!");
+    } else {
+        alert("Connection failed: " + result.message);
+    }
+}
+</script>
+{% endblock %}

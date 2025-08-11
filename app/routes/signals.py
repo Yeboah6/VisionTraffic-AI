@@ -7,7 +7,6 @@ from ..models.location import Location
 from app.models.signal import Signal
 from app.forms.signal import SignalForm
 from app import db
-import uuid
 
 signal_bp = Blueprint('signal', __name__)
 
@@ -78,9 +77,20 @@ def signalManage():
                            )
 
 @signal_bp.route('/signals/list')
+@jwt_required_redirect
 def list():
+    
+    now = datetime.now()
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(email = current_user).first()
+    
     signals = Signal.query.order_by(Signal.id).all()
-    return render_template('signals/list.html', signals=signals)    
+    return render_template('signals/list.html',
+                           user = user,
+                           current_date = now.strftime("%B %d, %Y"), 
+                           current_time = now.strftime("%I:%M %p"),
+                           signals=signals
+                           )    
 
 @signal_bp.route('/signals/<string:id>')
 def view(id):

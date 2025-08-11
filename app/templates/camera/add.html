@@ -51,7 +51,22 @@
                 <p class="text-sm text-slate-500 mt-1">Add a new camera to your traffic monitoring network</p>
             </div>
             <div class="p-6">
-                <form id="addCameraForm">
+                <form action="{{ url_for('camera.addCamera') }}" id="addCameraForm" method="POST">
+                    {{ form.hidden_tag() }}
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">
+                                    {{ message }}
+                                    {% if request.args.get('expired') %}
+                                        <p>Your session has expired. Please login again.</p>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
                     <!-- Section 1: Basic Information -->
                     <div class="camera-registration-section">
                         <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
@@ -60,41 +75,42 @@
                         </h3>
                         <div class="grid grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Camera ID*</label>
-                                <input type="text" required class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="CAM_MAIN_001">
+                                {{ form.display_id.label(class='form-label form-required') }}
+                                {{ form.display_id(class='form-control form-required', placeholder="CAM_MAIN_001") }}
+                                {% for error in form.display_id.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                                 <p class="text-xs text-slate-500 mt-1">Unique identifier (letters, numbers, and underscores only)</p>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Display Name</label>
-                                <input type="text" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="Main Street Camera">
+                                {{ form.name.label(class='form-label') }}
+                                {{ form.name(class='form-control', placeholder="Main Street Camera") }}
+                                {% for error in form.name.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                         </div>
                         <div class="grid grid-cols-3 gap-6 mt-4">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Camera Type*</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select type...</option>
-                                    <option>Fixed</option>
-                                    <option>PTZ</option>
-                                    <option>Traffic Light</option>
-                                    <option>License Plate</option>
-                                    <option>Panoramic</option>
-                                </select>
+                                {{ form.camera_type.label(class='form-label form-required') }}
+                                {{ form.camera_type(class='form-control form-select') }}
+                                {% for error in form.camera_type.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Manufacturer*</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select brand...</option>
-                                    <option>Hikvision</option>
-                                    <option>Dahua</option>
-                                    <option>Axis</option>
-                                    <option>Bosch</option>
-                                    <option>Other</option>
-                                </select>
+                                {{ form.manufacturer.label(class='form-label form-required') }}
+                                {{ form.manufacturer(class='form-control form-select') }}
+                                {% for error in form.manufacturer.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Model Number</label>
-                                <input type="text" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="DS-2CD2342WD-I">
+                                {{ form.model_number.label(class='form-label form-required') }}
+                                {{ form.model_number(class='form-control', placeholder="DS-2CD2342WD-I") }}
+                                {% for error in form.model_number.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
@@ -107,55 +123,53 @@
                         </h3>
                         <div class="grid grid-cols-3 gap-6">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Resolution*</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select resolution...</option>
-                                    <option>720p (HD)</option>
-                                    <option>1080p (Full HD)</option>
-                                    <option>2K</option>
-                                    <option selected>4K (UHD)</option>
-                                    <option>5MP</option>
-                                    <option>8MP</option>
-                                </select>
+                                {{ form.resolution.label(class='form-label form-required') }}
+                                {{ form.resolution(class='form-control form-select', placeholder="CAM_MAIN_001") }}
+                                {% for error in form.resolution.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Frame Rate*</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select FPS...</option>
-                                    <option>10fps</option>
-                                    <option>15fps</option>
-                                    <option selected>30fps</option>
-                                    <option>60fps</option>
-                                </select>
+                                {{ form.frame_rate.label(class='form-label form-required') }}
+                                {{ form.frame_rate(class='form-control form-select', placeholder="CAM_MAIN_001") }}
+                                {% for error in form.frame_rate.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">IP Address*</label>
-                                <input type="text" required class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="192.168.1.100">
+                                {{ form.ip_address.label(class='form-label form-required') }}
+                                {{ form.ip_address(class='form-control', placeholder="192.168.1.100") }}
+                                {% for error in form.ip_address.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-6 mt-4">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Stream Protocol*</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select protocol...</option>
-                                    <option selected>RTSP</option>
-                                    <option>RTMP</option>
-                                    <option>HTTP</option>
-                                    <option>HTTPS</option>
-                                </select>
+                                {{ form.stream_protocol.label(class='form-label form-required') }}
+                                {{ form.stream_protocol(class='form-control form-select', placeholder="CAM_MAIN_001") }}
+                                {% for error in form.stream_protocol.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Port*</label>
-                                <input type="number" value="554" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" required>
+                                {{ form.port.label(class='form-label form-required') }}
+                                {{ form.port(class='form-control', placeholder="554") }}
+                                {% for error in form.port.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                         </div>
                         <div class="mt-4">
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Stream URL Path*</label>
+                            {{ form.stream_url_path.label(class='form-label form-required') }}
                             <div class="flex">
                                 <span class="inline-flex items-center px-3 py-2 border border-slate-200 bg-slate-100 text-slate-500 text-sm rounded-l-button">
                                     rtsp://[IP]:[Port]/
                                 </span>
-                                <input type="text" required class="flex-1 px-3 py-2 border-t border-b border-r border-slate-200 rounded-r-button text-sm" placeholder="live.sdp">
+                                {{ form.stream_url_path(class='flex-1 px-3 py-2 border-t border-b border-r border-slate-200 rounded-r-button text-sm', placeholder="live.sdp") }}
+                                {% for error in form.stream_url_path.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                             <p class="text-xs text-slate-500 mt-1">Example: rtsp://192.168.1.100:554/live.sdp</p>
                         </div>
@@ -163,12 +177,18 @@
                             <label class="block text-sm font-medium text-slate-700 mb-1">Credentials</label>
                             <div class="grid grid-cols-2 gap-6">
                                 <div>
-                                    <label class="block text-xs text-slate-500 mb-1">Username</label>
-                                    <input type="text" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="admin">
+                                    {{ form.username.label(class='form-label form-required') }}
+                                    {{ form.username(class='form-control', placeholder="admin") }}
+                                    {% for error in form.username.errors %}
+                                        <span class="text-red-500 text-xs">{{ error }}</span>
+                                    {% endfor %}
                                 </div>
                                 <div>
-                                    <label class="block text-xs text-slate-500 mb-1">Password</label>
-                                    <input type="password" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="••••••••">
+                                    {{ form.password.label(class='form-label form-required') }}
+                                    {{ form.password(class='form-control', placeholder="••••••••") }}
+                                    {% for error in form.password.errors %}
+                                        <span class="text-red-500 text-xs">{{ error }}</span>
+                                    {% endfor %}
                                 </div>
                             </div>
                         </div>
@@ -199,60 +219,30 @@
                         </h3>
                         <div class="grid grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Intersection*</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select intersection...</option>
-                                    <option>Main St & 5th Ave</option>
-                                    <option>Highway 101 North</option>
-                                    <option>Oak Street & 10th Ave</option>
-                                    <option>Maple Road & 3rd Street</option>
-                                    <option>Industrial Blvd</option>
-                                </select>
+                                {{ form.location.label(class='form-label form-required') }}
+                                {{ form.location(class='form-control form-select') }}
+                                {% for error in form.location.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Direction*</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select direction...</option>
-                                    <option>Northbound</option>
-                                    <option>Southbound</option>
-                                    <option>Eastbound</option>
-                                    <option>Westbound</option>
-                                    <option>Northeast</option>
-                                    <option>Northwest</option>
-                                    <option>Southeast</option>
-                                    <option>Southwest</option>
-                                </select>
+                                {{ form.direction.label(class='form-label form-required') }}
+                                {{ form.direction(class='form-control form-select') }}
+                                {% for error in form.direction.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                         </div>
                         <div class="grid grid-cols-3 gap-6 mt-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Latitude*</label>
-                                <input type="number" step="0.000001" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="34.052235" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Longitude*</label>
-                                <input type="number" step="0.000001" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="-118.243683" required>
-                            </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">Elevation (m)</label>
                                 <input type="number" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="25.5">
                             </div>
                         </div>
-                        <div class="mt-4">
-                            <button type="button" class="text-primary text-sm flex items-center">
-                                <i class="ri-map-pin-line mr-1"></i> Pick location from map
-                            </button>
-                        </div>
-                        <div class="location-map-preview">
-                            <div class="text-center">
-                                <i class="ri-map-2-line text-2xl mb-2"></i>
-                                <p class="text-sm">Map preview will appear here</p>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Section 4: AI Processing Features -->
-                    <div class="camera-registration-section">
+                    <!-- <div class="camera-registration-section">
                         <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
                             <span class="section-number">4</span>
                             AI Processing Configuration
@@ -261,20 +251,32 @@
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-3">Enable AI Features</label>
                                 <div class="ai-feature-toggle">
-                                    <input type="checkbox" id="vehicleDetection" class="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary" checked>
-                                    <label for="vehicleDetection" class="text-sm">Vehicle Detection</label>
+                                    {{ form.vehicle_detection(class="form-check-input") }}
+                                    {{ form.vehicle_detection.label(class="form-check-label") }}
+                                    {% for error in form.vehicle_detection.errors %}
+                                        <span class="text-red-500 text-xs">{{ error }}</span>
+                                    {% endfor %}
                                 </div>
                                 <div class="ai-feature-toggle">
-                                    <input type="checkbox" id="pedestrianDetection" class="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary">
-                                    <label for="pedestrianDetection" class="text-sm">Pedestrian Detection</label>
+                                    {{ form.pedestrian_detection(class="form-check-input") }}
+                                    {{ form.pedestrian_detection.label(class="form-check-label") }}
+                                    {% for error in form.pedestrian_detection.errors %}
+                                        <span class="text-red-500 text-xs">{{ error }}</span>
+                                    {% endfor %}
                                 </div>
                                 <div class="ai-feature-toggle">
-                                    <input type="checkbox" id="trafficCounting" class="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary" checked>
-                                    <label for="trafficCounting" class="text-sm">Traffic Counting</label>
+                                    {{ form.traffic_counting(class="form-check-input") }}
+                                    {{ form.traffic_counting.label(class="form-check-label") }}
+                                    {% for error in form.traffic_counting.errors %}
+                                        <span class="text-red-500 text-xs">{{ error }}</span>
+                                    {% endfor %}
                                 </div>
                                 <div class="ai-feature-toggle">
-                                    <input type="checkbox" id="licensePlate" class="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary">
-                                    <label for="licensePlate" class="text-sm">License Plate Recognition</label>
+                                    {{ form.license_plate_recognition(class="form-check-input") }}
+                                    {{ form.license_plate_recognition.label(class="form-check-label") }}
+                                    {% for error in form.license_plate_recognition.errors %}
+                                        <span class="text-red-500 text-xs">{{ error }}</span>
+                                    {% endfor %}
                                 </div>
                             </div>
                             <div>
@@ -288,17 +290,7 @@
                                 <p class="text-xs text-slate-500 mt-2">Standard mode provides the best balance between accuracy and performance for most use cases.</p>
                             </div>
                         </div>
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Associated Traffic Signal</label>
-                            <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
-                                <option value="">Select signal (optional)...</option>
-                                <option>SIG_MAIN_001</option>
-                                <option>SIG_HWY_101</option>
-                                <option>SIG_OAK_010</option>
-                            </select>
-                            <p class="text-xs text-slate-500 mt-1">Linking to a traffic signal enables coordinated AI analysis</p>
-                        </div>
-                    </div>
+                    </div> -->
 
                     <!-- Section 5: Additional Settings -->
                     <div class="camera-registration-section">
@@ -308,34 +300,32 @@
                         </h3>
                         <div class="grid grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Maintenance Schedule</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
-                                    <option selected>Weekly</option>
-                                    <option>Bi-weekly</option>
-                                    <option>Monthly</option>
-                                    <option>Quarterly</option>
-                                    <option>None</option>
-                                </select>
+                                {{ form.maintenance.label(class='form-label') }}
+                                {{ form.maintenance(class='form-control form-select') }}
+                                {% for error in form.maintenance.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Camera Group</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
-                                    <option value="">No group</option>
-                                    <option>Downtown Cameras</option>
-                                    <option>Highway Cameras</option>
-                                    <option>Intersection Cameras</option>
-                                </select>
+                                {{ form.camera_group.label(class='form-label') }}
+                                {{ form.camera_group(class='form-control form-select') }}
+                                {% for error in form.camera_group.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                         </div>
                         <div class="mt-4">
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
-                            <textarea class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" rows="3" placeholder="Any additional notes about this camera installation..."></textarea>
+                            {{ form.notes.label(class='form-label') }}
+                            {{ form.notes(class='w-full px-3 py-2 border border-slate-200 rounded-button text-sm', rows="3", placeholder="Any additional notes about this camera installation...") }}
+                            {% for error in form.notes.errors %}
+                                <span class="text-red-500 text-xs">{{ error }}</span>
+                            {% endfor %}
                         </div>
                     </div>
 
                     <!-- Form Actions -->
                     <div class="flex justify-end space-x-3 pt-4">
-                        <button type="button" class="px-4 py-2 border border-slate-200 rounded-button text-sm">Cancel</button>
+                        <a href="{{ url_for('camera.camera')}}" type="button" class="px-4 py-2 border border-slate-200 rounded-button text-sm">Cancel</a>
                         <button type="button" class="px-4 py-2 border border-slate-200 bg-slate-100 rounded-button text-sm">Save Draft</button>
                         <button type="submit" class="px-4 py-2 bg-primary text-white rounded-button text-sm">Register Camera</button>
                     </div>
@@ -383,54 +373,54 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Form validation
-    const cameraForm = document.getElementById('addCameraForm');
-    if (cameraForm) {
-        cameraForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+    // const cameraForm = document.getElementById('addCameraForm');
+    // if (cameraForm) {
+    //     cameraForm.addEventListener('submit', function(e) {
+    //         e.preventDefault();
             
-            // Validate required fields
-            const requiredFields = this.querySelectorAll('[required]');
-            let isValid = true;
+    //         // Validate required fields
+    //         const requiredFields = this.querySelectorAll('[required]');
+    //         let isValid = true;
             
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    field.classList.add('border-red-500');
-                    isValid = false;
-                } else {
-                    field.classList.remove('border-red-500');
-                }
-            });
+    //         requiredFields.forEach(field => {
+    //             if (!field.value.trim()) {
+    //                 field.classList.add('border-red-500');
+    //                 isValid = false;
+    //             } else {
+    //                 field.classList.remove('border-red-500');
+    //             }
+    //         });
             
-            if (isValid) {
-                // Simulate form submission
-                alert('Camera successfully registered!');
-                this.reset();
+    //         if (isValid) {
+    //             // Simulate form submission
+    //             alert('Camera successfully registered!');
+    //             this.reset();
                 
-                // Reset stream test UI
-                if (connectionDot) {
-                    connectionDot.classList.remove('green', 'red');
-                    connectionDot.classList.add('gray');
-                    connectionIndicator.querySelector('span').textContent = 'Not connected';
-                }
-                if (streamPreview) {
-                    streamPreview.innerHTML = '<div class="stream-preview-placeholder">No stream available</div>';
-                }
-            } else {
-                alert('Please fill all required fields');
-            }
-        });
-    }
+    //             // Reset stream test UI
+    //             if (connectionDot) {
+    //                 connectionDot.classList.remove('green', 'red');
+    //                 connectionDot.classList.add('gray');
+    //                 connectionIndicator.querySelector('span').textContent = 'Not connected';
+    //             }
+    //             if (streamPreview) {
+    //                 streamPreview.innerHTML = '<div class="stream-preview-placeholder">No stream available</div>';
+    //             }
+    //         } else {
+    //             alert('Please fill all required fields');
+    //         }
+    //     });
+    // }
 
     // Map location picker simulation
-    const mapPickerBtn = document.querySelector('button:has(.ri-map-pin-line)');
-    if (mapPickerBtn) {
-        mapPickerBtn.addEventListener('click', function() {
-            alert('Map interface would open here in production');
-            // Simulate setting coordinates
-            document.querySelector('input[type="number"]').value = '34.052235';
-            document.querySelectorAll('input[type="number"]')[1].value = '-118.243683';
-        });
-    }
+    // const mapPickerBtn = document.querySelector('button:has(.ri-map-pin-line)');
+    // if (mapPickerBtn) {
+    //     mapPickerBtn.addEventListener('click', function() {
+    //         alert('Map interface would open here in production');
+    //         // Simulate setting coordinates
+    //         document.querySelector('input[type="number"]').value = '34.052235';
+    //         document.querySelectorAll('input[type="number"]')[1].value = '-118.243683';
+    //     });
+    // }
 });
 </script>
 {% endblock %}

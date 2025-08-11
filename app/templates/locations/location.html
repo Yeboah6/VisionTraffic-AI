@@ -84,24 +84,23 @@
                     <input type="text" placeholder="Search locations..." class="w-full px-4 py-2 border border-slate-200 rounded-button text-sm">
                 </div>
                 <select class="px-4 py-2 border border-slate-200 rounded-button text-sm">
-                    <option>All Statuses</option>
-                    <option>Active</option>
-                    <option>Inactive</option>
-                    <option>Maintenance</option>
+                    <option value="All">All Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Pending">Pending</option>
                 </select>
-                <select class="px-4 py-2 border border-slate-200 rounded-button text-sm">
+                <!-- <select class="px-4 py-2 border border-slate-200 rounded-button text-sm">
                     <option>All Types</option>
                     <option>Intersection</option>
                     <option>Camera</option>
                     <option>Sensor</option>
-                </select>
+                </select> -->
                 <select class="px-4 py-2 border border-slate-200 rounded-button text-sm">
-                    <option>All Zones</option>
-                    <option>Downtown</option>
-                    <option>North District</option>
-                    <option>South District</option>
-                    <option>East District</option>
-                    <option>West District</option>
+                    <option value="All">All Zones</option>
+                    <option value="Downtown">Downtown</option>
+                    <option value="North">North District</option>
+                    <option value="South">South District</option>
+                    <option value="East">East District</option>
+                    <option value="West">West District</option>
                 </select>
             </div>
         </div>
@@ -128,7 +127,7 @@
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Zone</span>
-                        <span class="detail-value">{{ location.zone }}</span>
+                        <span class="detail-value">{{ location.zone|capitalize }}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Last Activity</span>
@@ -136,15 +135,15 @@
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Type</span>
-                        <span class="detail-value">{{ location.location_type }}</span>
+                        <span class="detail-value">{{ location.location_type|capitalize }}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Priority</span>
-                        <span class="detail-value">{{ location.priority }}</span>
+                        <span class="detail-value">{{ location.priority|capitalize }}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Address</span>
-                        <span class="detail-value">{{ location.address }}</span>
+                        <span class="detail-value">{{ location.address|capitalize }}</span>
                     </div>
                 </div>
                 <div class="location-actions">

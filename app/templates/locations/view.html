@@ -32,14 +32,17 @@
                             <span class="detail-label">Location ID</span>
                             <span class="detail-value">{{ location.id }}</span>
                         </div>
+                        <br>
                         <div class="detail-item">
                             <span class="detail-label">Zone</span>
-                            <span class="detail-value">{{ location.zone }}</span>
+                            <span class="detail-value">{{ location.zone|capitalize }}</span>
                         </div>
+                        <br>
                         <div class="detail-item">
                             <span class="detail-label">Priority</span>
-                            <span class="detail-value">{{ location.priority }}</span>
+                            <span class="detail-value">{{ location.priority|capitalize }}</span>
                         </div>
+                        <br>
                         <div class="detail-item">
                             <span class="detail-label">Description</span>
                             <span class="detail-value">{{ location.description or 'N/A' }}</span>
@@ -51,17 +54,19 @@
                         <h3 class="section-title">Intersection Details</h3>
                         <div class="detail-item">
                             <span class="detail-label">Intersection Type</span>
-                            <span class="detail-value">{{ location.intersection_type}}</span>
+                            <span class="detail-value">{{ location.intersection_type|capitalize}}</span>
                         </div>
+                        <br>
                         <div class="detail-item">
                             <span class="detail-label">Pedestrian Crossing</span>
                             <span class="detail-value">
                                 {% if location.pedestrian_crossing %}Yes{% else %}No{% endif %}
                             </span>
                         </div>
+                        <br>
                         <div class="detail-item">
                             <span class="detail-label">Bicycle Lanes</span>
-                            <span class="detail-value">{{ location.bicycle_lanes}}</span>
+                            <span class="detail-value">{{ location.bicycle_lanes|capitalize }}</span>
                         </div>
                     </div>
 
@@ -99,12 +104,7 @@
                     </div>
 
                     <!-- Map Preview -->
-                    <!-- <div class="map-preview col-span-1 md:col-span-2 h-64">
-                        Map integration would go here
-                        <div class="map-marker" data-lat="{{ location.lat }}" data-lng="{{ location.lng }}"></div>
-                    </div> -->
-
-                    <div id="map" class="map-container mb-6"></div>
+                    <div id="map" class="map-container mb-6 map-preview col-span-1 md:col-span-2 h-54"></div>
                 </div>
             </div>
 

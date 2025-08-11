@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+
+<main class="main-content min-h-screen pb-8">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="flex items-center justify-between px-6 py-4">
+            <div class="flex items-center">
+                <a href="{{ url_for('camera.view', id=camera.id) }}" class="flex items-center text-slate-600 hover:text-primary mr-4">
+                    <i class="ri-arrow-left-line"></i>
+                    <span class="ml-1 text-sm">Back</span>
+                </a>
+                <h1 class="text-xl font-semibold text-slate-800">Assign Signal to {{ camera.display_id }}</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Signal Assignment -->
+    <div class="px-6 py-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Camera Preview -->
+            <div class="card">
+                <div class="p-4 border-b">
+                    <h2 class="font-semibold">Camera Details</h2>
+                </div>
+                <div class="p-6">
+                    <div class="aspect-video bg-slate-100 mb-4 rounded-lg overflow-hidden">
+                        <!-- Camera thumbnail -->
+                    </div>
+                    <h3 class="font-medium">{{ camera.display_id }}</h3>
+                    <p class="text-sm text-slate-500">{{ camera.location.name if camera.location else 'No location' }}</p>
+                </div>
+            </div>
+
+            <!-- Available Signals -->
+            <div class="card col-span-2">
+                <div class="p-4 border-b">
+                    <h2 class="font-semibold">Available Signals</h2>
+                </div>
+                <div class="p-6">
+                    <div class="relative mb-4">
+                        <input type="search" placeholder="Search signals..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-button text-sm">
+                        <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">
+                            <i class="ri-search-line"></i>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        {% for signal in signals %}
+                        <div class="border border-slate-200 rounded-lg p-4 hover:bg-slate-50 cursor-pointer 
+                              {{ 'border-primary bg-blue-50' if camera.signal_id == signal.id }}">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="font-medium">{{ signal.id }}</h3>
+                                    <p class="text-sm text-slate-500">{{ signal.locations.name }}</p>
+                                </div>
+                                <button onclick="assignSignal('{{ signal.id }}')" 
+                                        class="px-3 py-1 rounded-button text-sm 
+                                               {{ 'bg-primary text-white' if camera.signal_id == signal.id else 'border border-slate-200' }}">
+                                    {{ 'Assigned' if camera.signal_id == signal.id else 'Assign' }}
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+async function assignSignal(signalId) {
+    const response = await fetch("{{ url_for('camera.assign_signal', id=camera.id) }}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signal_id: signalId })
+    });
+    
+    if (response.ok) {
+        window.location.href = "{{ url_for('camera.view', id=camera.id) }}";
+    } else {
+        alert('Error assigning signal');
+    }
+}
+</script>
+{% endblock %}

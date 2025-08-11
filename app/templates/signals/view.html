@@ -50,6 +50,10 @@
             <label class="block text-sm text-slate-500 mb-1">Direction</label>
             <p class="font-medium">{{ signal.direction|capitalize }}</p>
           </div>
+          <div>
+            <label class="block text-sm text-slate-500 mb-1">Address</label>
+            <p class="font-medium">{{ signal.address|capitalize }}</p>
+          </div>
         </div>
       </div>
 
@@ -66,13 +70,13 @@
                 </div>
                 <button onclick="toggleStatus('{{ signal.id }}')" 
                         class="toggle-btn flex items-center {{ 'justify-end bg-primary' if signal.is_active else 'justify-start bg-slate-200' }} 
-                               w-14 h-7 rounded-full p-1 transition-all duration-300">
-                  <span class="w-5 h-5 bg-white rounded-full shadow-md"></span>
+                               w-12 h-6 rounded-full p-1 transition-all duration-300">
+                  <span class="w-4 h-4 bg-white rounded-full shadow-md"></span>
                 </button>
               </div>
           <div>
             <label class="block text-sm text-slate-500 mb-1">Controller Type</label>
-            <p class="font-medium">{{ signal.controller_type }}</p>
+            <p class="font-medium">{{ signal.controller_type|capitalize }}</p>
           </div>
           <div>
             <label class="block text-sm text-slate-500 mb-1">IP Address</label>
@@ -80,7 +84,7 @@
           </div>
           <div>
             <label class="block text-sm text-slate-500 mb-1">Protocol</label>
-            <p class="font-medium">{{ signal.protocol }}</p>
+            <p class="font-medium">{{ signal.protocol|capitalize }}</p>
           </div>
         </div>
       </div>
@@ -89,5 +93,32 @@
     </div>
   </div>
 </main>
+
+<script>
+  async function toggleStatus(signalId) {
+    const response = await fetch(`/signals/${signalId}/toggle-status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const result = await response.json();
+    
+    if (result.success) {
+      const btn = document.querySelector(`button[onclick="toggleStatus('${signalId}')"]`);
+      btn.classList.toggle('justify-end', result.is_active);
+      btn.classList.toggle('justify-start', !result.is_active);
+      btn.classList.toggle('bg-primary', result.is_active);
+      btn.classList.toggle('bg-slate-200', !result.is_active);
+      
+      // Update status text if needed
+      const statusText = btn.closest('tr').querySelector('.status-text');
+      if (statusText) {
+        statusText.textContent = result.is_active ? 'Active' : 'Inactive';
+        statusText.className = result.is_active ? 
+          'px-2 py-1 rounded-full text-xs bg-green-100 text-green-800' : 
+          'px-2 py-1 rounded-full text-xs bg-red-100 text-red-800';
+      }
+    }
+  }
+</script>
 
 {% endblock %}

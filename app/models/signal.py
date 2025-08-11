@@ -18,6 +18,8 @@ class Signal(db.Model):
     location_id = db.Column(db.UUID, db.ForeignKey('locations.id'), nullable=False)
     address = db.Column(db.String(50), nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    
+    cameras = db.relationship('Camera', backref='signal', lazy=True)
 
     @staticmethod
     def generate_id(intersection_name=None):
