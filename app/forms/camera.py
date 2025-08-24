@@ -83,9 +83,4 @@ class CameraForm(FlaskForm):
         ('intersection', 'Intersection Cameras')
     ])
     notes = TextAreaField('Notes')
-    
-    # AI Features (Section 4)
-    vehicle_detection = BooleanField('Vehicle Detection', default=True)
-    pedestrian_detection = BooleanField('Pedestrian Detection')
-    traffic_counting = BooleanField('Traffic Counting', default=True)
-    license_plate_recognition = BooleanField('License Plate Recognition')
+    is_active = BooleanField('Active Status')

@@ -10,60 +10,42 @@
             <h2>Welcome Back</h2>
             <p>Sign-in to access your dashboard</p>
         </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         
         <form method="POST">
-            {{ form.hidden_tag() }}
-
-            <!-- Add this to your login.html -->
-            {% if request.args.get('next') %}
-                <input type="hidden" name="next" value="{{ request.args.get('next') }}">
-            {% endif %}
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">
-                            {{ message }}
-                            {% if request.args.get('expired') %}
-                                <p>Your session has expired. Please login again.</p>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
             
             <div class="form-group">
-                <label for="email">{{ form.email.label() }}</label>
+                <label for="email">Username</label>
                 <div class="input-wrapper">
                     <i class="fas fa-envelope"></i>
-                    {{ form.email(class="form-control", placeholder="your@email.com") }}
-                    {% if form.email.errors %}
-                        <div class="text-danger">
-                            {% for error in form.email.errors %}
-                                <small>{{ error }}</small>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
+                    <input type="text" class="form-control" name="username" placeholder="Enter Email" value="{{email}}">
                 </div>
             </div>
             
             <div class="form-group">
-                <label for="password">{{ form.password.label() }}</label>
+                <label for="password">Password</label>
                 <div class="input-wrapper">
                     <i class="fas fa-lock"></i>
-                    {{ form.password(class="form-control", placeholder="••••••••") }}
+                    <input type="password" name="password" class="form-control" placeholder="••••••••">
                 </div>
             </div>
             
             <div class="remember-forgot">
                 <div class="remember-me">
-                    {{ form.remember() }}
+                    <input type="checkbox" name="remember">
                     <label for="remember">Remember me</label>
                 </div>
                 <a href="/forgot-password" class="forgot-password">Forgot password?</a>
             </div>
             
-            <button type="submit" class="btn btn-primary">{{ form.submit.label() }}</button>
+            <button type="submit" class="btn btn-primary">Login</button>
             
             <div class="login-footer">
                 <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Sign up</a></p>

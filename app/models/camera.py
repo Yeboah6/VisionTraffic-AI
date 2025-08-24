@@ -2,6 +2,7 @@ from datetime import datetime
 from app import db
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
+import re
 
 class Camera(db.Model):
     __tablename__ = 'cameras'

@@ -16,7 +16,7 @@ class Location(db.Model):
     
     # Intersection specific
     intersection_type = db.Column(db.String(50))
-    pedestrian_crossing = db.Column(db.Boolean, default=True)
+    pedestrian_crossing = db.Column(db.String(20), default=True)
     bicycle_lanes = db.Column(db.String(20))
     
     # Address
@@ -40,6 +40,8 @@ class Location(db.Model):
     # Relationship
     signals = db.relationship('Signal', backref='locations', lazy=True)
     cameras = db.relationship('Camera', back_populates='location', lazy=True)
+    sensors = db.relationship('Sensor', back_populates='location', lazy=True)
+    incidents = db.relationship('Incident', back_populates='location', lazy=True)
     
     def __repr__(self):
         return f'<Location {self.id}: {self.name}>'

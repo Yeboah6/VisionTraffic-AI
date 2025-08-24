@@ -8,63 +8,50 @@
             </div>
             <p>Sign up to access your dashboard</p>
         </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         
-        <form method="POST">
-            {{ form.hidden_tag()}}
+        <form action="{{ url_for('auth.register') }}" method="POST">
+
             <div class="form-group">
-                <label for="username">{{ form.username.label() }}</label>
+                <label for="username" class="form-required">User name</label>
                 <div class="input-wrapper">
                     <i class="fas fa-user"></i>
-                    {{ form.username(class="form-control", placeholder="Enter username") }}
-                    {% if form.username.errors %}
-                        <div class="text-danger">
-                            {% for error in form.username.errors %}
-                                <small>{{ error }}</small>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
+                    <input type="text" name="username" class="form-control" placeholder="Enter Username" value="{{username}}">
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="email">{{ form.email.label() }}</label>
+                <label for="email" class="form-required">Email</label>
                 <div class="input-wrapper">
                     <i class="fas fa-envelope"></i>
-                    {{ form.email(class="form-control", placeholder="your@email.com")}}
-                    {% if form.email.errors %}
-                        <div class="text-danger">
-                            {% for error in form.email.errors %}
-                                <small>{{ error }}</small>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
+                    <input type="email" name="email" class="form-control" placeholder="Enter Email" value="{{email}}">
                 </div>
             </div>
             
             <div class="form-group">
-                <label for="password">{{ form.password.label() }}</label>
+                <label for="password">Password</label>
                 <div class="input-wrapper">
                     <i class="fas fa-lock"></i>
-                    {{ form.password(class="form-control", placeholder="••••••••") }}
+                    <input type="password" name="password" class="form-control" placeholder="••••••••">
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="password">{{ form.confirm_password.label() }}</label>
+                <label for="password">Confirm Password</label>
                 <div class="input-wrapper">
                     <i class="fas fa-lock"></i>
-                    {{ form.confirm_password(class="form-control", placeholder="••••••••") }}
-                    {% if form.confirm_password.errors %}
-                        <div class="text-danger">
-                            {% for error in form.confirm_password.errors %}
-                                <small>{{ error }}</small>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
+                    <input type="password" name="confirm_password" class="form-control" placeholder="••••••••">
                 </div>
             </div>
             
-            <button type="submit" class="btn btn-primary">{{ form.submit.label() }}</button>
+            <button type="submit" class="btn btn-primary">Register</button>
             
             <div class="login-footer">
                 <p>Aleady have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>

@@ -11,21 +11,50 @@
                 </a>
                 <h1 class="text-xl font-semibold text-slate-800">Add New Sensor</h1>
             </div>
-            <div class="flex items-center space-x-4">
-                <a href="{{ url_for('sensor.sensor') }}" class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm">
-                    <span>Cancel</span>
-                </a>
-                <button type="submit" form="sensor-form" class="px-4 py-2 bg-primary text-white rounded-button text-sm">
-                    <span>Save Sensor</span>
-                </button>
-            </div>
         </div>
     </header>
 
     <!-- Sensor Form -->
     <div class="px-6 py-6">
-        <form id="sensor-form" method="POST" action="">
+        <form id="sensor-form" method="POST" action="{{ url_for('sensor.addSensor') }}">
+            {{ form.hidden_tag() }}
+            
+            {% if form.errors %}
+                <div class="bg-red-100 text-red-700 p-4 rounded mb-4">
+                    <strong>Form Errors:</strong>
+                    <ul>
+                        {% for field, errors in form.errors.items() %}
+                            {% for error in errors %}
+                                <li>{{ field }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            {% if success_message %}
+                <div class="bg-green-100 text-green-700 p-4 rounded mb-4">
+                    <strong>Success:</strong> {{ success_message }}
+                </div>
+            {% endif %}
+            {% if error_message %}
+                <div class="bg-red-100 text-red-700 p-4 rounded mb-4">
+                    <strong>Error:</strong> {{ error_message }}
+                </div>
+            {% endif %}
+
             <div class="card form-section">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                            {% if request.args.get('expired') %}
+                                <p>Your session has expired. Please login again.</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
                 <!-- Location Selection -->
                 <div class="section-header">
                     <div class="section-icon">
@@ -35,15 +64,11 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="location" class="form-label form-required">Attach to Location</label>
-                    <select id="location" name="location_id" class="form-control form-select" required>
-                        <option value="">Select a location</option>
-                        {% for location in locations %}
-                        <option value="{{ location.id }}" {% if preset_location == location.id %}selected{% endif %}>
-                            {{ location.name }} ({{ location.id }})
-                        </option>
-                        {% endfor %}
-                    </select>
+                    {{ form.location.label(class='form-label form-required') }}
+                    {{ form.location(class='form-control form-select') }}
+                    {% for error in form.location.errors %}
+                        <span class="text-red-500 text-xs">{{ error }}</span>
+                    {% endfor %}
                 </div>
 
                 <!-- Sensor Configuration -->
@@ -56,34 +81,35 @@
                 
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="sensor-id" class="form-label">Sensor ID</label>
-                        <input type="text" id="sensor-id" name="sensor_id" class="form-control" placeholder="Auto-generated if empty">
+                        {{ form.display_id.label(class='form-label form-required') }}
+                        {{ form.display_id(class='form-control', placeholder="Auto-generated if empty") }}
+                        {% for error in form.display_id.errors %}
+                            <span class="text-red-500 text-xs">{{ error }}</span>
+                        {% endfor %}
                     </div>
                     
                     <div class="form-group">
-                        <label for="sensor-type" class="form-label form-required">Sensor Type</label>
-                        <select id="sensor-type" name="sensor_type" class="form-control form-select" required>
-                            <option value="inductive-loop">Inductive Loop</option>
-                            <option value="radar">Radar</option>
-                            <option value="lidar">LiDAR</option>
-                            <option value="video">Video Detection</option>
-                        </select>
+                        {{ form.sensor_type.label(class='form-label') }}
+                        {{ form.sensor_type(class='form-control') }}
+                        {% for error in form.sensor_type.errors %}
+                            <span class="text-red-500 text-xs">{{ error }}</span>
+                        {% endfor %}
                     </div>
                     
                     <div class="form-group">
-                        <label for="sensor-lanes" class="form-label">Lanes Monitored</label>
-                        <input type="number" id="sensor-lanes" name="lanes" class="form-control" min="1" max="8" value="2">
+                        {{ form.lanes_monitored.label(class='form-label form-required') }}
+                        {{ form.lanes_monitored(class='form-control') }}
+                        {% for error in form.lanes_monitored.errors %}
+                            <span class="text-red-500 text-xs">{{ error }}</span>
+                        {% endfor %}
                     </div>
                     
                     <div class="form-group">
-                        <label for="sensor-direction" class="form-label">Direction</label>
-                        <select id="sensor-direction" name="direction" class="form-control form-select">
-                            <option value="north">Northbound</option>
-                            <option value="south">Southbound</option>
-                            <option value="east">Eastbound</option>
-                            <option value="west">Westbound</option>
-                            <option value="all">All Directions</option>
-                        </select>
+                        {{ form.direction.label(class='form-label form-required') }}
+                        {{ form.direction(class='form-control form-select') }}
+                        {% for error in form.direction.errors %}
+                            <span class="text-red-500 text-xs">{{ error }}</span>
+                        {% endfor %}
                     </div>
                 </div>
 
@@ -96,13 +122,27 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="install-date" class="form-label">Installation Date</label>
-                    <input type="date" id="install-date" name="install_date" class="form-control">
+                    {{ form.installation_date.label(class='form-label') }}
+                    {{ form.installation_date(class='form-control') }}
+                    {% for error in form.installation_date.errors %}
+                        <span class="text-red-500 text-xs">{{ error }}</span>
+                    {% endfor %}
                 </div>
                 
                 <div class="form-group">
-                    <label for="install-notes" class="form-label">Installation Notes</label>
-                    <textarea id="install-notes" name="install_notes" class="form-control form-textarea" placeholder="Any special installation requirements"></textarea>
+                    {{ form.installation_notes.label(class='form-label') }}
+                    {{ form.installation_notes(class='form-control', placeholder="Any special installation requirements") }}
+                    {% for error in form.installation_notes.errors %}
+                        <span class="text-red-500 text-xs">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('sensor.sensor') }}" class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm">
+                        <span>Cancel</span>
+                    </a>
+                    <button type="submit" form="sensor-form" class="px-4 py-2 bg-primary text-white rounded-button text-sm">
+                        <span>Save Sensor</span>
+                    </button>
                 </div>
             </div>
         </form>

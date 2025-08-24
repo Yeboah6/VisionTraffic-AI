@@ -6,34 +6,20 @@
 <main class="main-content min-h-screen pb-8">
     <!-- Header -->
     {% include 'includes/header.html' %}
+    <header class="bg-white shadow-sm" style="text-align: center;font-weight: bold;font-size: 2.5rem;">
+        <div class="  px-6 py-4">
+            <div class="">
+                <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
+                    Active: {{ signals|length }} Signals
+                </div>
+            </div>
+        </div>
+    </header>
 
     <!-- Filter Controls -->
     <div class="px-6 py-4 bg-white border-b">
         <div class="flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center space-x-4">
-                <div class="w-48">
-                    <label class="block text-xs text-slate-500 mb-1">Intersection</label>
-                    <div class="relative">
-                        <select class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm bg-white custom-select pr-8">
-                            <option selected>Main St & 5th Ave</option>
-                            <option>Oak Street & 10th Ave</option>
-                            <option>Highway 101 North</option>
-                            <option>Maple Road & 3rd Street</option>
-                            <option>Industrial Blvd</option>
-                        </select>
-                    </div>
-                </div>
-                <!-- <div class="w-40">
-                    <label class="block text-xs text-slate-500 mb-1">View Mode</label>
-                    <div class="relative">
-                        <select class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm bg-white custom-select pr-8">
-                            <option selected>Real-time</option>
-                            <option>Historical</option>
-                            <option>Simulation</option>
-                        </select>
-                    </div>
-                </div> -->
-            </div>
+            <div class="flex items-center space-x-4"></div>
             <div class="flex items-center space-x-3">
                 <a href="{{ url_for('signal.list') }}" class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm flex items-center">
                     <div class="w-4 h-4 flex items-center justify-center mr-2">

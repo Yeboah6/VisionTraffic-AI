@@ -1,39 +1,98 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
-from app.middleware.jwt_middleware import jwt_required_redirect
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
+from flask_login import login_required, current_user
 from datetime import datetime
 from ..models.user import User
+from app import db
+from app.models.incident import Incident
+from app.models.location import Location
+from app.forms.incident import IncidentForm
+from werkzeug.utils import secure_filename
+import os
+import uuid
 
 incident_bp = Blueprint('incident', __name__)
 
 @incident_bp.route('/incident')
-@jwt_required()
+@login_required
 def incident():
     now = datetime.now()
-    current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first()
+    user = current_user
     
-    # Fetch locations from the database (assuming a Location model exists)
-    # locations = Location.query.all()  # Uncomment and modify as per your model
+    incidents = Incident.query.all() 
     
     return render_template('incidents/incident.html',
                            user=user,
                            current_date=now.strftime("%B %d, %Y"),
-                           current_time=now.strftime("%I:%M %p")
-                           # locations=locations  # Uncomment if you have locations to display
+                           current_time=now.strftime("%I:%M %p"),
+                           incidents=incidents
                            )
     
-@incident_bp.route('/incident/add')
-@jwt_required_redirect
+@incident_bp.route('/incident/add', methods=['GET', 'POST'])
+@login_required
 def add_incident():
     now = datetime.now()
-    current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first()
+    user = current_user
     
-    # Logic to handle adding an incident can be added here
+    form = IncidentForm()
+    
+    if form.type.data:
+        incident_id = Incident.generate_id(form.type.data)
+    else:
+        incident_id = Incident.generate_unknown_id()
+    
+    # Populate dropdowns
+    form.location.choices = [(loc.id, loc.name) for loc in Location.query.order_by('name')]
+    
+    if form.validate_on_submit():
+        # Handle file uploads
+        uploaded_files = []
+        if 'media' in request.files:
+            files = request.files.getlist('media')
+            for file in files:
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    unique_filename = f"{uuid.uuid4().hex}_{filename}"
+                    file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename))
+                    uploaded_files.append(unique_filename)
+                    
+        # Create new incident
+        incident = Incident(
+            id=str(uuid.uuid4()), 
+            incident_id = incident_id,
+            type=form.type.data,
+            severity=form.severity.data,
+            title=form.title.data,
+            description=form.description.data,
+            location_type=form.location_type.data,
+            location_id=form.location.data,
+            lanes_affected=form.lanes_affected.data,
+            estimated_delay=form.estimated_delay.data,
+            emergency_services=form.emergency_services.data,
+            vehicles_involved=form.vehicles_involved.data or 0,
+            injuries_reported=form.injuries_reported.data,
+            reporter_type=form.reporter_type.data,
+            reporter_info=form.reporter_info.data if form.reporter_type.data in ['public', 'other'] else None,
+            internal_notes=form.internal_notes.data,
+            media_files=','.join(uploaded_files) if uploaded_files else None,
+            user_id=current_user.id
+        )
+        
+        db.session.add(incident)
+        db.session.commit()
+        
+        flash('Incident report submitted successfully!', 'success')
+        return redirect(url_for('incident.incident'))
     
     return render_template('incidents/add.html',
                            user=user,
                            current_date=now.strftime("%B %d, %Y"),
-                           current_time=now.strftime("%I:%M %p")
+                           current_time=now.strftime("%I:%M %p"),
+                           form = form
                            )
+    
+# @incident_bp.route('/generate-id', methods=['POST'])
+# def generate_id():
+#     location_name = request.json.get('location_name')
+#     return jsonify({
+#         'display_id': Incident.generate_display_id(location_name)
+#     })

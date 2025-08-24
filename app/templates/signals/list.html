@@ -8,16 +8,11 @@
   <header class="bg-white shadow-sm">
     <div class="flex items-center justify-between px-6 py-4">
       <div class="flex items-center">
-        <!-- <h1 class="text-xl font-semibold text-slate-800">Traffic Signals</h1> -->
-        <!-- <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
-          {{ current_date }} • {{ current_time }}
-        </div> -->
       </div>
       <div class="flex items-center space-x-4">
         <a href="{{ url_for('signal.signalManage') }}" class="px-4 py-2 bg-primary text-white rounded-button text-sm">
           + Add Signal
         </a>
-        <!-- Search/Notification buttons from add.html -->
       </div>
     </div>
   </header>
@@ -26,7 +21,12 @@
   <div class="px-6 py-6">
     <div class="card">
       <div class="p-4 border-b flex justify-between items-center">
-        <h2 class="font-semibold">Active Signals</h2>
+        <h2 class="font-semibold">Signals</h2>
+        <div class="px-6 py-4" style="text-align: center;font-weight: bold;font-size: 2.5rem;">
+          <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
+            Active: {{ signals|length }} Signals
+          </div>
+        </div>
         <div class="flex space-x-2">
           <button class="px-3 py-1 border border-slate-200 rounded-button text-sm">
             <i class="ri-download-line mr-1"></i> Export
@@ -56,7 +56,7 @@
                   {{ signal.id }}
                 </a>
               </td>
-              <td>{{ signal.location_id }}</td>
+              <td>{{ signal.locations.name }}</td>
               <td>{{ signal.intersection_name or '-' }}</td>
               <td>{{ signal.direction|capitalize }}</td>
               <td>

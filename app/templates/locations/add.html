@@ -101,15 +101,18 @@
                         </div>
 
                         <!-- After: -->
-                        <div class="form-check">
-                            {{ form.pedestrian_crossing(class="form-check-input") }}
+                         <div class="form-grid">
+                            <div class="form-check">
                             {{ form.pedestrian_crossing.label(class="form-check-label") }}
+                            {{ form.pedestrian_crossing(class="form-control") }}
                         </div>
                         
                         <div class="form-group">
                             {{ form.bicycle_lanes.label(class="form-label") }}
                             {{ form.bicycle_lanes(class="form-control") }}
                         </div>
+                         </div>
+                        
                     </div>
                 </div>
             </div>
@@ -240,16 +243,16 @@
                     <span>{{ form.submit.label()}}</span>
                 </button>
             </div>
-        </div>
+        </di  v>
         </form>
     </div>
 </main>
 
-// Add this to your template
-<script>
+<!-- // Add this to your template -->
+<!-- <script>
 document.querySelector('form').addEventListener('submit', function(e) {
     console.log('Form data:', Object.fromEntries(new FormData(this)));
 });
-</script>
+</script> -->
 
 {% endblock %}

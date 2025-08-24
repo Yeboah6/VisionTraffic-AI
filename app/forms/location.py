@@ -27,8 +27,10 @@ class LocationForm(FlaskForm):
         ('y-intersection', 'Y-intersection'),
         ('roundabout', 'Roundabout')
     ], default='standard')
-    pedestrian_crossing = BooleanField('Pedestrian Crossing')
-    bicycle_lanes = SelectField('Pedestrian Crossing', 
+    pedestrian_crossing = SelectField('Pedestrian Crossing', 
+                                    choices=[('yes', 'Yes'), ('no', 'No')],
+                                    validators=[DataRequired()])
+    bicycle_lanes = SelectField('Bicycle Lanes', 
                                     choices=[('yes', 'Yes'), ('no', 'No')],
                                     validators=[DataRequired()])
     

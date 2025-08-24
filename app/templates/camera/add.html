@@ -66,6 +66,19 @@
                             {% endfor %}
                         {% endif %}
                     {% endwith %}
+
+                    {% if form.errors %}
+                        <div class="bg-red-100 text-red-700 p-4 rounded mb-4">
+                            <strong>Form Errors:</strong>
+                            <ul>
+                                {% for field, errors in form.errors.items() %}
+                                    {% for error in errors %}
+                                        <li>{{ field }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
                     
                     <!-- Section 1: Basic Information -->
                     <div class="camera-registration-section">
@@ -241,57 +254,6 @@
                         </div>
                     </div>
 
-                    <!-- Section 4: AI Processing Features -->
-                    <!-- <div class="camera-registration-section">
-                        <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
-                            <span class="section-number">4</span>
-                            AI Processing Configuration
-                        </h3>
-                        <div class="grid grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-3">Enable AI Features</label>
-                                <div class="ai-feature-toggle">
-                                    {{ form.vehicle_detection(class="form-check-input") }}
-                                    {{ form.vehicle_detection.label(class="form-check-label") }}
-                                    {% for error in form.vehicle_detection.errors %}
-                                        <span class="text-red-500 text-xs">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                                <div class="ai-feature-toggle">
-                                    {{ form.pedestrian_detection(class="form-check-input") }}
-                                    {{ form.pedestrian_detection.label(class="form-check-label") }}
-                                    {% for error in form.pedestrian_detection.errors %}
-                                        <span class="text-red-500 text-xs">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                                <div class="ai-feature-toggle">
-                                    {{ form.traffic_counting(class="form-check-input") }}
-                                    {{ form.traffic_counting.label(class="form-check-label") }}
-                                    {% for error in form.traffic_counting.errors %}
-                                        <span class="text-red-500 text-xs">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                                <div class="ai-feature-toggle">
-                                    {{ form.license_plate_recognition(class="form-check-input") }}
-                                    {{ form.license_plate_recognition.label(class="form-check-label") }}
-                                    {% for error in form.license_plate_recognition.errors %}
-                                        <span class="text-red-500 text-xs">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">AI Processing Mode*</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
-                                    <option selected>Standard (Balanced)</option>
-                                    <option>High Accuracy</option>
-                                    <option>High Performance</option>
-                                    <option>Custom</option>
-                                </select>
-                                <p class="text-xs text-slate-500 mt-2">Standard mode provides the best balance between accuracy and performance for most use cases.</p>
-                            </div>
-                        </div>
-                    </div> -->
-
                     <!-- Section 5: Additional Settings -->
                     <div class="camera-registration-section">
                         <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
@@ -371,56 +333,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 2000);
         });
     }
-
-    // Form validation
-    // const cameraForm = document.getElementById('addCameraForm');
-    // if (cameraForm) {
-    //     cameraForm.addEventListener('submit', function(e) {
-    //         e.preventDefault();
-            
-    //         // Validate required fields
-    //         const requiredFields = this.querySelectorAll('[required]');
-    //         let isValid = true;
-            
-    //         requiredFields.forEach(field => {
-    //             if (!field.value.trim()) {
-    //                 field.classList.add('border-red-500');
-    //                 isValid = false;
-    //             } else {
-    //                 field.classList.remove('border-red-500');
-    //             }
-    //         });
-            
-    //         if (isValid) {
-    //             // Simulate form submission
-    //             alert('Camera successfully registered!');
-    //             this.reset();
-                
-    //             // Reset stream test UI
-    //             if (connectionDot) {
-    //                 connectionDot.classList.remove('green', 'red');
-    //                 connectionDot.classList.add('gray');
-    //                 connectionIndicator.querySelector('span').textContent = 'Not connected';
-    //             }
-    //             if (streamPreview) {
-    //                 streamPreview.innerHTML = '<div class="stream-preview-placeholder">No stream available</div>';
-    //             }
-    //         } else {
-    //             alert('Please fill all required fields');
-    //         }
-    //     });
-    // }
-
-    // Map location picker simulation
-    // const mapPickerBtn = document.querySelector('button:has(.ri-map-pin-line)');
-    // if (mapPickerBtn) {
-    //     mapPickerBtn.addEventListener('click', function() {
-    //         alert('Map interface would open here in production');
-    //         // Simulate setting coordinates
-    //         document.querySelector('input[type="number"]').value = '34.052235';
-    //         document.querySelectorAll('input[type="number"]')[1].value = '-118.243683';
-    //     });
-    // }
 });
 </script>
 {% endblock %}

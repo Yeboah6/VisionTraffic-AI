@@ -10,7 +10,7 @@
         <div class="  px-6 py-4">
             <div class="">
                 <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
-                    Active: 12 incidents
+                    Active: {{ incidents|length }} incidents
                 </div>
             </div>
         </div>
@@ -68,21 +68,16 @@
                         </select>
                     </div>
                 </div>
-            </div>
-            <div class="flex items-center space-x-3">
-                <button class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm flex items-center">
-                    <div class="w-4 h-4 flex items-center justify-center mr-2">
-                        <i class="ri-refresh-line"></i>
+                <div class="w-48">
+                     <label class="block text-xs text-slate-500 mb-6"></label>
+                    <div class="relative">
+                        <a href="{{ url_for('incident.add_incident') }}" id="newIncidentBtn" class="px-4 py-2 bg-primary text-white rounded-button text-sm flex items-center">
+                            <div class="w-4 h-4 flex items-center justify-center mr-2">
+                                <i class="ri-add-line"></i>
+                            </div>
+                            <span>Report New Incident</span>
+                        </a>
                     </div>
-                    <span>Refresh</span>
-                </button>
-                <div class="flex items-center space-x-4">
-                    <a href="{{ url_for('incident.add_incident') }}" id="newIncidentBtn" class="px-4 py-2 bg-primary text-white rounded-button text-sm flex items-center">
-                        <div class="w-4 h-4 flex items-center justify-center mr-2">
-                            <i class="ri-add-line"></i>
-                        </div>
-                        <span>Report New Incident</span>
-                    </a>
                 </div>
             </div>
         </div>
@@ -90,36 +85,37 @@
 
     <!-- Incident List View -->
     <div class="px-6 py-6">
-        <div class="grid grid-cols-1 gap-4 mb-6">
+        <div class="grid grid-cols-2 gap-4 mb-6">
             <!-- Incident Card 1 (Critical) -->
+             {% for incident in incidents %}
             <div class="card incident-card critical p-4">
                 <div class="flex items-start">
                     <div class="flex-1">
                         <div class="flex items-center justify-between">
                             <div>
-                                <span class="incident-type-badge accident">Accident</span>
-                                <span class="ml-2 text-xs text-slate-500">#INC-2023-00145</span>
+                                <span class="incident-type-badge accident">{{ incident.type|capitalize}}</span>
+                                <span class="ml-2 text-xs text-slate-500">#{{ incident.incident_id}}</span>
                             </div>
                             <div class="text-xs text-slate-500">Reported 25 min ago</div>
                         </div>
-                        <h3 class="mt-1 font-medium">Multi-vehicle collision on Highway 101</h3>
-                        <p class="text-sm text-slate-600 mt-1">3 vehicles involved, northbound lanes blocked, emergency services on scene</p>
+                        <h3 class="mt-1 font-medium">{{ incident.title}}</h3>
+                        <p class="text-sm text-slate-600 mt-1">{{ incident.vehicles_involved}} vehicles involved, northbound lanes blocked, {{ incident.emergency_services|capitalize}}</p>
                         <div class="mt-2 flex items-center text-xs text-slate-500">
                             <i class="ri-map-pin-line mr-1"></i>
-                            <span>Highway 101 North, between exits 42 and 43</span>
+                            <span>{{ incident.location.name}}</span>
                         </div>
                         <div class="mt-3 flex items-center space-x-3">
                             <div class="flex items-center">
                                 <span class="w-2 h-2 bg-red-500 rounded-full mr-1"></span>
-                                <span class="text-xs">Critical</span>
+                                <span class="text-xs">{{ incident.severity|capitalize}}</span>
                             </div>
                             <div class="flex items-center">
                                 <i class="ri-user-line mr-1 text-xs"></i>
-                                <span class="text-xs">Reported by Officer J. Smith</span>
+                                <span class="text-xs">Reported by {{ incident.reporter_info}}</span>
                             </div>
                             <div class="flex items-center">
                                 <i class="ri-car-line mr-1 text-xs"></i>
-                                <span class="text-xs">Affecting 3+ lanes</span>
+                                <span class="text-xs">Affecting {{ incident.lanes_affected}} lanes</span>
                             </div>
                         </div>
                     </div>
@@ -131,8 +127,6 @@
                 </div>
                 <div class="mt-3 pt-3 border-t flex justify-between items-center">
                     <div class="flex space-x-2">
-                        <div class="evidence-thumbnail" style="background-image: url('https://via.placeholder.com/100x100?text=Photo1')"></div>
-                        <div class="evidence-thumbnail" style="background-image: url('https://via.placeholder.com/100x100?text=Photo2')"></div>
                         <div class="evidence-thumbnail flex items-center justify-center bg-slate-100 text-slate-400">
                             <i class="ri-video-line"></i>
                         </div>
@@ -153,274 +147,7 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Incident Card 2 (Major) -->
-            <div class="card incident-card major p-4">
-                <div class="flex items-start">
-                    <div class="flex-1">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <span class="incident-type-badge congestion">Congestion</span>
-                                <span class="ml-2 text-xs text-slate-500">#INC-2023-00144</span>
-                            </div>
-                            <div class="text-xs text-slate-500">Reported 1 hour ago</div>
-                        </div>
-                        <h3 class="mt-1 font-medium">Major traffic buildup on Main Street</h3>
-                        <p class="text-sm text-slate-600 mt-1">Heavy congestion due to event traffic, delays of 15+ minutes</p>
-                        <div class="mt-2 flex items-center text-xs text-slate-500">
-                            <i class="ri-map-pin-line mr-1"></i>
-                            <span>Main Street between 5th Ave and 8th Ave</span>
-                        </div>
-                        <div class="mt-3 flex items-center space-x-3">
-                            <div class="flex items-center">
-                                <span class="w-2 h-2 bg-yellow-500 rounded-full mr-1"></span>
-                                <span class="text-xs">Major</span>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="ri-user-line mr-1 text-xs"></i>
-                                <span class="text-xs">Reported by AI System</span>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="ri-car-line mr-1 text-xs"></i>
-                                <span class="text-xs">Affecting 2 lanes</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="ml-4 incident-actions">
-                        <button class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                            <i class="ri-more-2-line text-slate-600"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="mt-3 pt-3 border-t flex justify-between items-center">
-                    <div class="flex space-x-2">
-                        <div class="evidence-thumbnail flex items-center justify-center bg-slate-100 text-slate-400">
-                            <i class="ri-image-line"></i>
-                        </div>
-                    </div>
-                    <div class="flex space-x-2">
-                        <button class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs flex items-center">
-                            <i class="ri-road-map-line mr-1"></i>
-                            <span>View Map</span>
-                        </button>
-                        <button class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs flex items-center">
-                            <i class="ri-check-line mr-1"></i>
-                            <span>Resolve</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Incident Report Form (Initially hidden) -->
-        <div class="card hidden" id="incidentReportForm">
-            <div class="p-4 border-b">
-                <h2 class="font-semibold">Report New Incident</h2>
-                <p class="text-sm text-slate-500 mt-1">Provide details about the traffic incident</p>
-            </div>
-            <div class="p-6">
-                <form id="newIncidentForm">
-                    <!-- Section 1: Incident Details -->
-                    <div class="mb-8">
-                        <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
-                            <span class="section-number">1</span>
-                            Incident Information
-                        </h3>
-                        <div class="grid grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Incident Type*</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select type...</option>
-                                    <option>Accident</option>
-                                    <option>Congestion</option>
-                                    <option>Roadwork</option>
-                                    <option>Weather</option>
-                                    <option>Disabled Vehicle</option>
-                                    <option>Other</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Severity*</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select severity...</option>
-                                    <option>Critical (Emergency response needed)</option>
-                                    <option>Major (Significant impact)</option>
-                                    <option>Minor (Localized impact)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Title*</label>
-                            <input type="text" required class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="Brief description of the incident">
-                        </div>
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Description*</label>
-                            <textarea class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" rows="3" required placeholder="Provide detailed information about the incident..."></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Section 2: Location -->
-                    <div class="mb-8">
-                        <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
-                            <span class="section-number">2</span>
-                            Location Details
-                        </h3>
-                        <div class="grid grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Location Type*</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select location type...</option>
-                                    <option>Intersection</option>
-                                    <option>Highway/Freeway</option>
-                                    <option>City Street</option>
-                                    <option>Residential Area</option>
-                                    <option>Tunnel</option>
-                                    <option>Bridge</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Specific Location*</label>
-                                <input type="text" required class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="e.g., Main St & 5th Ave">
-                            </div>
-                        </div>
-                        <div class="mt-4 grid grid-cols-3 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Latitude*</label>
-                                <input type="number" step="0.000001" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="34.052235" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Longitude*</label>
-                                <input type="number" step="0.000001" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="-118.243683" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Direction*</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select direction...</option>
-                                    <option>Northbound</option>
-                                    <option>Southbound</option>
-                                    <option>Eastbound</option>
-                                    <option>Westbound</option>
-                                    <option>Both Directions</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <button type="button" class="text-primary text-sm flex items-center">
-                                <i class="ri-map-pin-line mr-1"></i> Pick location from map
-                            </button>
-                        </div>
-                        <div class="incident-map-preview mt-2">
-                            <div class="absolute inset-0 flex items-center justify-center text-slate-400">
-                                <div class="text-center">
-                                    <i class="ri-map-2-line text-2xl mb-1"></i>
-                                    <p class="text-sm">Map preview will appear here</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Section 3: Impact & Evidence -->
-                    <div class="mb-8">
-                        <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
-                            <span class="section-number">3</span>
-                            Impact & Evidence
-                        </h3>
-                        <div class="grid grid-cols-3 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Lanes Affected*</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select lanes...</option>
-                                    <option>1 lane</option>
-                                    <option>2 lanes</option>
-                                    <option>3+ lanes</option>
-                                    <option>All lanes</option>
-                                    <option>Shoulder only</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Estimated Delay*</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select delay...</option>
-                                    <option>No significant delay</option>
-                                    <option>5-15 minutes</option>
-                                    <option>15-30 minutes</option>
-                                    <option>30-60 minutes</option>
-                                    <option>60+ minutes</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Emergency Services</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
-                                    <option value="">Select if applicable...</option>
-                                    <option>Police on scene</option>
-                                    <option>Ambulance on scene</option>
-                                    <option>Fire department on scene</option>
-                                    <option>Multiple services</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Upload Evidence</label>
-                            <p class="text-xs text-slate-500 mb-2">Photos, videos, or documents supporting this incident</p>
-                            <div class="media-upload-box">
-                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                                    <i class="ri-upload-cloud-2-line text-primary"></i>
-                                </div>
-                                <p class="text-sm text-slate-700">Drag & drop files here or click to browse</p>
-                                <p class="text-xs text-slate-500 mt-1">Supports JPG, PNG, MP4, PDF (max 25MB each)</p>
-                                <input type="file" id="incidentMedia" class="hidden" multiple accept="image/*,video/*,.pdf">
-                            </div>
-                            <div class="flex flex-wrap gap-2 mt-3" id="mediaPreviewContainer">
-                                <!-- Media thumbnails will appear here -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Section 4: Additional Information -->
-                    <div class="mb-8">
-                        <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
-                            <span class="section-number">4</span>
-                            Additional Information
-                        </h3>
-                        <div class="grid grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Reporter Information</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
-                                    <option value="">Select reporter...</option>
-                                    <option selected>Traffic Operator (Current User)</option>
-                                    <option>Police Department</option>
-                                    <option>Public Report</option>
-                                    <option>AI Detection System</option>
-                                    <option>Other</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Priority</label>
-                                <select class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
-                                    <option>Normal</option>
-                                    <option>High</option>
-                                    <option>Emergency</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Internal Notes</label>
-                            <textarea class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" rows="2" placeholder="Any additional internal notes..."></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Form Actions -->
-                    <div class="flex justify-end space-x-3 pt-4 border-t">
-                        <button type="button" id="cancelIncidentReport" class="px-4 py-2 border border-slate-200 rounded-button text-sm">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-button text-sm">Submit Incident Report</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Incident Details View -->
-        <div class="hidden" id="incidentDetailsView">
-            <!-- Would be populated dynamically when viewing an incident -->
+            {% endfor %}
         </div>
 
         <!-- All Incidents Table -->
@@ -428,9 +155,6 @@
             <div class="p-4 border-b flex items-center justify-between">
                 <h2 class="font-semibold">All Incidents</h2>
                 <div class="flex items-center space-x-2">
-                    <button class="px-3 py-1.5 border border-slate-200 rounded-button text-xs flex items-center">
-                        <i class="ri-download-line mr-1"></i> Export
-                    </button>
                     <button class="px-3 py-1.5 border border-slate-200 rounded-button text-xs flex items-center">
                         <i class="ri-printer-line mr-1"></i> Print
                     </button>
@@ -451,82 +175,27 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
+                        {% for incident in incidents %}
                         <tr>
-                            <td class="px-4 py-3 text-sm font-medium">#INC-2023-00145</td>
+                            <td class="px-4 py-3 text-sm font-medium">#{{ incident.incident_id}}</td>
                             <td class="px-4 py-3 text-sm">
-                                <span class="incident-type-badge accident">Accident</span>
+                                <span class="incident-type-badge accident">{{ incident.type|capitalize}}</span>
                             </td>
-                            <td class="px-4 py-3 text-sm">Multi-vehicle collision</td>
-                            <td class="px-4 py-3 text-sm">Highway 101 North</td>
+                            <td class="px-4 py-3 text-sm">{{ incident.title}}</td>
+                            <td class="px-4 py-3 text-sm">{{ incident.location.name}}</td>
                             <td class="px-4 py-3">
-                                <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">Critical</span>
+                                <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">{{ incident.severity|capitalize}}</span>
                             </td>
                             <td class="px-4 py-3 text-sm">25 min ago</td>
                             <td class="px-4 py-3">
-                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">Active</span>
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">{{ incident.status|capitalize}}</span>
                             </td>
                             <td class="px-4 py-3 text-sm">
                                 <button class="text-primary mr-2">View</button>
                                 <button class="text-primary">Edit</button>
                             </td>
                         </tr>
-                        <tr>
-                            <td class="px-4 py-3 text-sm font-medium">#INC-2023-00144</td>
-                            <td class="px-4 py-3 text-sm">
-                                <span class="incident-type-badge congestion">Congestion</span>
-                            </td>
-                            <td class="px-4 py-3 text-sm">Major traffic buildup</td>
-                            <td class="px-4 py-3 text-sm">Main Street</td>
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">Major</span>
-                            </td>
-                            <td class="px-4 py-3 text-sm">1 hour ago</td>
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">Active</span>
-                            </td>
-                            <td class="px-4 py-3 text-sm">
-                                <button class="text-primary mr-2">View</button>
-                                <button class="text-primary">Edit</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="px-4 py-3 text-sm font-medium">#INC-2023-00143</td>
-                            <td class="px-4 py-3 text-sm">
-                                <span class="incident-type-badge roadwork">Roadwork</span>
-                            </td>
-                            <td class="px-4 py-3 text-sm">Lane closure for repairs</td>
-                            <td class="px-4 py-3 text-sm">Industrial Blvd</td>
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Minor</span>
-                            </td>
-                            <td class="px-4 py-3 text-sm">3 hours ago</td>
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">Active</span>
-                            </td>
-                            <td class="px-4 py-3 text-sm">
-                                <button class="text-primary mr-2">View</button>
-                                <button class="text-primary">Edit</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="px-4 py-3 text-sm font-medium">#INC-2023-00142</td>
-                            <td class="px-4 py-3 text-sm">
-                                <span class="incident-type-badge weather">Weather</span>
-                            </td>
-                            <td class="px-4 py-3 text-sm">Flooding on side roads</td>
-                            <td class="px-4 py-3 text-sm">Residential District</td>
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Minor</span>
-                            </td>
-                            <td class="px-4 py-3 text-sm">5 hours ago</td>
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Resolved</span>
-                            </td>
-                            <td class="px-4 py-3 text-sm">
-                                <button class="text-primary mr-2">View</button>
-                                <button class="text-primary">Edit</button>
-                            </td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -613,47 +282,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Form validation
-    const newIncidentForm = document.getElementById('newIncidentForm');
-    if (newIncidentForm) {
-        newIncidentForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Validate required fields
-            const requiredFields = this.querySelectorAll('[required]');
-            let isValid = true;
-            
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    field.classList.add('border-red-500');
-                    isValid = false;
-                } else {
-                    field.classList.remove('border-red-500');
-                }
-            });
-            
-            if (isValid) {
-                // Simulate form submission
-                alert('Incident successfully reported!');
-                this.reset();
-                mediaPreviewContainer.innerHTML = '';
-                incidentForm.classList.add('hidden');
-            } else {
-                alert('Please fill all required fields');
-            }
-        });
-    }
-
-    // Map location picker simulation
-    const mapPickerBtn = document.querySelector('button:has(.ri-map-pin-line)');
-    if (mapPickerBtn) {
-        mapPickerBtn.addEventListener('click', function() {
-            alert('Map interface would open here in production');
-            // Simulate setting coordinates
-            document.querySelector('input[type="number"]').value = '34.052235';
-            document.querySelectorAll('input[type="number"]')[1].value = '-118.243683';
-        });
-    }
 });
 </script>
 {% endblock %}

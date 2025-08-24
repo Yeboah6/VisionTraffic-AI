@@ -40,7 +40,7 @@
           </div>
           <div>
             <label class="block text-sm text-slate-500 mb-1">Location</label>
-            <p class="font-medium">{{ signal.location_id }}</p>
+            <p class="font-medium">{{ signal.locations.name }}</p>
           </div>
           <div>
             <label class="block text-sm text-slate-500 mb-1">Intersection</label>
@@ -55,6 +55,10 @@
             <p class="font-medium">{{ signal.address|capitalize }}</p>
           </div>
         </div>
+         <div class="p-6">
+            <label class="block text-sm text-slate-500 mb-1">Created By</label>
+            <p class="font-medium">{{ signal.address|capitalize }}</p>
+          </div>
       </div>
 
       <!-- Technical Specs -->

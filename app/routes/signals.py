@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
-from app.middleware.jwt_middleware import jwt_required_redirect
+from flask_login import login_required, current_user
 from datetime import datetime
 from ..models.user import User
 from ..models.location import Location
@@ -11,33 +10,28 @@ from app import db
 signal_bp = Blueprint('signal', __name__)
 
 @signal_bp.route('/signals')
-@jwt_required_redirect
+@login_required
 def signals():
     now = datetime.now()
-    current_user = get_jwt_identity()
-    user = User.query.filter_by(email = current_user).first()
-    
-    # Fetch signals from the database (assuming a Signal model exists)
-    # signals = Signal.query.all()  # Uncomment and modify as per your model
+    user = current_user
+    signals = Signal.query.all()
     
     return render_template('signals/signal.html',
                            user=user,
                            current_date = now.strftime("%B %d, %Y"),
-                           current_time = now.strftime("%I:%M %p")
-                           # signals=signals  # Uncomment if you have signals to display
-                           )
+                           current_time = now.strftime("%I:%M %p"),
+                           signals=signals  
+                        )
     
 @signal_bp.route('/signals/add', methods=['GET', 'POST'])
-@jwt_required_redirect
+@login_required
 def signalManage():
     now = datetime.now()
-    current_user = get_jwt_identity()
-    user = User.query.filter_by(email = current_user).first()
-    
+    user = current_user
+
     form = SignalForm()
     locations = [('', 'Select...')] + [(loc.id, loc.name) for loc in Location.query.order_by(Location.name)]
     form.location_id.choices = locations
-    
     
     if form.intersection_name.data:
         signal_id = Signal.generate_id(form.intersection_name.data)
@@ -74,31 +68,39 @@ def signalManage():
                             form = form,
                             signal_id=signal_id,
                             locations=locations
-                           )
+                        )
 
 @signal_bp.route('/signals/list')
-@jwt_required_redirect
+@login_required
 def list():
-    
     now = datetime.now()
-    current_user = get_jwt_identity()
-    user = User.query.filter_by(email = current_user).first()
-    
+    user = current_user
     signals = Signal.query.order_by(Signal.id).all()
     return render_template('signals/list.html',
                            user = user,
                            current_date = now.strftime("%B %d, %Y"), 
                            current_time = now.strftime("%I:%M %p"),
                            signals=signals
-                           )    
+                        )    
 
 @signal_bp.route('/signals/<string:id>')
+@login_required
 def view(id):
+    now = datetime.now()
+    user = current_user
     signal = Signal.query.get_or_404(str(id))
-    return render_template('signals/view.html', signal=signal)
+    return render_template('signals/view.html', 
+                           user = user,
+                           current_date = now.strftime("%B %d, %Y"), 
+                           current_time = now.strftime("%I:%M %p"),
+                           signal=signal
+                        )
 
 @signal_bp.route('/signals/<string:id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit(id):
+    now = datetime.now()
+    user = current_user
     signal = Signal.query.get_or_404(str(id))
     form = SignalForm(obj=signal)
     
@@ -112,7 +114,13 @@ def edit(id):
             db.session.rollback()
             flash(f'Error updating signal: {str(e)}', 'danger')
     
-    return render_template('signals/edit.html', signal=signal, form=form)
+    return render_template('signals/edit.html', 
+                           user = user,
+                           current_date = now.strftime("%B %d, %Y"), 
+                           current_time = now.strftime("%I:%M %p"),
+                           signal=signal, 
+                           form=form
+                        )
 
 @signal_bp.route('/signals/<string:id>/delete', methods=['POST'])
 def delete(id):

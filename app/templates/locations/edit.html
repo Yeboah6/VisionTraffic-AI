@@ -23,6 +23,11 @@
                     
                     <div class="form-grid">
                         <div class="form-group">
+                            {{ form.id.label(class="form-label form-required") }}
+                            {{ form.id(class="form-control", value=location.id) }}
+                        </div>
+
+                        <div class="form-group">
                             {{ form.name.label(class="form-label form-required") }}
                             {{ form.name(class="form-control", value=location.name) }}
                         </div>
@@ -41,7 +46,6 @@
                     <div class="form-group">
                         {{ form.description.label(class="form-label") }}
                         {{ form.description(class="form-control form-textarea") }}
-                        <textarea id="location-description" name="description" class="form-control form-textarea" placeholder="Additional details about this location">{{ location.description }}</textarea>
                     </div>
                 </div>
 
@@ -72,14 +76,16 @@
                                 {{ form.intersection_type(class="form-control") }}
                             </div>
                             
-                            <div class="form-group">
-                                {{ form.pedestrian_crossing.label(class="form-label") }}
-                                {{ form.pedestrian_crossing(class="form-control") }}
-                            </div>
-                            
-                            <div class="form-group">
-                                {{ form.bicycle_lanes.label(class="form-label") }}
-                                {{ form.bicycle_lanes(class="form-control") }}
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    {{ form.pedestrian_crossing.label(class="form-label") }}
+                                    {{ form.pedestrian_crossing(class="form-control") }}
+                                </div>
+
+                                <div class="form-group">
+                                    {{ form.bicycle_lanes.label(class="form-label") }}
+                                    {{ form.bicycle_lanes(class="form-control") }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -124,8 +130,8 @@
                     <div class="form-group">
                         <label class="form-label">Coordinates</label>
                         <div class="coordinates-input">
-                            {{ form.lat(class="form-control", value=location.lat) }}
-                            {{ form.lng(class="form-control", value=location.lng) }}
+                            {{ form.lat(class="form-control", value=location.lat, id="location-lat") }}
+                            {{ form.lng(class="form-control", value=location.lng, id="location-lng") }}
                         </div>
                     </div>
                     
@@ -147,5 +153,12 @@
         </form>
     </div>
 </main>
+
+<!-- // Add this to your template -->
+<!-- <script>
+document.querySelector('form').addEventListener('submit', function(e) {
+    console.log('Form data:', Object.fromEntries(new FormData(this)));
+});
+</script> -->
 
 {% endblock %}

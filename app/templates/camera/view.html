@@ -33,10 +33,11 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Camera Specifications -->
             <div class="card col-span-2">
-                <div class="p-4 border-b">
+                <div class="p-4 border-b flex flex-space-between">
                     <h2 class="font-semibold">Technical Specifications</h2>
+                    <p class="font-medium">{{ camera.id }}</p>
                 </div>
-                <div class="p-6 grid grid-cols-2 gap-6">
+                <div class="p-6 grid grid-cols-3 gap-5">
                     <div>
                         <label class="block text-sm text-slate-500 mb-1">Camera Type</label>
                         <p class="font-medium">{{ camera.camera_type|title }}</p>
@@ -54,13 +55,21 @@
                         <p class="font-medium">{{ camera.frame_rate }} fps</p>
                     </div>
                     <div>
+                        <label class="block text-sm text-slate-500 mb-1">Port</label>
+                        <p class="font-medium">{{ camera.port }}</p>
+                    </div>
+                    <div>
                         <label class="block text-sm text-slate-500 mb-1">IP Address</label>
                         <p class="font-medium">{{ camera.ip_address }}</p>
                     </div>
                     <div>
                         <label class="block text-sm text-slate-500 mb-1">Stream URL</label>
-                        <p class="font-medium">rtsp://{{ camera.username }}:••••@{{ camera.ip_address }}:{{ camera.port }}/{{ camera.stream_url_path }}</p>
+                        <p class="font-small" style="font-size: .7rem;">{{ camera.stream_protocol }}://{{ camera.username }}:••••@{{ camera.ip_address }}:{{ camera.port }}/{{ camera.stream_url_path }}</p>
                     </div>
+                </div>
+                <div class="p-6">
+                    <label class="block text-sm text-slate-500 mb-1">Created By</label>
+                    <p class="font-medium">{{ camera.creator.username|capitalize }}</p>
                 </div>
             </div>
 
@@ -80,9 +89,9 @@
                     </div>
                     <div>
                         <label class="block text-sm text-slate-500 mb-1">Assigned Signal</label>
-                        {% if camera.signal %}
+                        {% if camera.signal_id %}
                         <a href="{{ url_for('signal.view', id=camera.signal.id) }}" class="text-primary font-medium">
-                            {{ camera.signal.display_id }}
+                            {{ camera.signal_id }}
                         </a>
                         {% else %}
                         <a href="{{ url_for('camera.assign_signal', id=camera.id) }}" class="text-primary text-sm">

@@ -5,7 +5,6 @@ from datetime import timedelta
 load_dotenv()
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY')
-    # SECRET_KEY = os.getenv('SECRET_KEY', 'dev-key-123')
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     SQLALCHEMY_ECHO = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -21,3 +20,11 @@ class Config:
         'pool_pre_ping': True,
         'pool_recycle': 3600,
     }
+    
+    # Flask-Login settings
+    REMEMBER_COOKIE_DURATION = timedelta(days=7)
+    SESSION_PROTECTION = 'strong'
+    
+    UPLOAD_FOLDER = 'app/static/uploads'
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'pdf'}
+    MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10MB

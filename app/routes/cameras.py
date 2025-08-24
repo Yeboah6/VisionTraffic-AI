@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
-from app.middleware.jwt_middleware import jwt_required_redirect
+from flask_login import login_required, current_user
 from datetime import datetime
 from ..models.user import User
 from ..forms.camera import CameraForm
@@ -12,27 +11,22 @@ from app import db
 camera_bp = Blueprint('camera', __name__)
 
 @camera_bp.route('/cameras')
-@jwt_required_redirect
+@login_required
 def camera():
-    
     now = datetime.now()
-    current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first()
-    
-    # Fetch cameras from the database (assuming a Camera model exists)
+    user = current_user
     cameras = Camera.query.all()
     
     return render_template('camera/camera.html',
                            user = user,
                            current_date = now.strftime("%B %d, %Y"), 
                            current_time = now.strftime("%I:%M %p"),
-                            cameras=cameras
-                           )
+                           cameras=cameras
+                        )
     
 @camera_bp.route('/cameras/add', methods=['GET', 'POST'])
-@jwt_required_redirect
+@login_required
 def addCamera():
-    
     form = CameraForm()
     
     # Populate dropdowns
@@ -42,8 +36,7 @@ def addCamera():
         form.display_id.data = Camera.generate_display_id()
     
     now = datetime.now()
-    current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first()
+    user = current_user
     
     if form.validate_on_submit():
         try:
@@ -84,7 +77,7 @@ def addCamera():
                            current_date = now.strftime("%B %d, %Y"), 
                            current_time = now.strftime("%I:%M %p"),
                            form = form
-                           )
+                        )
     
 @camera_bp.route('/generate-id', methods=['POST'])
 def generate_id():
@@ -93,14 +86,12 @@ def generate_id():
         'display_id': Camera.generate_display_id(location_name)
     })
 
-
 @camera_bp.route('/cameras/<uuid:id>')
-@jwt_required_redirect
+@login_required
 def view(id):
     camera = Camera.query.get_or_404(id)
     now = datetime.now()
-    current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first()
+    user = current_user
     
     return render_template('camera/view.html', 
                            user=user, 
@@ -110,7 +101,11 @@ def view(id):
                            )
 
 @camera_bp.route('/cameras/<uuid:id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit(id):
+    now = datetime.now()
+    user = current_user
+    
     camera = Camera.query.get_or_404(id)
     form = CameraForm(obj=camera)
     
@@ -130,11 +125,20 @@ def edit(id):
             db.session.rollback()
             flash(f'Error updating camera: {str(e)}', 'danger')
     
-    return render_template('cameras/edit.html', camera=camera, form=form)
-
+    return render_template('camera/edit.html',
+                           user = user,
+                           current_date = now.strftime("%B %d, %Y"), 
+                           current_time = now.strftime("%I:%M %p"), 
+                           camera=camera, 
+                           form=form
+                        )
 
 @camera_bp.route('/cameras/<uuid:id>/assign-signal', methods=['GET', 'POST'])
+@login_required
 def assign_signal(id):
+    now = datetime.now()
+    user = current_user
+    
     camera = Camera.query.get_or_404(id)
     
     if request.method == 'POST':
@@ -149,8 +153,12 @@ def assign_signal(id):
     # GET request - show assignment page
     signals = Signal.query.order_by(Signal.id).all()
     return render_template('camera/assign.html', 
+                         user = user,
+                         current_date = now.strftime("%B %d, %Y"), 
+                         current_time = now.strftime("%I:%M %p"),
                          camera=camera, 
-                         signals=signals)
+                         signals=signals
+                        )
     
 @camera_bp.route('/cameras/<uuid:id>/test-connection')
 def test_connection(id):

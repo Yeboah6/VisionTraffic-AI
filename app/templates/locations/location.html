@@ -6,54 +6,57 @@
 <main class="main-content min-h-screen pb-8">
     <!-- Header -->
      <header class="bg-white shadow-sm">
-    <div class="flex items-center justify-between px-6 py-4">
-        <div class="flex items-center">
-            <h1 class="text-xl font-semibold text-slate-800">Traffic Monitoring Locations</h1>
+        <div class="flex items-center justify-between px-6 py-4">
+            <div class="flex items-center">
+                <h1 class="text-xl font-semibold text-slate-800">Traffic Monitoring Locations</h1>
+                <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
+                    {{ current_date }} • {{ current_time }}
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <input type="search" placeholder="Search..." class="w-64 pl-10 pr-4 py-2 bg-slate-100 rounded-full text-sm border-none focus:outline-none focus:ring-2 focus:ring-primary">
+                    <div class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 flex items-center justify-center text-slate-500">
+                        <i class="ri-search-line"></i>
+                    </div>
+                </div>
+
+                <button class="relative w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                    <div class="w-5 h-5 flex items-center justify-center text-slate-600">
+                        <i class="ri-notification-3-line"></i>
+                    </div>
+                    <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+                </button>
+
+                <button class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                    <div class="w-5 h-5 flex items-center justify-center text-slate-600">
+                        <i class="ri-settings-4-line"></i>
+                    </div>
+                </button>
+            </div>
+        </div>
+        <div class="px-6 py-4" style="text-align: center;font-weight: bold;font-size: 2.5rem;">
             <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
-                {{ current_date }} • {{ current_time }}
+                Active: {{ locations|length }} Location
             </div>
         </div>
-        
-        <div class="flex items-center space-x-4">
-            <div class="relative">
-                <input type="search" placeholder="Search..." class="w-64 pl-10 pr-4 py-2 bg-slate-100 rounded-full text-sm border-none focus:outline-none focus:ring-2 focus:ring-primary">
-                <div class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 flex items-center justify-center text-slate-500">
-                    <i class="ri-search-line"></i>
-                </div>
+        <div class="flex items-center justify-between px-6 py-4">
+            <div class="flex items-center">
+                <h1 class="text-xl font-semibold text-slate-800"></h1>
             </div>
-            
-            <button class="relative w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-                <div class="w-5 h-5 flex items-center justify-center text-slate-600">
-                    <i class="ri-notification-3-line"></i>
-                </div>
-                <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-            </button>
-            
-            <button class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-                <div class="w-5 h-5 flex items-center justify-center text-slate-600">
-                    <i class="ri-settings-4-line"></i>
-                </div>
-            </button>
+            <div class="flex items-center space-x-4">
+                <button class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm flex items-center">
+                    <i class="ri-download-line mr-2"></i>
+                    <span>Export</span>
+                </button>
+                <a href="{{ url_for('loc.addLocation') }}" class="px-4 py-2 bg-primary text-white rounded-button text-sm flex items-center">
+                    <i class="ri-add-line mr-2"></i>
+                    <span>Add Location</span>
+                </a>
+            </div>
         </div>
-    </div>
-</header>
-<header class="bg-white shadow-sm">
-    <div class="flex items-center justify-between px-6 py-4">
-        <div class="flex items-center">
-            <h1 class="text-xl font-semibold text-slate-800"></h1>
-        </div>
-        <div class="flex items-center space-x-4">
-            <button class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm flex items-center">
-                <i class="ri-download-line mr-2"></i>
-                <span>Export</span>
-            </button>
-            <a href="{{ url_for('loc.addLocation') }}" class="px-4 py-2 bg-primary text-white rounded-button text-sm flex items-center">
-                <i class="ri-add-line mr-2"></i>
-                <span>Add Location</span>
-            </a>
-        </div>
-    </div>
-</header>
+    </header>
 
     <!-- Location Content -->
     <div class="px-6 py-6">

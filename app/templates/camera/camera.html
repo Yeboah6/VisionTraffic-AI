@@ -7,6 +7,16 @@
     <!-- Header -->
     {% include 'includes/header.html' %}
 
+    <header class="bg-white shadow-sm" style="text-align: center;font-weight: bold;font-size: 2.5rem;">
+        <div class="  px-6 py-4">
+            <div class="">
+                <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
+                    Active: {{ cameras|length }} Cameras
+                </div>
+            </div>
+        </div>
+    </header>
+
     <!-- Filter Controls -->
     <div class="px-6 py-4 bg-white border-b">
         <div class="flex flex-wrap items-center justify-between gap-4">
@@ -67,9 +77,9 @@
     <div class="px-6 py-6">
         <div class="camera-grid mb-6">
             <!-- Camera Card 1 -->
-             {% for camera in cameras %}
+            {% for camera in cameras %}
             <div class="card camera-card p-4">
-                <div class="camera-thumbnail" style="background-image: url('https://via.placeholder.com/400x300?text=CAM_001')">
+                <div class="camera-thumbnail" style="background-image: url('https://via.placeholder.com/400x300?text={{ camera.display_id }}')">
                     <span class="camera-status-badge bg-green-100 text-green-800">{{ 'Online' if camera.is_active else 'Offline' }}</span>
                     <button class="rtsp-test-btn">Test RTSP</button>
                 </div>
@@ -77,7 +87,7 @@
                     <div class="flex justify-between items-start">
                         <div>
                             <h3 class="font-medium">{{ camera.display_id }}</h3>
-                            <p class="text-sm text-slate-500">Main St & 5th Ave</p>
+                            <p class="text-sm text-slate-500">{{ camera.location.name }}</p>
                         </div>
                         <div class="flex items-center">
                             <span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
@@ -105,12 +115,12 @@
                     <button class="text-primary text-xs flex items-center">
                         <i class="ri-settings-3-line mr-1"></i> Configure
                     </button>
-                    <button class="text-primary text-xs flex items-center">
+                    <a href="{{ url_for('camera.assign_signal', id=camera.id) }}" class="text-primary text-xs flex items-center">
                         <i class="ri-link mr-1"></i> Assign Signal
-                    </button>
-                    <button class="text-primary text-xs flex items-center">
+                    </a>
+                    <a href="{{ url_for('camera.view', id=camera.id) }}" class="text-primary text-xs flex items-center">
                         <i class="ri-eye-line mr-1"></i> View Live
-                    </button>
+                    </a>
                 </div>
             </div>
             {% endfor %}
@@ -157,18 +167,18 @@
                         {% for camera in cameras %}
                             <tr>
                                 <td class="px-4 py-3 text-sm font-medium">{{ camera.display_id }}</td>
-                                <td class="px-4 py-3 text-sm">{{ camera.location_id }}</td>
+                                <td class="px-4 py-3 text-sm">{{ camera.location.name }}</td>
                                 <td class="px-4 py-3 text-sm">{{ camera.camera_type|capitalize }}</td>
                                 <td class="px-4 py-3">
                                     <span class="px-2 py-1 {{ 'bg-green-100 text-green-800' if camera.is_active else 'bg-red-100 text-red-800' }} text-xs rounded-full">
                                         {{ 'Online' if camera.is_active else 'Offline' }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 text-sm"></td>
+                                <td class="px-4 py-3 text-sm">{{ camera.signal_id }}</td>
                                 <td class="px-4 py-3 text-sm">{{ camera.created_at }}</td>
                                 <td class="px-4 py-3 text-sm">
                                     <a href="{{ url_for('camera.view', id=camera.id) }}" class="text-primary mr-2">View</a>
-                                    <button class="text-primary">Edit</button>
+                                    <a href="{{ url_for('camera.edit', id=camera.id) }}" class="text-primary">Edit</a>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -199,7 +209,4 @@
     </div>
 </main>
 
-<script>
-
-</script>
 {% endblock %}

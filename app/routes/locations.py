@@ -1,26 +1,19 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
-from app.middleware.jwt_middleware import jwt_required_redirect
 from datetime import datetime
 from app import db
 from ..models.user import User
 from app.models.location import Location
 from app.forms.location import LocationForm
-from geoalchemy2.functions import ST_MakePoint
+from flask_login import login_required, current_user
+# from geoalchemy2.functions import ST_MakePoint
 
 loc_bp = Blueprint('loc', __name__)
 
 @loc_bp.route('/locations')
-@jwt_required_redirect
+@login_required
 def location():
     now = datetime.now()
-    current_user = get_jwt_identity()
-    if not current_user:
-        return redirect(url_for('auth.login', next=request.url))
-    
-    user = User.query.filter_by(email=current_user).first_or_404()
-    
-    # Fetch locations from the database (assuming a Location model exists)
+    user = current_user
     locations = Location.query.all()
     
     return render_template('locations/location.html',
@@ -31,17 +24,13 @@ def location():
                            )
     
 @loc_bp.route('/locations/add', methods=['GET', 'POST'])
-@jwt_required_redirect
+@login_required
 def addLocation():
-    current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first_or_404()
+    user = current_user
     form = LocationForm()
     
     if form.validate_on_submit():
         try:
-            # Convert pedestrian_crossing to boolean properly
-            # pedestrian_crossing = form.pedestrian_crossing.data if form.pedestrian_crossing.data is not None else False
-            
             location = Location(
                 name=form.name.data,
                 zone=form.zone.data,
@@ -73,15 +62,6 @@ def addLocation():
             current_app.logger.error(f"Error saving location: {str(e)}")
             flash(f'Error saving location: {str(e)}', 'error')
     
-    # Handle form errors
-    # if form.errors:
-    #     for field, errors in form.errors.items():
-    #         for error in errors:
-    #             flash(f'{field}: {error}', 'error')
-                
-    # Add this to your route temporarily
-    # print("Database URL:", current_app.config['SQLALCHEMY_DATABASE_URI'])
-    
     return render_template('locations/add.html',
                          form=form,
                          user=user,
@@ -90,10 +70,9 @@ def addLocation():
 
 
 @loc_bp.route('/locations/<uuid:location_id>')
-@jwt_required_redirect
+@login_required
 def viewLocation(location_id):
-    current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first_or_404()
+    user = current_user
     location = Location.query.get_or_404(location_id)
     
     return render_template('locations/view.html',
@@ -104,10 +83,9 @@ def viewLocation(location_id):
     
 
 @loc_bp.route('/locations/<uuid:location_id>/edit', methods=['GET', 'POST'])
-@jwt_required_redirect
+@login_required
 def editLocation(location_id):
-    current_user = get_jwt_identity()
-    user = User.query.filter_by(email=current_user).first_or_404()
+    user = current_user
     location = Location.query.get_or_404(location_id)
     form = LocationForm(obj=location)  # Pre-populate form with location data
 

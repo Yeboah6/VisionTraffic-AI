@@ -19,9 +19,13 @@
                         </div>
                         <h2 class="text-2xl font-bold">{{ location.name }}</h2>
                     </div>
-                    <span class="location-status status-{{ location.status }}">
-                        {{ location.status }}
+                    <span class="location-status status-{{ 'active' if location.status == 'active' else 'inactive' }}">
+                       <i class="ri-checkbox-circle-line mr-1"></i> {{ location.status }}
                     </span>
+                    <div class="detail-item">
+                        <h3 class="font-bold">Created By</h3>
+                        <span class="detail-value">{{ location.creator.username|capitalize}}</span>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -77,6 +81,7 @@
                             <span class="detail-label">Address</span>
                             <span class="detail-value">{{ location.address }}</span>
                         </div>
+                        <br>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div class="detail-item">
                                 <span class="detail-label">City</span>
@@ -95,6 +100,7 @@
                                 <span class="detail-value">{{ location.country }}</span>
                             </div>
                         </div>
+                        <br>
                         <div class="detail-item">
                             <span class="detail-label">Coordinates</span>
                             <span class="detail-value">
@@ -121,14 +127,14 @@
     </div>
 </main>
 
-<script>
-const map = L.map('map').setView([{{ location.lat }}, {{ location.lng }}], 15);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(map);
+    <script>
+        const map = L.map('map').setView([{{ location.lat }}, {{ location.lng }}], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
-L.marker([{{ location.lat }}, {{ location.lng }}]).addTo(map)
-    .bindPopup('{{ location.name }}');
-</script>
+        L.marker([{{ location.lat }}, {{ location.lng }}]).addTo(map)
+            .bindPopup('{{ location.name }}');
+    </script>
 
 {% endblock %}

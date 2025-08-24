@@ -3,7 +3,28 @@
 {% block content %}
 <!-- Keep all existing head content from your original code -->
 <style>
+.media-upload-box {
+    border: 2px dashed #cbd5e1;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
 
+.media-upload-box:hover {
+    border-color: #3b82f6;
+    background-color: #f8fafc;
+}
+
+.media-preview-item {
+    width: 80px;
+    text-align: center;
+}
+
+.remove-media {
+    transition: background-color 0.2s ease;
+}
 </style>
 
 
@@ -20,45 +41,50 @@
                 <p class="text-sm text-slate-500 mt-1">Provide details about the traffic incident</p>
             </div>
             <div class="p-6">
-                <form id="incidentReportForm">
+                <form action="{{ url_for('incident.add_incident') }}" id="incidentReportForm" method="POST">
+                    {{ form.hidden_tag() }}
                     <!-- Section 1: Incident Details -->
                     <div class="incident-section">
                         <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
                             <span class="section-number">1</span>
                             Incident Information
                         </h3>
+                        <div class="mt-4 mb-4">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.incident_id.label(class="form-required")}}</label>
+                            {{ form.incident_id(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm", value=form.incident_id.data) }}
+                            {% for error in form.incident_id.errors %}
+                                <span class="text-red-500 text-xs">{{ error }}</span>
+                            {% endfor %}
+                        </div>
                         <div class="grid grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Incident Type*</label>
-                                <select id="incidentType" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select type...</option>
-                                    <option value="accident">Accident</option>
-                                    <option value="congestion">Traffic Congestion</option>
-                                    <option value="roadwork">Roadwork</option>
-                                    <option value="weather">Weather Hazard</option>
-                                    <option value="disabled">Disabled Vehicle</option>
-                                    <option value="hazard">Road Hazard</option>
-                                    <option value="other">Other</option>
-                                </select>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.type.label(class="form-required")}}</label>
+                                {{ form.type(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select") }}
+                                {% for error in form.type.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Severity Level*</label>
-                                <select id="incidentSeverity" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select severity...</option>
-                                    <option value="critical">Critical (Emergency)</option>
-                                    <option value="major">Major (Severe Impact)</option>
-                                    <option value="moderate">Moderate</option>
-                                    <option value="minor">Minor</option>
-                                </select>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.severity.label(class="form-required")}}</label>
+                                {{ form.severity(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select") }}
+                                {% for error in form.severity.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                         </div>
                         <div class="mt-4">
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Title*</label>
-                            <input type="text" id="incidentTitle" required class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="Brief description of the incident">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.title.label(class="form-required")}}</label>
+                            {{ form.title(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm", placeholder="Brief description of the incident") }}
+                            {% for error in form.title.errors %}
+                                <span class="text-red-500 text-xs">{{ error }}</span>
+                            {% endfor %}
                         </div>
                         <div class="mt-4">
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Detailed Description*</label>
-                            <textarea id="incidentDescription" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" rows="3" required placeholder="Provide detailed information about vehicles involved, injuries, road conditions, etc."></textarea>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.description.label(class="form-required")}}</label>
+                            {{ form.description(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm", rows="3", placeholder="Provide detailed information about vehicles involved, injuries, road conditions, etc.") }}
+                            {% for error in form.description.errors %}
+                                <span class="text-red-500 text-xs">{{ error }}</span>
+                            {% endfor %}
                         </div>
                     </div>
 
@@ -70,54 +96,18 @@
                         </h3>
                         <div class="grid grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Location Type*</label>
-                                <select id="locationType" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select location type...</option>
-                                    <option>Intersection</option>
-                                    <option>Highway/Freeway</option>
-                                    <option>City Street</option>
-                                    <option>Residential Area</option>
-                                    <option>Tunnel</option>
-                                    <option>Bridge</option>
-                                    <option>Parking Lot</option>
-                                </select>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.location_type.label(class="form-required")}}</label>
+                                {{ form.location_type(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select") }}
+                                {% for error in form.location_type.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Specific Location*</label>
-                                <input type="text" id="specificLocation" required class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="e.g., Main St & 5th Ave">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-6 mt-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Latitude*</label>
-                                <input type="number" id="latitude" step="0.000001" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="34.052235" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Longitude*</label>
-                                <input type="number" id="longitude" step="0.000001" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="-118.243683" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Direction*</label>
-                                <select id="direction" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select direction...</option>
-                                    <option>Northbound</option>
-                                    <option>Southbound</option>
-                                    <option>Eastbound</option>
-                                    <option>Westbound</option>
-                                    <option>Both Directions</option>
-                                    <option>All Directions</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <button type="button" id="pickLocationBtn" class="text-primary text-sm flex items-center">
-                                <i class="ri-map-pin-line mr-1"></i> Pick location from map
-                            </button>
-                        </div>
-                        <div class="incident-map-preview mt-2" id="mapPreview">
-                            <div class="text-center">
-                                <i class="ri-map-2-line text-2xl mb-2"></i>
-                                <p class="text-sm">Map preview will appear here</p>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.location.label(class="form-required")}}</label>
+                                {{ form.location(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select") }}
+                                {% for error in form.location.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
@@ -130,56 +120,41 @@
                         </h3>
                         <div class="grid grid-cols-3 gap-6">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Lanes Affected*</label>
-                                <select id="lanesAffected" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select lanes...</option>
-                                    <option>1 lane</option>
-                                    <option>2 lanes</option>
-                                    <option>3+ lanes</option>
-                                    <option>All lanes</option>
-                                    <option>Shoulder only</option>
-                                    <option>Unknown</option>
-                                </select>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.lanes_affected.label(class="form-required")}}</label>
+                                {{ form.lanes_affected(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select") }}
+                                {% for error in form.lanes_affected.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Estimated Delay*</label>
-                                <select id="estimatedDelay" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select" required>
-                                    <option value="">Select delay...</option>
-                                    <option>No significant delay</option>
-                                    <option>5-15 minutes</option>
-                                    <option>15-30 minutes</option>
-                                    <option>30-60 minutes</option>
-                                    <option>60+ minutes</option>
-                                    <option>Unknown</option>
-                                </select>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.estimated_delay.label(class="form-required")}}</label>
+                                {{ form.estimated_delay(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select") }}
+                                {% for error in form.estimated_delay.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Emergency Services</label>
-                                <select id="emergencyServices" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
-                                    <option value="">Select if applicable...</option>
-                                    <option>Police on scene</option>
-                                    <option>Ambulance on scene</option>
-                                    <option>Fire department on scene</option>
-                                    <option>Multiple services</option>
-                                    <option>Requesting services</option>
-                                </select>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.emergency_services.label()}}</label>
+                                {{ form.emergency_services(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select") }}
+                                {% for error in form.emergency_services.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-6 mt-4">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Vehicles Involved</label>
-                                <input type="number" id="vehiclesInvolved" min="0" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="Number of vehicles">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.vehicles_involved.label()}}</label>
+                                {{ form.vehicles_involved(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm", placeholder="Number of vehicles") }}
+                                {% for error in form.vehicles_involved.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Injuries Reported</label>
-                                <select id="injuriesReported" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
-                                    <option value="">Select if applicable...</option>
-                                    <option>No injuries</option>
-                                    <option>Minor injuries</option>
-                                    <option>Serious injuries</option>
-                                    <option>Fatalities</option>
-                                    <option>Unknown</option>
-                                </select>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.injuries_reported.label()}}</label>
+                                {{ form.injuries_reported(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select") }}
+                                {% for error in form.injuries_reported.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
@@ -199,7 +174,7 @@
                                 </div>
                                 <p class="text-sm text-slate-700">Drag & drop files here or click to browse</p>
                                 <p class="text-xs text-slate-500 mt-1">Supports JPG, PNG, MP4, PDF</p>
-                                <input type="file" id="incidentMedia" class="hidden" multiple accept="image/*,video/*,.pdf">
+                                <input type="file" name="media_files" id="incidentMedia" class="hidden" multiple accept="image/*,video/*,.pdf">
                             </div>
                             <div class="flex flex-wrap gap-3 mt-3" id="mediaPreviewContainer">
                                 <!-- Media thumbnails will appear here -->
@@ -215,23 +190,26 @@
                         </h3>
                         <div class="grid grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Reporter Information</label>
-                                <select id="reporterType" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select">
-                                    <option value="operator" selected>Traffic Operator (Current User)</option>
-                                    <option value="police">Police Department</option>
-                                    <option value="public">Public Report</option>
-                                    <option value="ai">AI Detection System</option>
-                                    <option value="other">Other</option>
-                                </select>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.reporter_type.label()}}</label>
+                                {{ form.reporter_type(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select", id="reporterType") }}
+                                {% for error in form.reporter_type.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
-                            <div id="reporterInfoContainer" class="hidden">
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Reporter Details</label>
-                                <input type="text" id="reporterInfo" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="Name, contact info, etc.">
+                            <div id="reporterInfoContainer" class="">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.reporter_info.label()}}</label>
+                                {{ form.reporter_info(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm", placeholder="Name, contact info, etc.", id="reporterInfo") }}
+                                {% for error in form.reporter_info.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
                             </div>
                         </div>
                         <div class="mt-4">
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Internal Notes</label>
-                            <textarea id="internalNotes" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" rows="2" placeholder="Any additional internal notes..."></textarea>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.internal_notes.label()}}</label>
+                            {{ form.internal_notes(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm", rows="2", placeholder="Any additional internal notes...") }}
+                            {% for error in form.internal_notes.errors %}
+                                <span class="text-red-500 text-xs">{{ error }}</span>
+                            {% endfor %}
                         </div>
                     </div>
 
@@ -248,212 +226,133 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Media upload functionality
     const mediaUploadBox = document.getElementById('mediaUploadBox');
-    const mediaInput = document.getElementById('incidentMedia');
-    const mediaPreviewContainer = document.getElementById('mediaPreviewContainer');
-    
-    if (mediaUploadBox && mediaInput) {
-        // Click handler
-        mediaUploadBox.addEventListener('click', function() {
-            mediaInput.click();
-        });
+    const fileInput = document.getElementById('incidentMedia');
+    const previewContainer = document.getElementById('mediaPreviewContainer');
+    const maxFiles = 5;
+    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+
+    // Click on box to trigger file input
+    mediaUploadBox.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    // Drag and drop functionality
+    mediaUploadBox.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        mediaUploadBox.classList.add('border-blue-400', 'bg-blue-50');
+    });
+
+    mediaUploadBox.addEventListener('dragleave', () => {
+        mediaUploadBox.classList.remove('border-blue-400', 'bg-blue-50');
+    });
+
+    mediaUploadBox.addEventListener('drop', (e) => {
+        e.preventDefault();
+        mediaUploadBox.classList.remove('border-blue-400', 'bg-blue-50');
         
-        // Drag and drop handlers
-        mediaUploadBox.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.classList.add('border-primary', 'bg-blue-50');
-        });
-        
-        mediaUploadBox.addEventListener('dragleave', function() {
-            this.classList.remove('border-primary', 'bg-blue-50');
-        });
-        
-        mediaUploadBox.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('border-primary', 'bg-blue-50');
-            if (e.dataTransfer.files.length > 0) {
-                handleFiles(e.dataTransfer.files);
-            }
-        });
-        
-        // File input change handler
-        mediaInput.addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
-                handleFiles(e.target.files);
-            }
-        });
-        
-        // Handle uploaded files
-        function handleFiles(files) {
-            // Clear existing previews if we want to limit to 5
-            // mediaPreviewContainer.innerHTML = '';
-            
-            Array.from(files).slice(0, 5).forEach(file => {
-                if (file.size > 10 * 1024 * 1024) {
-                    alert(`File ${file.name} is too large (max 10MB)`);
-                    return;
-                }
-                
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const thumb = document.createElement('div');
-                    thumb.className = 'evidence-thumbnail';
-                    
-                    if (file.type.startsWith('image/')) {
-                        thumb.style.backgroundImage = `url(${event.target.result})`;
-                    } else if (file.type.startsWith('video/')) {
-                        thumb.innerHTML = `
-                            <div class="absolute inset-0 flex items-center justify-center bg-slate-800 text-white">
-                                <i class="ri-video-line"></i>
-                            </div>
-                            <div class="remove-btn">×</div>
-                        `;
-                    } else {
-                        thumb.innerHTML = `
-                            <div class="absolute inset-0 flex items-center justify-center bg-slate-100 text-slate-400">
-                                <i class="ri-file-line"></i>
-                            </div>
-                            <div class="remove-btn">×</div>
-                        `;
-                    }
-                    
-                    // Add remove button for all types
-                    if (!file.type.startsWith('image/')) {
-                        const removeBtn = thumb.querySelector('.remove-btn');
-                        removeBtn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            thumb.remove();
-                        });
-                    } else {
-                        thumb.innerHTML += '<div class="remove-btn">×</div>';
-                        thumb.querySelector('.remove-btn').addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            thumb.remove();
-                        });
-                    }
-                    
-                    mediaPreviewContainer.appendChild(thumb);
-                };
-                reader.readAsDataURL(file);
-            });
+        if (e.dataTransfer.files.length > 0) {
+            handleFiles(e.dataTransfer.files);
         }
+    });
+
+    // File input change handler
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            handleFiles(fileInput.files);
+        }
+    });
+
+    function handleFiles(files) {
+        const currentFiles = fileInput.files;
+        const newFiles = Array.from(files);
+        
+        // Check file count limit
+        if (currentFiles.length + newFiles.length > maxFiles) {
+            alert(`Maximum ${maxFiles} files allowed`);
+            return;
+        }
+
+        // Check file size and type
+        for (const file of newFiles) {
+            if (file.size > maxSize) {
+                alert(`File ${file.name} exceeds 10MB limit`);
+                return;
+            }
+
+            const fileType = file.type;
+            if (!fileType.match('image/.*') && 
+                !fileType.match('video/.*') && 
+                !file.name.toLowerCase().endsWith('.pdf')) {
+                alert(`File ${file.name} is not a supported format`);
+                return;
+            }
+        }
+
+        // Create preview thumbnails
+        newFiles.forEach(createPreview);
+
+        // Update the file input (for multiple selection)
+        const dataTransfer = new DataTransfer();
+        Array.from(currentFiles).forEach(file => dataTransfer.items.add(file));
+        newFiles.forEach(file => dataTransfer.items.add(file));
+        fileInput.files = dataTransfer.files;
     }
 
-    // Map location picker simulation
-    const pickLocationBtn = document.getElementById('pickLocationBtn');
-    if (pickLocationBtn) {
-        pickLocationBtn.addEventListener('click', function() {
-            alert('Map interface would open here in production');
-            // Simulate setting coordinates
-            document.getElementById('latitude').value = '34.052235';
-            document.getElementById('longitude').value = '-118.243683';
-            document.getElementById('mapPreview').innerHTML = `
-                <div class="absolute inset-0 bg-blue-50 flex items-center justify-center text-blue-600">
-                    <p>Map location selected at 34.052235, -118.243683</p>
+    function createPreview(file) {
+        const previewDiv = document.createElement('div');
+        previewDiv.className = 'media-preview-item relative group';
+        
+        if (file.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'w-16 h-16 object-cover rounded';
+            previewDiv.appendChild(img);
+        } else if (file.type.startsWith('video/')) {
+            previewDiv.innerHTML = `
+                <div class="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                    <i class="ri-video-line text-xl"></i>
                 </div>
             `;
+        } else if (file.name.toLowerCase().endsWith('.pdf')) {
+            previewDiv.innerHTML = `
+                <div class="w-16 h-16 bg-red-100 rounded flex items-center justify-center">
+                    <i class="ri-file-text-line text-xl text-red-600"></i>
+                </div>
+            `;
+        }
+
+        // Add file name and remove button
+        previewDiv.innerHTML += `
+            <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center">
+                <button type="button" class="remove-media text-white p-1 rounded-full bg-red-500 hover:bg-red-600">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="text-xs mt-1 truncate w-16">${file.name}</div>
+        `;
+
+        // Remove button functionality
+        const removeBtn = previewDiv.querySelector('.remove-media');
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeFile(file, previewDiv);
         });
+
+        previewContainer.appendChild(previewDiv);
     }
 
-    // Reporter type change handler
-    const reporterType = document.getElementById('reporterType');
-    const reporterInfoContainer = document.getElementById('reporterInfoContainer');
-    if (reporterType) {
-        reporterType.addEventListener('change', function() {
-            if (this.value === 'public' || this.value === 'other' || this.value === 'police') {
-                reporterInfoContainer.classList.remove('hidden');
-            } else {
-                reporterInfoContainer.classList.add('hidden');
+    function removeFile(fileToRemove, previewElement) {
+        const dataTransfer = new DataTransfer();
+        Array.from(fileInput.files).forEach(file => {
+            if (file !== fileToRemove) {
+                dataTransfer.items.add(file);
             }
         });
-    }
-
-    // Form validation and submission
-    const incidentForm = document.getElementById('incidentReportForm');
-    const cancelBtn = document.getElementById('cancelBtn');
-    
-    if (incidentForm) {
-        incidentForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Validate required fields
-            const requiredFields = this.querySelectorAll('[required]');
-            let isValid = true;
-            
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    field.classList.add('border-red-500');
-                    isValid = false;
-                } else {
-                    field.classList.remove('border-red-500');
-                }
-            });
-            
-            if (isValid) {
-                // Simulate form submission
-                const incidentData = {
-                    type: document.getElementById('incidentType').value,
-                    severity: document.getElementById('incidentSeverity').value,
-                    title: document.getElementById('incidentTitle').value,
-                    description: document.getElementById('incidentDescription').value,
-                    location: {
-                        type: document.getElementById('locationType').value,
-                        specific: document.getElementById('specificLocation').value,
-                        lat: document.getElementById('latitude').value,
-                        lng: document.getElementById('longitude').value,
-                        direction: document.getElementById('direction').value
-                    },
-                    impact: {
-                        lanes: document.getElementById('lanesAffected').value,
-                        delay: document.getElementById('estimatedDelay').value,
-                        emergency: document.getElementById('emergencyServices').value,
-                        vehicles: document.getElementById('vehiclesInvolved').value,
-                        injuries: document.getElementById('injuriesReported').value
-                    },
-                    reporter: {
-                        type: document.getElementById('reporterType').value,
-                        info: document.getElementById('reporterInfo').value
-                    },
-                    notes: document.getElementById('internalNotes').value,
-                    mediaCount: document.querySelectorAll('#mediaPreviewContainer .evidence-thumbnail').length
-                };
-                
-                console.log('Incident data to submit:', incidentData);
-                alert('Incident successfully reported!');
-                this.reset();
-                mediaPreviewContainer.innerHTML = '';
-                document.getElementById('mapPreview').innerHTML = `
-                    <div class="text-center">
-                        <i class="ri-map-2-line text-2xl mb-2"></i>
-                        <p class="text-sm">Map preview will appear here</p>
-                    </div>
-                `;
-                
-                // In a real app, you would submit to your backend API here
-                // fetch('/api/incidents', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify(incidentData)
-                // })
-                // .then(response => response.json())
-                // .then(data => {
-                //     alert('Incident reported successfully!');
-                //     window.location.href = '/incidents';
-                // });
-            } else {
-                alert('Please fill all required fields');
-            }
-        });
-    }
-    
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', function() {
-            if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
-                window.location.href = '/incidents'; // Or close modal, etc.
-            }
-        });
+        fileInput.files = dataTransfer.files;
+        previewElement.remove();
     }
 });
 </script>
+
 {% endblock %}
