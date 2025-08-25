@@ -191,8 +191,8 @@
                                 <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">{{ incident.status|capitalize}}</span>
                             </td>
                             <td class="px-4 py-3 text-sm">
-                                <button class="text-primary mr-2">View</button>
-                                <button class="text-primary">Edit</button>
+                                <a href="{{ url_for('incident.view_incident', id=incident.id) }}" class="text-primary mr-2">View</a>
+                                <a href="{{ url_for('incident.edit_incident', id=incident.id) }}" class="text-primary">Edit</a>
                             </td>
                         </tr>
                         {% endfor %}

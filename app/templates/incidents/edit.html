@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="main-content min-h-screen pb-8">
+    <!-- Header -->
+    {% include 'includes/header.html' %}
+    
+    <!-- Breadcrumb -->
+    <nav class="px-6 py-4 bg-white border-b">
+        <div class="flex items-center space-x-2 text-sm text-slate-500">
+            <a href="{{ url_for('incident.incident') }}" class="hover:text-primary">Incidents</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <a href="{{ url_for('incident.view_incident', id=incident.id) }}" class="hover:text-primary">#{{ incident.incident_id }}</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <span>Edit Incident</span>
+        </div>
+    </nav>
+
+    <div class="px-6 py-6">
+        <form method="POST" action="{{ url_for('incident.edit_incident', id=incident.id) }}" enctype="multipart/form-data" class="space-y-6">
+            {{ form.hidden_tag() }}
+            
+            <!-- Incident Header -->
+            <div class="card">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h1 class="text-2xl font-semibold text-slate-800">Edit Incident</h1>
+                            <p class="text-sm text-slate-600">Update incident details and status</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <a href="{{ url_for('incident.view_incident', id=incident.id) }}" 
+                               class="px-4 py-2 border border-slate-200 rounded-button text-sm bg-red-100 text-red-600 hover:bg-red-300">
+                                Cancel
+                            </a>
+                            <button type="submit" class="px-4 py-2 bg-primary text-white rounded-button text-sm">
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Incident Type -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Incident Type <span style="color: red;">*</span></label>
+                            {{ form.type(class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm bg-white") }}
+                        </div>
+
+                        <!-- Severity -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Severity <span style="color: red;">*</span></label>
+                            {{ form.severity(class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm bg-white") }}
+                        </div>
+                        <!-- Status -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Status <span style="color: red;">*</span></label>
+                            {{ form.status(class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm bg-white") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Basic Information -->
+            <div class="card">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-slate-800 mb-6">Basic Information</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Title -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Incident Title <span style="color: red;">*</span></label>
+                            {{ form.title(class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm", placeholder="Brief description of the incident") }}
+                        </div>
+
+                        <!-- Description -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Description <span style="color: red;">*</span></label>
+                            {{ form.description(class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm", rows="4", placeholder="Detailed description of what happened") }}
+                        </div>
+
+                        <!-- Location -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Location <span style="color: red;">*</span></label>
+                            {{ form.location(class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm", placeholder="Enter location") }}
+                        </div>
+
+                        <!-- Intersection -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Location Type</label>
+                            {{ form.location_type(class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm", placeholder="Intersection name") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Incident Details -->
+            <div class="card">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-slate-800 mb-6">Incident Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Vehicles Involved -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Vehicles Involved</label>
+                            {{ form.vehicles_involved(class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm", type="number", min="0") }}
+                        </div>
+
+                        <!-- Lanes Affected -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Lanes Affected</label>
+                            {{ form.lanes_affected(class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm", type="number", min="0") }}
+                        </div>
+
+                        <!-- Emergency Services -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Emergency Services</label>
+                            {{ form.emergency_services(class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm") }}
+                        </div>
+
+                        <!-- Reporter Info -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Reporter Information</label>
+                            {{ form.reporter_info(class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm", placeholder="Reporter name or contact info") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evidence Collection -->
+            <div class="card">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-slate-800 mb-6">Evidence Collection</h3>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Upload Additional Evidence</label>
+                        <p class="text-xs text-slate-500 mb-4">Photos, videos, or documents supporting this incident</p>
+                        
+                        <div class="media-upload-box" onclick="document.getElementById('additionalMedia').click()">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <i class="ri-upload-cloud-2-line text-primary"></i>
+                            </div>
+                            <p class="text-sm text-slate-700">Drag & drop files here or click to browse</p>
+                            <p class="text-xs text-slate-500 mt-1">Supports JPG, PNG, MP4, PDF</p>
+                            <input type="file" name="additional_media" id="additionalMedia" class="hidden" multiple accept="image/*,video/*,.pdf">
+                        </div>
+
+                        <!-- Existing Media -->
+                        {% if incident.media_files %}
+                        <div class="mt-6">
+                            <label class="block text-sm font-medium text-slate-700 mb-3">Existing Media</label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {% for media in incident.media_files.split(',') %}
+                                <div class="relative group">
+                                    <div class="evidence-thumbnail">
+                                        {% if media.endswith(('.jpg', '.jpeg', '.png', '.gif')) %}
+                                        <img src="{{ url_for('static', filename='uploads/' + media) }}" 
+                                             alt="Evidence" class="w-full h-full object-cover">
+                                        {% elif media.endswith(('.mp4', '.mov', '.avi')) %}
+                                        <div class="absolute inset-0 flex items-center justify-center bg-slate-800">
+                                            <i class="ri-video-line text-xl text-white"></i>
+                                        </div>
+                                        {% else %}
+                                        <div class="absolute inset-0 flex items-center justify-center bg-slate-100">
+                                            <i class="ri-file-line text-xl text-slate-400"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <button type="button" class="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                            onclick="removeMedia('{{ media }}')">
+                                        ×
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end space-x-3">
+                <a href="{{ url_for('incident.view_incident', id=incident.id) }}" 
+                   class="px-6 py-2 border border-slate-200 rounded-button text-sm bg-red-100 text-red-600 hover:bg-red-300">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-2 bg-primary text-white rounded-button text-sm">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<style>
+.media-upload-box {
+    border: 2px dashed #cbd5e1;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.media-upload-box:hover {
+    border-color: #3b82f6;
+    background-color: #f8fafc;
+}
+
+.evidence-thumbnail {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+</style>
+
+<script>
+function removeMedia(filename) {
+    if (confirm('Are you sure you want to remove this file?')) {
+        // Add hidden input to mark file for removal
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'remove_media';
+        input.value = filename;
+        document.querySelector('form').appendChild(input);
+        
+        // Remove the visual element
+        event.target.closest('.relative').remove();
+    }
+}
+
+// Handle file upload preview
+document.getElementById('additionalMedia').addEventListener('change', function(e) {
+    if (e.target.files.length > 0) {
+        // You can add preview functionality here similar to the list page
+        console.log('Files selected:', e.target.files.length);
+    }
+});
+</script>
+{% endblock %}

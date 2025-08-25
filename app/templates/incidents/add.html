@@ -43,6 +43,54 @@
             <div class="p-6">
                 <form action="{{ url_for('incident.add_incident') }}" id="incidentReportForm" method="POST">
                     {{ form.hidden_tag() }}
+
+                    {% if form.errors %}
+                        <div class="bg-red-100 text-red-700 p-4 rounded mb-4">
+                            <strong>Form Errors:</strong>
+                            <ul>
+                                {% for field, errors in form.errors.items() %}
+                                    {% for error in errors %}
+                                        <li>{{ field }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    {% if success_message %}
+                        <div class="bg-green-100 text-green-700 p-4 rounded mb-4">
+                            <strong>Success:</strong> {{ success_message }}
+                        </div>
+                    {% endif %}
+                    {% if error_message %}
+                        <div class="bg-red-100 text-red-700 p-4 rounded mb-4">
+                            <strong>Error:</strong> {{ error_message }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card form-section">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">
+                                    {{ message }}
+                                    {% if request.args.get('expired') %}
+                                        <p>Your session has expired. Please login again.</p>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Status *</label>
+                        {{ form.status(class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm bg-white") }}
+                        {% if form.status.errors %}
+                            <div class="text-red-500 text-xs mt-1">
+                                {% for error in form.status.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
                     <!-- Section 1: Incident Details -->
                     <div class="incident-section">
                         <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
@@ -180,6 +228,9 @@
                                 <!-- Media thumbnails will appear here -->
                             </div>
                         </div>
+                        {% for error in form.media.errors %}
+                            <span class="text-red-500 text-xs">{{ error }}</span>
+                        {% endfor %}
                     </div>
 
                     <!-- Section 5: Additional Information -->

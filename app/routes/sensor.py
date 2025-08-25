@@ -78,7 +78,7 @@ def view(id):
                             current_time=now.strftime("%I:%M %p"),
                             sensor=sensor)
     
-@sensor_bp.route('/sensors/<uuid:id>/edit', methods=['GET', 'POST'])
+@sensor_bp.route('/sensors/<uuid:id>/edit', methods=['GET', 'POST']) 
 @login_required
 def edit(id):
     now = datetime.now()

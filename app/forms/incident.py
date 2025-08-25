@@ -1,7 +1,9 @@
 # app/forms/incident.py
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
-from wtforms import StringField, TextAreaField, SelectField, IntegerField, FileField, MultipleFileField
+from wtforms import StringField, TextAreaField, SelectField, IntegerField, MultipleFileField
+# from wtforms.ext.sqlalchemy.fields import QuerySelectField
+# from ..models.location import Location
 from wtforms.validators import DataRequired, Optional
 
 class IncidentForm(FlaskForm):
@@ -26,6 +28,13 @@ class IncidentForm(FlaskForm):
     ], validators=[DataRequired()])
     
     title = StringField('Title', validators=[DataRequired()])
+    status = SelectField('Status', choices=[
+        ('', 'Select Status'),
+        ('reported', 'Reported'),   
+        ('in_progress', 'In Progress'), 
+        ('resolved', 'Resolved'),   
+        ('closed', 'Closed')
+        ], validators=[DataRequired()])
     description = TextAreaField('Detailed Description', validators=[DataRequired()])
     location = SelectField('Specific Location', coerce=str, validators=[DataRequired()])
     location_type = SelectField('Location Type', choices=[
@@ -92,3 +101,8 @@ class IncidentForm(FlaskForm):
         FileAllowed(['jpg', 'jpeg', 'png', 'mp4', 'mov', 'pdf', 'mp3'], 
                    'Only images, videos, and PDF files are allowed')
     ])
+    
+    # def location_choices():
+    #     return Location.query.all()
+
+    # location = QuerySelectField('Location', query_factory=location_choices, get_label='name')

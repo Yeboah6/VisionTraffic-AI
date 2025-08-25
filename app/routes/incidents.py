@@ -46,10 +46,10 @@ def add_incident():
     if form.validate_on_submit():
         # Handle file uploads
         uploaded_files = []
-        if 'media' in request.files:
-            files = request.files.getlist('media')
+        if 'media_files' in request.files:
+            files = request.files.getlist('media_files')
             for file in files:
-                if file and allowed_file(file.filename):
+                if file and file.filename != '' and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
                     unique_filename = f"{uuid.uuid4().hex}_{filename}"
                     file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename))
@@ -74,7 +74,8 @@ def add_incident():
             reporter_info=form.reporter_info.data if form.reporter_type.data in ['public', 'other'] else None,
             internal_notes=form.internal_notes.data,
             media_files=','.join(uploaded_files) if uploaded_files else None,
-            user_id=current_user.id
+            user_id=current_user.id,
+            status='reported'
         )
         
         db.session.add(incident)
@@ -82,6 +83,8 @@ def add_incident():
         
         flash('Incident report submitted successfully!', 'success')
         return redirect(url_for('incident.incident'))
+    else:
+        print("Form errors:", form.errors)  # This will show the exact error
     
     return render_template('incidents/add.html',
                            user=user,
@@ -90,9 +93,53 @@ def add_incident():
                            form = form
                            )
     
-# @incident_bp.route('/generate-id', methods=['POST'])
-# def generate_id():
-#     location_name = request.json.get('location_name')
-#     return jsonify({
-#         'display_id': Incident.generate_display_id(location_name)
-#     })
+@incident_bp.route('/incident/<uuid:id>')
+@login_required
+def view_incident(id):
+    now = datetime.now()
+    incident = Incident.query.get_or_404(id)
+    return render_template('incidents/view.html', 
+                           current_date=now.strftime("%B %d, %Y"),
+                           current_time=now.strftime("%I:%M %p"),
+                           incident=incident
+                           )
+
+@incident_bp.route('/incident/<uuid:id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_incident(id):
+    now = datetime.now()
+    incident = Incident.query.get_or_404(id)
+    form = IncidentForm(obj=incident)
+    form.location.choices = [(loc.id, loc.name) for loc in Location.query.order_by('name')]
+    
+    if form.validate_on_submit():
+         # Manual assignment instead of populate_obj
+        incident.type = form.type.data
+        incident.title = form.title.data
+        incident.description = form.description.data
+        incident.severity = form.severity.data
+        incident.status = form.status.data
+        incident.vehicles_involved = form.vehicles_involved.data
+        incident.lanes_affected = form.lanes_affected.data
+        incident.emergency_services = form.emergency_services.data
+        incident.reporter_info = form.reporter_info.data
+        incident.type = form.type.data
+        
+        # Handle location relationship properly
+        location_id = form.location.data
+        if location_id:
+            location = Location.query.get(location_id)
+            incident.location = location
+        else:
+            incident.location = None
+        
+        db.session.commit()
+        flash('Incident updated successfully!', 'success')
+        return redirect(url_for('incident.view_incident', id=incident.id))
+    
+    return render_template('incidents/edit.html', 
+                           current_date=now.strftime("%B %d, %Y"),
+                           current_time=now.strftime("%I:%M %p"),
+                           incident=incident, 
+                           form=form
+                           )
