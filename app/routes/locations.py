@@ -29,9 +29,15 @@ def addLocation():
     user = current_user
     form = LocationForm()
     
+    if form.name.data:
+        location_id = Location.generate_location_id(form.name.data)
+    else:
+        location_id = "LOC_MAIN_001"
+    
     if form.validate_on_submit():
         try:
             location = Location(
+                location_id=location_id,
                 name=form.name.data,
                 zone=form.zone.data,
                 priority=form.priority.data,
@@ -52,7 +58,6 @@ def addLocation():
 
             db.session.add(location)
             db.session.commit()
-            # print(location)
             
             flash('Location added successfully!', 'success')
             return redirect(url_for('loc.location'))
@@ -66,7 +71,8 @@ def addLocation():
                          form=form,
                          user=user,
                          current_date=datetime.now().strftime("%B %d, %Y"),
-                         current_time=datetime.now().strftime("%I:%M %p"))
+                         current_time=datetime.now().strftime("%I:%M %p")
+                         )
 
 
 @loc_bp.route('/locations/<uuid:location_id>')

@@ -33,16 +33,16 @@ def signalManage():
     locations = [('', 'Select...')] + [(loc.id, loc.name) for loc in Location.query.order_by(Location.name)]
     form.location_id.choices = locations
     
-    if form.intersection_name.data:
-        signal_id = Signal.generate_id(form.intersection_name.data)
+    if form.name.data:
+        signal_id = Signal.generate_id(form.name.data)
     else:
         signal_id = "SIG_UNK_001"
     
     if form.validate_on_submit():
         try:
             signal = Signal(
-                id=signal_id,
-                intersection_name=form.intersection_name.data,
+                display_id=signal_id,
+                name=form.name.data,
                 direction=form.direction.data,
                 controller_type=form.controller_type.data,
                 ip_address=form.ip_address.data,
@@ -50,7 +50,8 @@ def signalManage():
                 default_cycle=form.default_cycle.data,
                 phases=form.phases.data,
                 location_id=form.location_id.data,
-                address = form.address.data
+                address = form.address.data,
+                created_by=user.id
             )
             
             db.session.add(signal)
@@ -104,20 +105,42 @@ def edit(id):
     signal = Signal.query.get_or_404(str(id))
     form = SignalForm(obj=signal)
     
+    # CRITICAL: Set choices BEFORE form validation
+    locations = Location.query.order_by('name').all()
+    form.location_id.choices = [(loc.id, loc.name) for loc in locations]
+    print(f"Available choices: {form.location_id.choices}")
+    
+    # Set current value
+    form.location_id.data = signal.location_id
+    print(f"Form location_id data set to: {form.location_id.data}")
+    
     if form.validate_on_submit():
         try:
-            form.populate_obj(signal)
+            print(f"Submitted location_id: {form.location_id.data}")
+            signal.name = form.name.data
+            signal.direction = form.direction.data
+            signal.controller_type = form.controller_type.data
+            signal.ip_address = form.ip_address.data
+            signal.protocol = form.protocol.data
+            signal.default_cycle = form.default_cycle.data
+            signal.phases = form.phases.data
+            signal.address = form.address.data
+            signal.location_id = form.location_id.data
+            
             db.session.commit()
             flash('Signal updated successfully!', 'success')
             return redirect(url_for('signal.view', id=signal.id))
         except Exception as e:
+            print(f"Form errors: {form.errors}")
             db.session.rollback()
             flash(f'Error updating signal: {str(e)}', 'danger')
+            if form.location_id.errors:
+                print(f"Location ID errors: {form.location_id.errors}")
     
     return render_template('signals/edit.html', 
-                           user = user,
-                           current_date = now.strftime("%B %d, %Y"), 
-                           current_time = now.strftime("%I:%M %p"),
+                           user=user,
+                           current_date=now.strftime("%B %d, %Y"), 
+                           current_time=now.strftime("%I:%M %p"),
                            signal=signal, 
                            form=form
                         )

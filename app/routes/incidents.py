@@ -113,7 +113,7 @@ def edit_incident(id):
     form.location.choices = [(loc.id, loc.name) for loc in Location.query.order_by('name')]
     
     if form.validate_on_submit():
-         # Manual assignment instead of populate_obj
+        # Manual assignment instead of populate_obj
         incident.type = form.type.data
         incident.title = form.title.data
         incident.description = form.description.data

@@ -53,11 +53,11 @@
             <tr class="border-b hover:bg-slate-50">
               <td class="py-4">
                 <a href="{{ url_for('signal.view', id=signal.id) }}" class="text-primary font-medium">
-                  {{ signal.id }}
+                  {{ signal.display_id }}
                 </a>
               </td>
               <td>{{ signal.locations.name }}</td>
-              <td>{{ signal.intersection_name or '-' }}</td>
+              <td>{{ signal.name or '-' }}</td>
               <td>{{ signal.direction|capitalize }}</td>
               <td>
                 <button onclick="toggleStatus('{{ signal.id }}')" 

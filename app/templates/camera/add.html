@@ -89,11 +89,11 @@
                         <div class="grid grid-cols-2 gap-6">
                             <div>
                                 {{ form.display_id.label(class='form-label form-required') }}
-                                {{ form.display_id(class='form-control form-required', placeholder="CAM_MAIN_001") }}
+                                {{ form.display_id(class='form-control form-required', placeholder="Auto-generated") }}
                                 {% for error in form.display_id.errors %}
                                     <span class="text-red-500 text-xs">{{ error }}</span>
                                 {% endfor %}
-                                <p class="text-xs text-slate-500 mt-1">Unique identifier (letters, numbers, and underscores only)</p>
+                                <!-- <p class="text-xs text-slate-500 mt-1">Unique identifier (letters, numbers, and underscores only)</p> -->
                             </div>
                             <div>
                                 {{ form.name.label(class='form-label') }}
@@ -137,14 +137,14 @@
                         <div class="grid grid-cols-3 gap-6">
                             <div>
                                 {{ form.resolution.label(class='form-label form-required') }}
-                                {{ form.resolution(class='form-control form-select', placeholder="CAM_MAIN_001") }}
+                                {{ form.resolution(class='form-control form-select') }}
                                 {% for error in form.resolution.errors %}
                                     <span class="text-red-500 text-xs">{{ error }}</span>
                                 {% endfor %}
                             </div>
                             <div>
                                 {{ form.frame_rate.label(class='form-label form-required') }}
-                                {{ form.frame_rate(class='form-control form-select', placeholder="CAM_MAIN_001") }}
+                                {{ form.frame_rate(class='form-control form-select') }}
                                 {% for error in form.frame_rate.errors %}
                                     <span class="text-red-500 text-xs">{{ error }}</span>
                                 {% endfor %}
@@ -160,7 +160,7 @@
                         <div class="grid grid-cols-2 gap-6 mt-4">
                             <div>
                                 {{ form.stream_protocol.label(class='form-label form-required') }}
-                                {{ form.stream_protocol(class='form-control form-select', placeholder="CAM_MAIN_001") }}
+                                {{ form.stream_protocol(class='form-control form-select') }}
                                 {% for error in form.stream_protocol.errors %}
                                     <span class="text-red-500 text-xs">{{ error }}</span>
                                 {% endfor %}

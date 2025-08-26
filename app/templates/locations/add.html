@@ -24,7 +24,34 @@
     <!-- Add Location Content -->
     <div class="px-6 py-6">
         <form action="{{ url_for('loc.addLocation') }}" method="POST">
-            {{ form.hidden_tag() }}
+        {{ form.hidden_tag() }}
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                        {% if request.args.get('expired') %}
+                            <p>Your session has expired. Please login again.</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if form.errors %}
+            <div class="bg-red-100 text-red-700 p-4 rounded mb-4">
+                <strong>Form Errors:</strong>
+                <ul>
+                    {% for field, errors in form.errors.items() %}
+                        {% for error in errors %}
+                            <li>{{ field }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
         <div class="location-form-container">
             <!-- Basic Information Section -->
             <div class="card form-section">
@@ -45,9 +72,9 @@
                     </div>
                     
                     <div class="form-group">
-                        {{ form.id.label(class="form-label") }}
-                        {{ form.id(class="form-control", placeholder="Auto-generated") }}
-                         {% for error in form.name.errors %}
+                        {{ form.location_id.label(class="form-label") }}
+                        {{ form.location_id(class="form-control", placeholder="Auto-generated", readonly="readonly") }}
+                         {% for error in form.location_id.errors %}
                             <span class="text-red-500 text-xs">{{ error }}</span>
                         {% endfor %}
                     </div>

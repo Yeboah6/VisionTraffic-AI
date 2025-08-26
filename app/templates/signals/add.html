@@ -63,16 +63,15 @@
               <div class="grid grid-cols-2 gap-6">
                 <div>
                   {{ form.display_id.label(class="form-label form-required") }}
-                  {{ form.display_id(class="form-control", value=signal_id) }}
+                  {{ form.display_id(class="form-control", placeholder="Auto-generated", readonly="readonly") }}
                   {% for error in form.display_id.errors %}
                   <span class="text-red-500 text-xs">{{ error }}</span>
                   {% endfor %}
-                  <p class="text-xs text-slate-500 mt-1">Unique identifier (e.g., SIG_MAIN_001)</p>
                 </div>
                 <div>
-                  {{ form.intersection_name.label(class="form-label")}}
-                  {{ form.intersection_name(class="form-control")}}
-                  {% for error in form.intersection_name.errors %}
+                  {{ form.name.label(class="form-label")}}
+                  {{ form.name(class="form-control")}}
+                  {% for error in form.name.errors %}
                     <span class="text-red-500 text-xs">{{ error }}</span>
                   {% endfor %}
                 </div>

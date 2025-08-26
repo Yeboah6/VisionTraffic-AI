@@ -3,11 +3,9 @@ from wtforms import StringField, SelectField, SubmitField, IntegerField, Boolean
 from wtforms.validators import DataRequired, Optional, Regexp, NumberRange
 
 class SignalForm(FlaskForm):
-    display_id = StringField('Signal ID', validators=[
-        DataRequired(),
-    ])
+    display_id = StringField('Signal ID',)
     
-    intersection_name = StringField('Intersection Name')
+    name = StringField('Name')
     location_id = SelectField('Location Name', coerce=str, validators=[DataRequired()])
     address = StringField('Address', validators=[DataRequired()])
     

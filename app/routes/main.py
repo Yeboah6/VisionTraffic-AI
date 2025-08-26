@@ -2,19 +2,22 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from datetime import datetime
 from ..models.user import User
+from ..models.incident import Incident
+# from ..models.location import Location
 
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/dashboard')
-# @jwt_required()
 @login_required
 def dashboard():
     now = datetime.now()
     user = current_user
+    incidents = Incident.query.all()
     return render_template('dashboard/index.html', 
                        user = user,
                        current_date = now.strftime("%B %d, %Y"), 
-                       current_time = now.strftime("%I:%M %p")
+                       current_time = now.strftime("%I:%M %p"),
+                       incidents = incidents
                     )
 
 @main_bp.route('/report')

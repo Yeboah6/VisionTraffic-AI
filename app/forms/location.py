@@ -4,7 +4,7 @@ from wtforms.validators import DataRequired, Optional
 
 class LocationForm(FlaskForm):
     name = StringField('Location Name', validators=[DataRequired()])
-    id = StringField('Location ID')
+    location_id = StringField('Location ID')
     zone = SelectField('Zone/District', choices=[
         ('downtown', 'Downtown'),
         ('north', 'North District'),

@@ -36,7 +36,7 @@
         <div class="p-6 grid grid-cols-2 gap-6">
           <div>
             <label class="block text-sm text-slate-500 mb-1">Signal ID</label>
-            <p class="font-medium">{{ signal.id }}</p>
+            <p class="font-medium">{{ signal.display_id }}</p>
           </div>
           <div>
             <label class="block text-sm text-slate-500 mb-1">Location</label>
@@ -44,7 +44,7 @@
           </div>
           <div>
             <label class="block text-sm text-slate-500 mb-1">Intersection</label>
-            <p class="font-medium">{{ signal.intersection_name or '-' }}</p>
+            <p class="font-medium">{{ signal.name or '-' }}</p>
           </div>
           <div>
             <label class="block text-sm text-slate-500 mb-1">Direction</label>
@@ -57,7 +57,7 @@
         </div>
          <div class="p-6">
             <label class="block text-sm text-slate-500 mb-1">Created By</label>
-            <p class="font-medium">{{ signal.address|capitalize }}</p>
+            <p class="font-medium">{{ signal.creator|capitalize }}</p>
           </div>
       </div>
 
@@ -80,7 +80,7 @@
               </div>
           <div>
             <label class="block text-sm text-slate-500 mb-1">Controller Type</label>
-            <p class="font-medium">{{ signal.controller_type|capitalize }}</p>
+            <p class="font-medium">{{ signal.controller_type|upper }}</p>
           </div>
           <div>
             <label class="block text-sm text-slate-500 mb-1">IP Address</label>
@@ -88,7 +88,7 @@
           </div>
           <div>
             <label class="block text-sm text-slate-500 mb-1">Protocol</label>
-            <p class="font-medium">{{ signal.protocol|capitalize }}</p>
+            <p class="font-medium">{{ signal.protocol|upper }}</p>
           </div>
         </div>
       </div>
