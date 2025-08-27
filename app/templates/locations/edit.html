@@ -7,6 +7,16 @@
     <!-- Header -->
     {% include 'includes/header.html' %}
 
+    <nav class="px-6 py-4 bg-white border-b">
+        <div class="flex items-center space-x-2 text-sm text-slate-500">
+            <a href="{{ url_for('loc.location') }}" class="hover:text-primary">Locations</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <a href="{{ url_for('loc.viewLocation', location_id=location.id) }}" class="hover:text-primary">{{ location.location_id }}</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <span>Edit Location</span>
+        </div>
+    </nav>
+
     <!-- Edit Location Content -->
     <div class="px-6 py-6">
         <form action="{{ url_for('loc.editLocation', location_id=location.id) }}" method="POST">
@@ -23,8 +33,8 @@
                     
                     <div class="form-grid">
                         <div class="form-group">
-                            {{ form.id.label(class="form-label form-required") }}
-                            {{ form.id(class="form-control", value=location.id) }}
+                            {{ form.location_id.label(class="form-label form-required") }}
+                            {{ form.location_id(class="form-control", value=location.location_id, readonly=true) }}
                         </div>
 
                         <div class="form-group">
@@ -153,12 +163,5 @@
         </form>
     </div>
 </main>
-
-<!-- // Add this to your template -->
-<!-- <script>
-document.querySelector('form').addEventListener('submit', function(e) {
-    console.log('Form data:', Object.fromEntries(new FormData(this)));
-});
-</script> -->
 
 {% endblock %}

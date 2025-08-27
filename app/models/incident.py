@@ -30,6 +30,7 @@ class Incident(db.Model):
     # Relationships
     location_id = db.Column(db.UUID(36), db.ForeignKey('locations.id'))
     location = db.relationship('Location', back_populates='incidents')
+    creator = db.relationship('User', backref='incidents')
     
         
     @classmethod

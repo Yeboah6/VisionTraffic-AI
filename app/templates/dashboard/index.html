@@ -255,76 +255,30 @@
                     <div class="card">
                         <div class="p-4 border-b flex items-center justify-between">
                             <h2 class="font-semibold">Current Incidents</h2>
-                            <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">7 Active</span>
+                            <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">{{ incidents|length }} Active</span>
                         </div>
                         <div class="p-2">
+                            {% for incident in incidents %}
                             <div class="divide-y">
                                 <div class="p-3 flex items-start">
                                     <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
                                         <div class="w-4 h-4 flex items-center justify-center text-red-600">
-                                            <i class="ri-car-washing-line"></i>
+                                            <i class="ri-alert-line"></i>
                                         </div>
                                     </div>
                                     <div class="ml-3">
-                                        <h4 class="text-sm font-medium">Vehicle Collision</h4>
-                                        <p class="text-xs text-slate-500 mt-0.5">Oak Street & 10th Avenue</p>
+                                        <h4 class="text-sm font-medium">{{incident.title}}</h4>
+                                        <p class="text-xs text-slate-500 mt-0.5">{{incident.location.name}}</p>
                                         <div class="flex items-center mt-1">
-                                            <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">High Priority</span>
+                                            <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{{incident.severity}}</span>
                                             <span class="text-xs text-slate-400 ml-2">12 min ago</span>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div class="p-3 flex items-start">
-                                    <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
-                                        <div class="w-4 h-4 flex items-center justify-center text-yellow-600">
-                                            <i class="ri-roadster-line"></i>
-                                        </div>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h4 class="text-sm font-medium">Road Construction</h4>
-                                        <p class="text-xs text-slate-500 mt-0.5">Highway 101 South, Mile 24</p>
-                                        <div class="flex items-center mt-1">
-                                            <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Medium Priority</span>
-                                            <span class="text-xs text-slate-400 ml-2">2 hours ago</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="p-3 flex items-start">
-                                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                                        <div class="w-4 h-4 flex items-center justify-center text-blue-600">
-                                            <i class="ri-rainy-line"></i>
-                                        </div>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h4 class="text-sm font-medium">Weather Alert</h4>
-                                        <p class="text-xs text-slate-500 mt-0.5">Downtown Area - Heavy Rain</p>
-                                        <div class="flex items-center mt-1">
-                                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Medium Priority</span>
-                                            <span class="text-xs text-slate-400 ml-2">45 min ago</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="p-3 flex items-start">
-                                    <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
-                                        <div class="w-4 h-4 flex items-center justify-center text-yellow-600">
-                                            <i class="ri-traffic-light-line"></i>
-                                        </div>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h4 class="text-sm font-medium">Signal Malfunction</h4>
-                                        <p class="text-xs text-slate-500 mt-0.5">Maple Road & 3rd Street</p>
-                                        <div class="flex items-center mt-1">
-                                            <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Medium Priority</span>
-                                            <span class="text-xs text-slate-400 ml-2">32 min ago</span>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
+                            {% endfor %}
                             <div class="p-3 text-center">
-                                <button class="text-primary text-sm">View All Incidents</button>
+                                <a href="{{ url_for('incident.incident') }}" class="text-primary text-sm">View All Incidents</a>
                             </div>
                         </div>
                     </div>

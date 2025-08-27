@@ -3,30 +3,29 @@
 
 <main class="main-content min-h-screen pb-8">
     <!-- Header with breadcrumbs -->
-    <header class="bg-white shadow-sm">
-        <div class="flex items-center justify-between px-6 py-4">
-            <div class="flex items-center">
-                <a href="{{ url_for('camera.camera') }}" class="flex items-center text-slate-600 hover:text-primary mr-4">
-                    <i class="ri-arrow-left-line"></i>
-                    <span class="ml-1 text-sm">All Cameras</span>
-                </a>
-                <h1 class="text-xl font-semibold text-slate-800">{{ camera.display_id }}</h1>
-                <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
-                    {{ camera.location.name if camera.location else 'Unassigned' }}
-                </div>
-            </div>
-            <div class="flex items-center space-x-3">
-                <span class="px-3 py-1 rounded-full text-xs 
-                      {{ 'bg-green-100 text-green-800' if camera.is_active else 'bg-red-100 text-red-800' }}">
-                    {{ 'Online' if camera.is_active else 'Offline' }}
-                </span>
-                <a href="{{ url_for('camera.edit', id=camera.id) }}" 
-                   class="px-4 py-2 bg-primary text-white rounded-button text-sm">
-                    Edit Camera
-                </a>
-            </div>
+     {% include 'includes/header.html' %}
+
+   <nav class="px-6 py-4 bg-white border-b flex items-center justify-between">
+        <div class=" space-x-2 text-sm text-slate-500">
+            <a href="{{ url_for('camera.camera') }}" class="hover:text-primary">Cameras</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <span>View Camera</span> 
         </div>
-    </header>
+        <h1 class="text-xl font-semibold text-slate-800">{{ camera.display_id }}</h1>
+        <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
+            {{ camera.location.name if camera.location else 'Unassigned' }}
+        </div>
+        <div class="flex items-center space-x-3">
+           <span class="px-3 py-1 rounded-full text-xs 
+                 {{ 'bg-green-100 text-green-800' if camera.is_active else 'bg-red-100 text-red-800' }}">
+               {{ 'Online' if camera.is_active else 'Offline' }}
+           </span>
+           <a href="{{ url_for('camera.edit', id=camera.id) }}" 
+              class="px-4 py-2 bg-primary text-white rounded-button text-sm">
+               Edit Camera
+           </a>
+        </div>
+    </nav>
 
     <!-- Camera Details Grid -->
     <div class="px-6 py-6">
@@ -35,7 +34,6 @@
             <div class="card col-span-2">
                 <div class="p-4 border-b flex flex-space-between">
                     <h2 class="font-semibold">Technical Specifications</h2>
-                    <p class="font-medium">{{ camera.id }}</p>
                 </div>
                 <div class="p-6 grid grid-cols-3 gap-5">
                     <div>
@@ -79,19 +77,22 @@
                     <h2 class="font-semibold">Status</h2>
                 </div>
                 <div class="p-6 space-y-4">
-                    <div>
-                        <label class="block text-sm text-slate-500 mb-1">Connection</label>
-                        <div class="flex items-center">
-                            <span class="w-2 h-2 rounded-full mr-2 
-                                  {{ 'bg-green-500' if camera.is_active else 'bg-red-500' }}"></span>
-                            <span>{{ 'Active' if camera.is_active else 'Inactive' }}</span>
-                        </div>
+                    <label class="block text-sm text-slate-500 mb-1">Connection</label>
+                    <div class="location-status {{ 'bg-green-100 text-green-800' if camera.is_active else 'bg-red-100 text-red-800' }}">
+                        <span>
+                            <i class="ri-checkbox-circle-line mr-1"></i> {{ 'Active' if camera.is_active else 'Inactive' }}
+                        </span>
+                        <button onclick="toggleStatus('{{ camera.id }}')"  style="margin-left: 10px;"
+                            class="toggle-btn flex items-center {{ 'justify-end bg-primary' if camera.is_active else 'justify-start bg-slate-200' }} 
+                                   w-12 h-6 rounded-full p-1 transition-all duration-300">
+                          <span class="w-4 h-4 bg-white rounded-full shadow-md"></span>
+                        </button>
                     </div>
                     <div>
                         <label class="block text-sm text-slate-500 mb-1">Assigned Signal</label>
                         {% if camera.signal_id %}
                         <a href="{{ url_for('signal.view', id=camera.signal.id) }}" class="text-primary font-medium">
-                            {{ camera.signal_id }}
+                            {{ camera.signal.display_id }}
                         </a>
                         {% else %}
                         <a href="{{ url_for('camera.assign_signal', id=camera.id) }}" class="text-primary text-sm">
@@ -152,4 +153,32 @@ async function testConnection() {
     }
 }
 </script>
+
+<script>
+  async function toggleStatus(cameraId) {
+    const response = await fetch(`/cameras/${cameraId}/toggle-status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const result = await response.json();
+    
+    if (result.success) {
+      const btn = document.querySelector(`button[onclick="toggleStatus('${cameraId}')"]`);
+      btn.classList.toggle('justify-end', result.is_active);
+      btn.classList.toggle('justify-start', !result.is_active);
+      btn.classList.toggle('bg-primary', result.is_active);
+      btn.classList.toggle('bg-slate-200', !result.is_active);
+      
+      // Update status text if needed
+      const statusText = btn.closest('tr').querySelector('.status-text');
+      if (statusText) {
+        statusText.textContent = result.is_active ? 'Active' : 'Inactive';
+        statusText.className = result.is_active ? 
+          'px-2 py-1 rounded-full text-xs bg-green-100 text-green-800' : 
+          'px-2 py-1 rounded-full text-xs bg-red-100 text-red-800';
+      }
+    }
+  }
+</script>
+
 {% endblock %}

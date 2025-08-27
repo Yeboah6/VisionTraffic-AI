@@ -3,8 +3,18 @@
 
 <main class="main-content min-h-screen pb-8">
     <!-- Header -->
-    <header class="bg-white shadow-sm">
-        <div class="flex items-center justify-between px-6 py-4">
+    {% include 'includes/header.html' %}
+
+    <header class="bg-white shadow-sm px-6 py-4">
+        <div class="flex items-center space-x-4">
+            <a href="{{ url_for('sensor.addSensor') }}" 
+               class="px-4 py-2 bg-primary text-white rounded-button text-sm flex items-center">
+                <i class="ri-add-line mr-2"></i> Add Sensor
+            </a>
+        </div>
+    </header>
+    <!-- 
+        <div class="flex items-center  ">
             <div class="flex items-center space-x-6">
                 <h1 class="text-xl font-semibold text-slate-800">Traffic Sensors</h1>
                 <div class="px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
@@ -12,20 +22,9 @@
                 </div>
             </div>
             
-            <div class="flex items-center space-x-4">
-                <div class="relative">
-                    <input type="search" placeholder="Search sensors..." 
-                           class="w-64 pl-10 pr-4 py-2 bg-slate-100 rounded-full text-sm border-none focus:ring-2 focus:ring-primary">
-                    <i class="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"></i>
-                </div>
-                
-                <a href="{{ url_for('sensor.addSensor') }}" 
-                   class="px-4 py-2 bg-primary text-white rounded-button text-sm flex items-center">
-                    <i class="ri-add-line mr-2"></i> Add Sensor
-                </a>
-            </div>
+            
         </div>
-    </header>
+    </header> -->
 
     <!-- Sensor Dashboard -->
     <div class="px-6 py-6">

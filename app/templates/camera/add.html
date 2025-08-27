@@ -5,43 +5,15 @@
 <!-- Main Content -->
 <main class="main-content min-h-screen pb-8">
     <!-- Header with breadcrumbs -->
-     <header class="bg-white shadow-sm">
-        <div class="flex items-center justify-between px-6 py-4">
-            <div class="flex items-center">
-                <a href="{{ url_for('camera.camera') }}" class="flex items-center text-slate-600 hover:text-primary mr-4">
-                    <div class="w-5 h-5 flex items-center justify-center">
-                        <i class="ri-arrow-left-line"></i>
-                    </div>
-                    <span class="ml-1 text-sm">Back</span>
-                </a>
-                <h1 class="text-xl font-semibold text-slate-800">Camera Network</h1>
-                <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
-                    {{ current_date }} • {{ current_time }}
-                </div>
-            </div>
-            <div class="flex items-center space-x-4">
-                <div class="relative">
-                    <input type="search" placeholder="Search..." class="w-64 pl-10 pr-4 py-2 bg-slate-100 rounded-full text-sm border-none focus:outline-none focus:ring-2 focus:ring-primary">
-                    <div class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 flex items-center justify-center text-slate-500">
-                        <i class="ri-search-line"></i>
-                    </div>
-                </div>
+     {% include 'includes/header.html' %}
 
-                <button class="relative w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-                    <div class="w-5 h-5 flex items-center justify-center text-slate-600">
-                        <i class="ri-notification-3-line"></i>
-                    </div>
-                    <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-                </button>
-
-                <button class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-                    <div class="w-5 h-5 flex items-center justify-center text-slate-600">
-                        <i class="ri-settings-4-line"></i>
-                    </div>
-                </button>
-            </div>
+    <nav class="px-6 py-4 bg-white border-b flex items-center justify-between">
+        <div class=" space-x-2 text-sm text-slate-500">
+            <a href="{{ url_for('camera.camera') }}" class="hover:text-primary">Cameras</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <span>Add Camera</span> 
         </div>
-    </header>
+    </nav>
 
     <!-- Camera Registration Form -->
     <div class="px-6 py-6">
@@ -89,7 +61,7 @@
                         <div class="grid grid-cols-2 gap-6">
                             <div>
                                 {{ form.display_id.label(class='form-label form-required') }}
-                                {{ form.display_id(class='form-control form-required', placeholder="Auto-generated") }}
+                                {{ form.display_id(class='form-control form-required', placeholder="Auto-generated", readonly=true) }}
                                 {% for error in form.display_id.errors %}
                                     <span class="text-red-500 text-xs">{{ error }}</span>
                                 {% endfor %}
@@ -288,7 +260,6 @@
                     <!-- Form Actions -->
                     <div class="flex justify-end space-x-3 pt-4">
                         <a href="{{ url_for('camera.camera')}}" type="button" class="px-4 py-2 border border-slate-200 rounded-button text-sm">Cancel</a>
-                        <button type="button" class="px-4 py-2 border border-slate-200 bg-slate-100 rounded-button text-sm">Save Draft</button>
                         <button type="submit" class="px-4 py-2 bg-primary text-white rounded-button text-sm">Register Camera</button>
                     </div>
                 </form>

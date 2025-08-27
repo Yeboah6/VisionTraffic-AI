@@ -18,11 +18,13 @@ class Signal(db.Model):
     default_cycle = db.Column(db.Integer, nullable=False)
     phases = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    location_id = db.Column(db.UUID, db.ForeignKey('locations.id'), nullable=False)
     address = db.Column(db.String(50), nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     
     # Relationships
+    location_id = db.Column(db.UUID(36), db.ForeignKey('locations.id'))
+    location = db.relationship('Location', back_populates='signals')
+    
     cameras = db.relationship('Camera', backref='signal', lazy=True)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     creator = db.relationship('User', backref='signals')

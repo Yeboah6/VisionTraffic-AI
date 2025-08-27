@@ -23,7 +23,7 @@ class Camera(db.Model):
     password = db.Column(db.String(100), nullable=False)  # Should be encrypted in production
     direction = db.Column(db.String(20))
     elevation = db.Column(db.Float)
-    is_active = db.Column(db.Boolean, default=True)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
     maintenance = db.Column(db.String(50))  # or another appropriate type
     camera_group = db.Column(db.String(50))
     notes = db.Column(db.Text)
@@ -37,7 +37,7 @@ class Camera(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     creator = db.relationship('User', backref='cameras')
     
-    signal_id = db.Column(db.String(50), db.ForeignKey('signals.id'))
+    signal_id = db.Column(db.UUID(50), db.ForeignKey('signals.id'))
     
     @staticmethod
     def generate_display_id(location_name=None):
@@ -54,3 +54,8 @@ class Camera(db.Model):
         
         last_num = int(last_cam.display_id.split('_')[-1]) if last_cam else 0
         return f"{prefix}_{last_num + 1:03d}"
+    
+    def toggle_status(self):
+        self.is_active = not self.is_active
+        db.session.commit()
+        return self.is_active

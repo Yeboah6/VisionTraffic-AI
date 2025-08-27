@@ -4,18 +4,19 @@
 <main class="main-content min-h-screen pb-8">
   <!-- Header (Same as add.html) -->
    {% include 'includes/header.html' %}
-   
-  <header class="bg-white shadow-sm">
-    <div class="flex items-center justify-between px-6 py-4">
-      <div class="flex items-center">
+
+   <nav class="px-6 py-4 bg-white flex items-center justify-between">
+      <div class="space-x-2 text-sm text-slate-500">
+          <a href="{{ url_for('signal.signals') }}" class="hover:text-primary">Signals</a>
+          <i class="ri-arrow-right-s-line"></i>
+          <span>Signal lists</span>
       </div>
-      <div class="flex items-center space-x-4">
+      <div class="flex items-center space-x-4 px-6 py-4">
         <a href="{{ url_for('signal.signalManage') }}" class="px-4 py-2 bg-primary text-white rounded-button text-sm">
-          + Add Signal
+          <i class="ri-add-line"></i> Add Signal
         </a>
       </div>
-    </div>
-  </header>
+    </nav>
 
   <!-- Signals Table -->
   <div class="px-6 py-6">

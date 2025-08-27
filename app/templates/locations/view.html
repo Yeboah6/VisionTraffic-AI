@@ -7,6 +7,14 @@
     <!-- Header -->
     {% include 'includes/header.html' %}
 
+    <nav class="px-6 py-4 bg-white border-b">
+        <div class="flex items-center space-x-2 text-sm text-slate-500">
+            <a href="{{ url_for('loc.location') }}" class="hover:text-primary">Locations</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <span>View Location</span> 
+        </div>
+    </nav>
+
     <!-- View Location Content -->
     <div class="px-6 py-6">
         <div class="location-view-container">
@@ -19,13 +27,22 @@
                         </div>
                         <h2 class="text-2xl font-bold">{{ location.name }}</h2>
                     </div>
-                    <span class="location-status status-{{ 'active' if location.status == 'active' else 'inactive' }}">
-                       <i class="ri-checkbox-circle-line mr-1"></i> {{ location.status }}
-                    </span>
+                    <div class="flex items-center justify-between location-status {{ 'bg-green-100 text-green-800' if location.status else 'bg-red-100 text-red-800' }}">
+                        <span>
+                            <i class="ri-checkbox-circle-line mr-1"></i> {{ 'Active' if location.status else 'Inactive' }}
+                        </span>
+                        <button onclick="toggleStatus('{{ location.id }}')"  style="margin-left: 10px;"
+                            class="toggle-btn flex items-center {{ 'justify-end bg-primary' if location.status else 'justify-start bg-slate-200' }} 
+                                   w-12 h-6 rounded-full p-1 transition-all duration-300">
+                          <span class="w-4 h-4 bg-white rounded-full shadow-md"></span>
+                        </button>
+                    </div>
+
                     <div class="detail-item">
                         <h3 class="font-bold">Created By</h3>
                         <span class="detail-value">{{ location.creator.username|capitalize}}</span>
                     </div>
+                    
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -34,7 +51,7 @@
                         <h3 class="section-title">Basic Information</h3>
                         <div class="detail-item">
                             <span class="detail-label">Location ID</span>
-                            <span class="detail-value">{{ location.id }}</span>
+                            <span class="detail-value">{{ location.location_id }}</span>
                         </div>
                         <br>
                         <div class="detail-item">
@@ -135,6 +152,33 @@
 
         L.marker([{{ location.lat }}, {{ location.lng }}]).addTo(map)
             .bindPopup('{{ location.name }}');
+    </script>
+
+    <script>
+      async function toggleStatus(locationId) {
+        const response = await fetch(`/locations/${locationId}/toggle-status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const result = await response.json();
+
+        if (result.success) {
+          const btn = document.querySelector(`button[onclick="toggleStatus('${locationId}')"]`);
+          btn.classList.toggle('justify-end', result.status);
+          btn.classList.toggle('justify-start', !result.status);
+          btn.classList.toggle('bg-primary', result.status);
+          btn.classList.toggle('bg-slate-200', !result.status);
+        
+          // Update status text if needed
+          const statusText = btn.closest('tr').querySelector('.status-text');
+          if (statusText) {
+            statusText.textContent = result.status ? 'Active' : 'Pending';
+            statusText.className = result.status ? 
+              'px-2 py-1 rounded-full text-xs bg-green-100 text-green-800' : 
+              'px-2 py-1 rounded-full text-xs bg-red-100 text-red-800';
+          }
+        }
+      }
     </script>
 
 {% endblock %}

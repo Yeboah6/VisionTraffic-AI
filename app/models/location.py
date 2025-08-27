@@ -32,7 +32,7 @@ class Location(db.Model):
     lng = db.Column(db.Float)
     
     # Status and timestamps
-    status = db.Column(db.String(20), default='pending', index=True)
+    status = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
     
@@ -62,3 +62,8 @@ class Location(db.Model):
         
         last_num = int(last_loc.location_id.split('_')[-1]) if last_loc else 0
         return f"{prefix}_{last_num + 1:03d}"
+    
+    def toggle_status(self):
+        self.status = not self.status
+        db.session.commit()
+        return self.status

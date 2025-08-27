@@ -3,16 +3,17 @@
 
 <main class="main-content min-h-screen pb-8">
   <!-- Header with back button -->
-  <header class="bg-white shadow-sm">
-    <div class="flex items-center justify-between px-6 py-4">
-      <div class="flex items-center">
-        <a href="{{ url_for('signal.list') }}" class="flex items-center text-slate-600 hover:text-primary mr-4">
-          <i class="ri-arrow-left-line"></i>
-          <span class="ml-1 text-sm">Back</span>
-        </a>
-        <h1 class="text-xl font-semibold text-slate-800">Signal Details</h1>
-      </div>
-      <div class="flex items-center space-x-4">
+   {% include 'includes/header.html' %}
+
+   <nav class="px-6 py-4 bg-white border-b flex items-center justify-between">
+        <div class=" space-x-2 text-sm text-slate-500">
+            <a href="{{ url_for('signal.signals') }}" class="hover:text-primary">Signals</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <a href="{{ url_for('signal.list') }}" class="hover:text-primary">Signal lists</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <span>View Signal</span> 
+        </div>
+        <div class="flex items-center space-x-4">
         <span class="px-3 py-1 rounded-full text-xs 
           {{ 'bg-green-100 text-green-800' if signal.is_active else 'bg-red-100 text-red-800' }}">
           {{ 'Active' if signal.is_active else 'Inactive' }}
@@ -22,8 +23,7 @@
           Edit Signal
         </a>
       </div>
-    </div>
-  </header>
+    </nav>
 
   <!-- Signal Details Card -->
   <div class="px-6 py-6">

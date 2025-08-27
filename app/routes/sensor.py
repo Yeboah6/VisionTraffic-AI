@@ -5,6 +5,7 @@ from ..models.user import User
 from ..forms.sensor import SensorForm
 from ..models.location import Location
 from ..models.sensor import Sensor
+from ..models.signal import Signal
 from app import db
 
 sensor_bp = Blueprint('sensor', __name__)
@@ -112,3 +113,40 @@ def test_sensor(id):
         'success': True,
         'message': 'Sensor test completed successfully'
     })
+    
+@sensor_bp.route('/sensors/<string:id>/toggle-status', methods=['POST'])
+def toggle_status(id):
+    sensor = Sensor.query.get_or_404(str(id))
+    new_status = sensor.toggle_status()
+    return jsonify({
+        'success': True,
+        'is_active': new_status,
+        'message': f"Signal {'activated' if new_status else 'deactivated'}"
+    })
+    
+@sensor_bp.route('/sensors/<uuid:id>/assign-signal', methods=['GET', 'POST'])
+@login_required
+def assign_signal(id):
+    now = datetime.now()
+    user = current_user
+    
+    sensor = Sensor.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        signal_id = request.json.get('signal_id')
+        signal = Signal.query.get(signal_id) if signal_id else None
+        
+        sensor.signal = signal
+        db.session.commit()
+        
+        return jsonify({'success': True})
+    
+    # GET request - show assignment page
+    signals = Signal.query.order_by(Signal.id).all()
+    return render_template('sensor/assign.html', 
+                         user = user,
+                         current_date = now.strftime("%B %d, %Y"), 
+                         current_time = now.strftime("%I:%M %p"),
+                         sensor=sensor, 
+                         signals=signals
+                        )

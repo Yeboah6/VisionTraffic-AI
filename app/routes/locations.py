@@ -52,7 +52,6 @@ def addLocation():
                 country=form.country.data,
                 lat=float(form.lat.data) if form.lat.data else None,
                 lng=float(form.lng.data) if form.lng.data else None,
-                status='pending',
                 created_by=user.id
             )
 
@@ -85,7 +84,8 @@ def viewLocation(location_id):
                          location=location,
                          user=user,
                          current_date=datetime.now().strftime("%B %d, %Y"),
-                         current_time=datetime.now().strftime("%I:%M %p"))
+                         current_time=datetime.now().strftime("%I:%M %p")
+                         )
     
 
 @loc_bp.route('/locations/<uuid:location_id>/edit', methods=['GET', 'POST'])
@@ -113,3 +113,13 @@ def editLocation(location_id):
                          user=user,
                          current_date=datetime.now().strftime("%B %d, %Y"),
                          current_time=datetime.now().strftime("%I:%M %p"))
+
+@loc_bp.route('/locations/<string:id>/toggle-status', methods=['POST'])
+def toggle_status(id):
+    location = Location.query.get_or_404(str(id))
+    new_status = location.toggle_status()
+    return jsonify({
+        'success': True,
+        'status': new_status,
+        'message': f"Signal {'activated' if new_status else 'pending'}"
+    })

@@ -3,22 +3,22 @@
 
 <main class="main-content min-h-screen pb-8">
     <!-- Header -->
-    <header class="bg-white shadow-sm">
-        <div class="flex items-center justify-between px-6 py-4">
-            <div class="flex items-center">
-                <a href="{{ url_for('camera.view', id=camera.id) }}" class="flex items-center text-slate-600 hover:text-primary mr-4">
-                    <i class="ri-arrow-left-line"></i>
-                    <span class="ml-1 text-sm">Back</span>
-                </a>
-                <h1 class="text-xl font-semibold text-slate-800">Edit {{ camera.display_id }}</h1>
-            </div>
-            <div class="flex items-center space-x-3">
-                <button onclick="testConnection()" class="px-4 py-2 border border-slate-200 rounded-button text-sm">
-                    Test Connection
-                </button>
-            </div>
+     {% include 'includes/header.html' %}
+
+   <nav class="px-6 py-4 bg-white border-b flex items-center justify-between">
+        <div class=" space-x-2 text-sm text-slate-500">
+            <a href="{{ url_for('camera.camera') }}" class="hover:text-primary">Cameras</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <a href="{{ url_for('camera.view', id=camera.id) }}" class="hover:text-primary">{{ camera.display_id}}</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <span>Edit Camera</span> 
         </div>
-    </header>
+        <div class="flex items-center space-x-3">
+            <button onclick="testConnection()" class="px-4 py-2 border border-slate-200 rounded-button text-sm">
+                Test Connection
+            </button>
+        </div>
+    </nav>
 
     <!-- Edit Form -->
     <div class="px-6 py-6">

@@ -3,16 +3,15 @@
 {% block content %}
 <main class="main-content min-h-screen pb-8">
     <!-- Header -->
-    <header class="bg-white shadow-sm">
-        <div class="flex items-center justify-between px-6 py-4">
-            <div class="flex items-center">
-                <a href="{{ url_for('sensor.sensor') }}" class="mr-4 text-slate-500 hover:text-primary">
-                    <i class="ri-arrow-left-line"></i>
-                </a>
-                <h1 class="text-xl font-semibold text-slate-800">Add New Sensor</h1>
-            </div>
+     {% include 'includes/header.html' %}
+
+    <nav class="px-6 py-4 bg-white border-b flex items-center justify-between">
+        <div class=" space-x-2 text-sm text-slate-500">
+            <a href="{{ url_for('sensor.sensor') }}" class="hover:text-primary">Sensors</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <span>Add Sensor</span> 
         </div>
-    </header>
+    </nav>
 
     <!-- Sensor Form -->
     <div class="px-6 py-6">
@@ -82,7 +81,7 @@
                 <div class="form-grid">
                     <div class="form-group">
                         {{ form.display_id.label(class='form-label form-required') }}
-                        {{ form.display_id(class='form-control', placeholder="Auto-generated if empty") }}
+                        {{ form.display_id(class='form-control', placeholder="Auto-generated if empty", readonly=true) }}
                         {% for error in form.display_id.errors %}
                             <span class="text-red-500 text-xs">{{ error }}</span>
                         {% endfor %}

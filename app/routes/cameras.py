@@ -165,3 +165,13 @@ def test_connection(id):
     camera = Camera.query.get_or_404(id)
     success, message = camera.test_rtsp_connection()
     return jsonify({'success': success, 'message': message})
+
+@camera_bp.route('/cameras/<string:id>/toggle-status', methods=['POST'])
+def toggle_status(id):
+    camera = Camera.query.get_or_404(str(id))
+    new_status = camera.toggle_status()
+    return jsonify({
+        'success': True,
+        'is_active': new_status,
+        'message': f"Signal {'activated' if new_status else 'deactivated'}"
+    })

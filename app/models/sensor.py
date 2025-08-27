@@ -15,6 +15,7 @@ class Sensor(db.Model):
     installation_note = db.Column(db.String(150))
     direction = db.Column(db.String(50), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
     
     # Relationships
     location_id = db.Column(db.UUID(36), db.ForeignKey('locations.id'))
@@ -23,7 +24,7 @@ class Sensor(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     creator = db.relationship('User', backref='sensors')
     
-    signal_id = db.Column(db.String(50), db.ForeignKey('signals.id'))
+    signal_id = db.Column(db.UUID(50), db.ForeignKey('signals.id'))
     
     @staticmethod
     def generate_display_id(location_name=None):
@@ -40,3 +41,8 @@ class Sensor(db.Model):
         
         last_num = int(last_cam.display_id.split('_')[-1]) if last_cam else 0
         return f"{prefix}_{last_num + 1:03d}"
+    
+    def toggle_status(self):
+        self.is_active = not self.is_active
+        db.session.commit()
+        return self.is_active

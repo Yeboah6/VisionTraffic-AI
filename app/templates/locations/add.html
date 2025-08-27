@@ -3,30 +3,28 @@
 {% block content %}
 
 <!-- Add this at the top of your form -->
-{% if form.errors %}
-<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-    <strong>Form Errors:</strong>
-    <ul>
-        {% for field, errors in form.errors.items() %}
-            {% for error in errors %}
-                <li>{{ field }}: {{ error }}</li>
-            {% endfor %}
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}
 
 <!-- Main Content -->
 <main class="main-content min-h-screen pb-8">
     <!-- Header -->
     {% include 'includes/header.html' %}
+    <nav class="px-6 py-4 bg-white border-b">
+        <div class="flex items-center space-x-2 text-sm text-slate-500">
+            <a href="{{ url_for('loc.location') }}" class="hover:text-primary">Locations</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <span>Add Location</span>
+        </div>
+    </nav>
 
     <!-- Add Location Content -->
     <div class="px-6 py-6">
         <form action="{{ url_for('loc.addLocation') }}" method="POST">
         {{ form.hidden_tag() }}
-        
-        {% with messages = get_flashed_messages(with_categories=true) %}
+
+        <div class="location-form-container">
+            <!-- Basic Information Section -->
+            <div class="card form-section">
+                 {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
                     <div class="alert alert-{{ category }}">
@@ -51,10 +49,6 @@
                 </ul>
             </div>
         {% endif %}
-
-        <div class="location-form-container">
-            <!-- Basic Information Section -->
-            <div class="card form-section">
                 <div class="section-header">
                     <div class="section-icon">
                         <i class="ri-information-line"></i>

@@ -7,28 +7,28 @@
 
    <nav class="px-6 py-4 bg-white border-b flex items-center justify-between">
         <div class=" space-x-2 text-sm text-slate-500">
-            <a href="{{ url_for('camera.camera') }}" class="hover:text-primary">Cameras</a>
+            <a href="{{ url_for('sensor.sensor') }}" class="hover:text-primary">Sensors</a>
             <i class="ri-arrow-right-s-line"></i>
-            <a href="{{ url_for('camera.view', id=camera.id) }}" class="hover:text-primary">{{ camera.display_id}}</a>
+            <a href="{{ url_for('sensor.view', id=sensor.id) }}" class="hover:text-primary">{{ sensor.display_id}}</a>
             <i class="ri-arrow-right-s-line"></i>
-            <span>Assign Camera</span> 
+            <span>Assign Sensor</span> 
         </div>
     </nav>
 
     <!-- Signal Assignment -->
     <div class="px-6 py-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Camera Preview -->
+            <!-- sensor Preview -->
             <div class="card">
                 <div class="p-4 border-b">
-                    <h2 class="font-semibold">Camera Details</h2>
+                    <h2 class="font-semibold">sensor Details</h2>
                 </div>
                 <div class="p-6">
                     <div class="aspect-video bg-slate-100 mb-4 rounded-lg overflow-hidden">
-                        <!-- Camera thumbnail -->
+                        <!-- sensor thumbnail -->
                     </div>
-                    <h3 class="font-medium">{{ camera.display_id }}</h3>
-                    <p class="text-sm text-slate-500">{{ camera.location.name if camera.location else 'No location' }}</p>
+                    <h3 class="font-medium">{{ sensor.display_id }}</h3>
+                    <p class="text-sm text-slate-500">{{ sensor.location.name if sensor.location else 'No location' }}</p>
                 </div>
             </div>
 
@@ -48,7 +48,7 @@
                     <div class="space-y-3">
                         {% for signal in signals %}
                         <div class="border border-slate-200 rounded-lg p-4 hover:bg-slate-50 cursor-pointer 
-                              {{ 'border-primary bg-blue-50' if camera.signal_id == signal.id }}">
+                              {{ 'border-primary bg-blue-50' if sensor.signal_id == signal.id }}">
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h3 class="font-medium">{{ signal.display_id }}</h3>
@@ -56,8 +56,8 @@
                                 </div>
                                 <button onclick="assignSignal('{{ signal.id }}')" 
                                         class="px-3 py-1 rounded-button text-sm 
-                                               {{ 'bg-primary text-white' if camera.signal_id == signal.id else 'border border-slate-200' }}">
-                                    {{ 'Assigned' if camera.signal_id == signal.id else 'Assign' }}
+                                               {{ 'bg-primary text-white' if sensor.signal_id == signal.id else 'border border-slate-200' }}">
+                                    {{ 'Assigned' if sensor.signal_id == signal.id else 'Assign' }}
                                 </button>
                             </div>
                         </div>
@@ -71,14 +71,14 @@
 
 <script>
 async function assignSignal(signalId) {
-    const response = await fetch("{{ url_for('camera.assign_signal', id=camera.id) }}", {
+    const response = await fetch("{{ url_for('sensor.assign_signal', id=sensor.id) }}", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ signal_id: signalId })
     });
     
     if (response.ok) {
-        window.location.href = "{{ url_for('camera.view', id=camera.id) }}";
+        window.location.href = "{{ url_for('sensor.view', id=sensor.id) }}";
     } else {
         alert('Error assigning signal');
     }

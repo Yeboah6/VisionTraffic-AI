@@ -213,32 +213,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs text-slate-500 mb-1">Priority Level</label>
-                                <p class="text-sm font-medium capitalize">{{ incident.priority|default('medium') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Related Incidents -->
-                <div class="card">
-                    <div class="p-6">
-                        <h3 class="text-lg font-medium text-slate-800 mb-4">Related Incidents</h3>
-                        <div class="space-y-3">
-                            <div class="p-3 bg-slate-50 rounded">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">Congestion</span>
-                                    <span class="text-xs text-slate-500">15 min ago</span>
-                                </div>
-                                <p class="text-sm font-medium mb-1">Heavy traffic on Main St</p>
-                                <p class="text-xs text-slate-600">2 lanes blocked</p>
-                            </div>
-                            <div class="p-3 bg-slate-50 rounded">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">Roadwork</span>
-                                    <span class="text-xs text-slate-500">2 hours ago</span>
-                                </div>
-                                <p class="text-sm font-medium mb-1">Road construction nearby</p>
-                                <p class="text-xs text-slate-600">Lane closure</p>
+                                <p class="text-sm font-medium capitalize">{{ incident.severity }}</p>
                             </div>
                         </div>
                     </div>

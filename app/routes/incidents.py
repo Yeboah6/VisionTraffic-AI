@@ -96,9 +96,11 @@ def add_incident():
 @incident_bp.route('/incident/<uuid:id>')
 @login_required
 def view_incident(id):
+    user = current_user
     now = datetime.now()
     incident = Incident.query.get_or_404(id)
     return render_template('incidents/view.html', 
+                           user=user,
                            current_date=now.strftime("%B %d, %Y"),
                            current_time=now.strftime("%I:%M %p"),
                            incident=incident
@@ -107,6 +109,7 @@ def view_incident(id):
 @incident_bp.route('/incident/<uuid:id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_incident(id):
+    user=current_user
     now = datetime.now()
     incident = Incident.query.get_or_404(id)
     form = IncidentForm(obj=incident)
@@ -141,5 +144,6 @@ def edit_incident(id):
                            current_date=now.strftime("%B %d, %Y"),
                            current_time=now.strftime("%I:%M %p"),
                            incident=incident, 
-                           form=form
+                           form=form,
+                           user=user
                            )

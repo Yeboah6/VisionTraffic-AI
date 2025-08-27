@@ -174,7 +174,7 @@
                                         {{ 'Online' if camera.is_active else 'Offline' }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 text-sm">{{ camera.signal_id }}</td>
+                                <td class="px-4 py-3 text-sm">{{ camera.signal.display_id }}</td>
                                 <td class="px-4 py-3 text-sm">{{ camera.created_at }}</td>
                                 <td class="px-4 py-3 text-sm">
                                     <a href="{{ url_for('camera.view', id=camera.id) }}" class="text-primary mr-2">View</a>
