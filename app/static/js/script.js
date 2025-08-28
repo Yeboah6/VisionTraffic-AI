@@ -96,15 +96,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Camera card click handler
-    // const cameraCards = document.querySelectorAll('.camera-card:not(.offline)');
-    // cameraCards.forEach(card => {
-    //     card.addEventListener('click', function() {
-    //         const cameraId = this.querySelector('h3').textContent;
-    //         <a href="{{ url_for('camera.view', id=camera.id) }}">
-    //         </a>
-    //     });
-    // });
 });
 
 document.addEventListener('DOMContentLoaded', function() {

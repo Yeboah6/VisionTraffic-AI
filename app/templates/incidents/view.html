@@ -43,7 +43,7 @@
                         </div>
                         <div class="flex items-center">
                             <i class="ri-time-line mr-2"></i>
-                            <span>Reported {{ incident.created_at }}</span>
+                            <span>Reported {{ incident.created_at|time_ago }}</span>
                         </div>
                         <div class="flex items-center">
                             <i class="ri-user-line mr-2"></i>
@@ -147,7 +147,7 @@
                                 <div class="flex-1">
                                     <div class="flex justify-between items-start">
                                         <span class="text-sm font-medium">Incident Reported</span>
-                                        <span class="text-xs text-slate-500">{{ incident.created_at }}</span>
+                                        <span class="text-xs text-slate-500">{{ incident.created_at|time_ago }}</span>
                                     </div>
                                     <p class="text-sm text-slate-600 mt-1">Initial report created by system</p>
                                 </div>
@@ -213,7 +213,9 @@
                             </div>
                             <div>
                                 <label class="block text-xs text-slate-500 mb-1">Priority Level</label>
-                                <p class="text-sm font-medium capitalize">{{ incident.severity }}</p>
+                                <span class="px-3 py-1 bg-{{ incident.severity|lower }}-100 text-{{ incident.severity|lower }}-700 text-xs rounded-full capitalize">
+                                    {{ incident.severity }}
+                                </span>
                             </div>
                         </div>
                     </div>

@@ -98,7 +98,7 @@
             </div>
              <div class="px-6 py-4" style="text-align: center;font-weight: bold;font-size: 2.5rem;">
             <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
-                Active: {{ locations|length }} Location
+                Active: {{ locationCount }} Location
             </div>
         </div>
         </div>
@@ -114,14 +114,14 @@
                         </div>
                         <h3 class="font-medium">{{ location.name }}</h3>
                     </div>
-                    <span class="location-status status-{{ 'active' if location.status == 'active' else 'inactive' }}">
-                        <i class="ri-checkbox-circle-line mr-1"></i> {{ location.status }}
+                    <span class="location-status {{ 'bg-green-100 text-green-800' if location.status else 'bg-red-100 text-red-800' }}">
+                        <i class="ri-checkbox-circle-line mr-1"></i> {{ 'Active' if location.status else 'Inactive' }}
                     </span>
                 </div>
                 <div class="location-details">
                     <div class="detail-item">
                         <span class="detail-label">Location ID</span>
-                        <span class="detail-value">{{ location.id }}</span>
+                        <span class="detail-value">{{ location.location_id }}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Zone</span>
@@ -129,7 +129,7 @@
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Last Activity</span>
-                        <span class="detail-value">{{ location.updated_at }}</span>
+                        <span class="detail-value">{{ location.updated_at|time_ago }}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Type</span>
@@ -156,35 +156,68 @@
                     </a>
                 </div>
             </div>
+            {% else %}
+            <div class="col-span-full text-center py-12">
+                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="ri-map-pin-line text-2xl text-slate-400"></i>
+                </div>
+                <h3 class="text-lg font-medium text-slate-600 mb-2">No locations found</h3>
+                <p class="text-sm text-slate-500">Get started by adding your first location</p>
+            </div>
             {% endfor %}
         </div>
 
         <!-- Pagination -->
+        {% if pagination and pagination.pages > 1 %}
         <div class="flex justify-between items-center mt-6">
             <div class="text-sm text-slate-500">
-                Showing 1 to 6 of 24 locations
+                Showing {{ pagination.first }} to {{ pagination.last }} of {{ pagination.total }} locations
             </div>
             <div class="flex space-x-2">
-                <button class="px-3 py-1 border border-slate-200 rounded-button text-sm">
+                <!-- Previous Page Button -->
+                {% if pagination.has_prev %}
+                <a href="{{ url_for('loc.location', page=pagination.prev_num) }}" 
+                   class="px-3 py-1 border bg-slate-50 border-slate-200 rounded-button text-sm">
                     <i class="ri-arrow-left-s-line"></i>
-                </button>
-                <button class="px-3 py-1 border border-slate-200 bg-primary text-white rounded-button text-sm">
-                    1
-                </button>
-                <button class="px-3 py-1 border border-slate-200 rounded-button text-sm">
-                    2
-                </button>
-                <button class="px-3 py-1 border border-slate-200 rounded-button text-sm">
-                    3
-                </button>
-                <button class="px-3 py-1 border border-slate-200 rounded-button text-sm">
-                    4
-                </button>
-                <button class="px-3 py-1 border border-slate-200 rounded-button text-sm">
+                </a>
+                {% else %}
+                <span class="px-3 py-1 border bg-slate-50 border-slate-200 rounded-button text-sm cursor-not-allowed">
+                    <i class="ri-arrow-left-s-line"></i>
+                </span>
+                {% endif %}
+            
+                <!-- Page Numbers -->
+                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == pagination.page %}
+                        <span class="px-3 py-1 border border-slate-200 bg-primary text-white rounded-button text-sm">
+                            {{ page_num }}
+                        </span>
+                        {% else %}
+                        <a href="{{ url_for('loc.location', page=page_num) }}" 
+                           class="px-3 py-1 border border-slate-200 rounded-button text-sm bg-slate-50">
+                            {{ page_num }}
+                        </a>
+                        {% endif %}
+                    {% else %}
+                        <span class="px-3 py-1 text-slate-400">...</span>
+                    {% endif %}
+                {% endfor %}
+                    
+                <!-- Next Page Button -->
+                {% if pagination.has_next %}
+                <a href="{{ url_for('loc.location', page=pagination.next_num) }}" 
+                   class="px-3 py-1 border border-slate-200 rounded-button text-sm bg-slate-50">
                     <i class="ri-arrow-right-s-line"></i>
-                </button>
+                </a>
+                {% else %}
+                <span class="px-3 py-1 border bg-slate-50 border-slate-200 rounded-button text-sm cursor-not-allowed">
+                    <i class="ri-arrow-right-s-line"></i>
+                </span>
+                {% endif %}
             </div>
         </div>
+        {% endif %}
     </div>
 </main>
 

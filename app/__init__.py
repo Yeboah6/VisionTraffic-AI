@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from config import Config
+import humanize
+from datetime import datetime, timezone
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -17,6 +19,18 @@ def load_user(user_id):
 def create_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
+    
+    @app.template_filter('time_ago')
+    def time_ago_filter(value):
+        if not value:
+            return "Just now"
+        
+        # Convert to timezone-aware datetime if needed
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        
+        now = datetime.now(timezone.utc)
+        return humanize.naturaltime(now - value)
 
     # Initialize extensions
     db.init_app(app)
@@ -37,7 +51,8 @@ def create_app():
     from app.routes.cameras import camera_bp
     from app.routes.incidents import incident_bp
     from app.routes.sensor import sensor_bp
-    
+    from app.routes.report import report_bp
+    from app.routes.settings import settings_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -46,5 +61,11 @@ def create_app():
     app.register_blueprint(camera_bp)
     app.register_blueprint(incident_bp)
     app.register_blueprint(sensor_bp)
+    app.register_blueprint(report_bp)
+    app.register_blueprint(settings_bp)
+
+    
+
+    
 
     return app

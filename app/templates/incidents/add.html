@@ -80,7 +80,7 @@
                             {% endfor %}
                         {% endif %}
                     {% endwith %}
-                    <div class="mb-4">
+                    <div class="mb-4" hidden>
                         <label class="block text-sm font-medium text-slate-700 mb-2">Status *</label>
                         {{ form.status(class="w-full py-2 px-3 border border-slate-200 rounded-button text-sm bg-white") }}
                         {% if form.status.errors %}
@@ -99,7 +99,7 @@
                         </h3>
                         <div class="mt-4 mb-4">
                             <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.incident_id.label(class="form-required")}}</label>
-                            {{ form.incident_id(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm", value=form.incident_id.data) }}
+                            {{ form.incident_id(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm", placeholder="Auto-generated", readonly=true) }}
                             {% for error in form.incident_id.errors %}
                                 <span class="text-red-500 text-xs">{{ error }}</span>
                             {% endfor %}
@@ -239,7 +239,7 @@
                             <span class="section-number">5</span>
                             Additional Information
                         </h3>
-                        <div class="grid grid-cols-2 gap-6">
+                        <!-- <div class="grid grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.reporter_type.label()}}</label>
                                 {{ form.reporter_type(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm custom-select", id="reporterType") }}
@@ -254,7 +254,7 @@
                                     <span class="text-red-500 text-xs">{{ error }}</span>
                                 {% endfor %}
                             </div>
-                        </div>
+                        </div> -->
                         <div class="mt-4">
                             <label class="block text-sm font-medium text-slate-700 mb-1">{{ form.internal_notes.label()}}</label>
                             {{ form.internal_notes(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm", rows="2", placeholder="Any additional internal notes...") }}

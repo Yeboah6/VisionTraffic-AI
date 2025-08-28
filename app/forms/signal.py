@@ -18,7 +18,6 @@ class SignalForm(FlaskForm):
     
     # Technical Configuration
     controller_type = SelectField('Controller Type', choices=[
-        ('ntcip', 'NTCIP'),
         ('scats', 'SCATS'),
         ('siemens', 'Siemens'),
         ('other', 'Other')
@@ -26,14 +25,19 @@ class SignalForm(FlaskForm):
     
     ip_address = StringField('IP Address')
     protocol = SelectField('Protocol', choices=[
+        ('ntcip', 'NTCIP'),
         ('tcp_ip', 'TCP/IP'),
         ('rs485', 'RS-485'),
         ('wireless', 'Wireless')
     ], validators=[DataRequired()])
+    port = IntegerField('Port', validators=[DataRequired()])
     
-    default_cycle = IntegerField('Default Cycle (seconds)', 
-                               validators=[DataRequired(), NumberRange(min=30, max=300)])
-    
+    #Movement Configuration
     phases = IntegerField('Phases', 
                          validators=[DataRequired(), NumberRange(min=2, max=8)])
+    default_cycle = IntegerField('Default Cycle (seconds)', 
+                               validators=[DataRequired(), NumberRange(min=30)])
+    movement_description = StringField('Movement Description', validators=[DataRequired()])
+    min_duration = IntegerField('Min Duration', validators=[DataRequired(), NumberRange(min=10)])
+    max_duration = IntegerField('Max Duration', validators=[DataRequired(), NumberRange(min=60)])
     is_active = BooleanField('Active Status')

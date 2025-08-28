@@ -95,14 +95,9 @@ class IncidentForm(FlaskForm):
     ], validators=[Optional()])
     
     reporter_info = StringField('Reporter Details', validators=[Optional()])
-    internal_notes = TextAreaField('Internal Notes', validators=[Optional()])
+    internal_notes = TextAreaField('Additional Notes', validators=[Optional()])
     media = MultipleFileField('Upload Evidence', validators=[
         Optional(),
         FileAllowed(['jpg', 'jpeg', 'png', 'mp4', 'mov', 'pdf', 'mp3'], 
                    'Only images, videos, and PDF files are allowed')
     ])
-    
-    # def location_choices():
-    #     return Location.query.all()
-
-    # location = QuerySelectField('Location', query_factory=location_choices, get_label='name')

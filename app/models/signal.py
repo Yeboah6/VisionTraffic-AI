@@ -10,15 +10,22 @@ class Signal(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     display_id = db.Column(db.String(50), unique=True)  # SIG_MAIN_001
     name = db.Column(db.String(100))
+    address = db.Column(db.String(50), nullable=False)
     
     direction = db.Column(db.String(20), nullable=False)
     controller_type = db.Column(db.String(50), nullable=False)
     ip_address = db.Column(db.String(15))
     protocol = db.Column(db.String(20), nullable=False)
+    port = db.Column(db.Integer)
+    
     default_cycle = db.Column(db.Integer, nullable=False)
     phases = db.Column(db.Integer, nullable=False)
+    movement_description = db.Column(db.Text, nullable=False)
+    min_duration = db.Column(db.Integer, nullable=False)
+    max_duration = db.Column(db.Integer, nullable=False)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    address = db.Column(db.String(50), nullable=False)
+    
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     
     # Relationships

@@ -18,13 +18,23 @@ def incident():
     now = datetime.now()
     user = current_user
     
-    incidents = Incident.query.all() 
+    # Get page number from query parameters, default to 1
+    page = request.args.get('page', 1, type=int)
+    per_page = 6  # Number of incidents per page
+    
+    # Paginate the query
+    incidents_pagination = Incident.query.order_by(
+        Incident.created_at.desc()
+    ).paginate(page=page, per_page=per_page, error_out=False)
+    
+    incidents = incidents_pagination.items
     
     return render_template('incidents/incident.html',
                            user=user,
                            current_date=now.strftime("%B %d, %Y"),
                            current_time=now.strftime("%I:%M %p"),
-                           incidents=incidents
+                           incidents=incidents,
+                           pagination=incidents_pagination
                            )
     
 @incident_bp.route('/incident/add', methods=['GET', 'POST'])
@@ -112,6 +122,7 @@ def edit_incident(id):
     user=current_user
     now = datetime.now()
     incident = Incident.query.get_or_404(id)
+    
     form = IncidentForm(obj=incident)
     form.location.choices = [(loc.id, loc.name) for loc in Location.query.order_by('name')]
     

@@ -53,16 +53,16 @@
                     <span>Incidents</span>
                 </a>
                 
-                <a href="{{ url_for('main.report') }}"
-                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('main.report') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+                <a href="{{ url_for('report.report') }}"
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('report') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-file-chart-line"></i>
                     </div>
                     <span>Reports</span>
                 </a>
                 
-                <a href="{{ url_for('main.settings') }}"
-                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('main.settings') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+                <a href="{{ url_for('settings.settings') }}"
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('settings') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                     <div class="w-5 h-5 flex items-center justify-center mr-3">
                         <i class="ri-settings-line"></i>
                     </div>

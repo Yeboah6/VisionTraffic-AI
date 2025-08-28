@@ -235,23 +235,23 @@
                             <i class="ri-user-line"></i>
                         </div>
                         <div class="ml-3">
-                            <h3 class="font-medium">Sarah Johnson</h3>
-                            <p class="text-sm text-slate-500">Traffic Control Supervisor</p>
+                            <h3 class="font-medium">{{ user.username|capitalize }}</h3>
+                            <p class="text-sm text-slate-500">{{ user.email }}</p>
                         </div>
                     </div>
                     
                     <div class="setting-item">
                         <div class="setting-label">
-                            <label class="block text-sm font-medium text-slate-700">Full Name</label>
+                            <label class="block text-sm font-medium text-slate-700">Username</label>
                         </div>
-                        <input type="text" class="w-64 px-3 py-2 border border-slate-200 rounded-button text-sm" value="Sarah Johnson">
+                        <input type="text" class="w-64 px-3 py-2 border border-slate-200 rounded-button text-sm" value="{{ user.username }}">
                     </div>
                     
                     <div class="setting-item">
                         <div class="setting-label">
                             <label class="block text-sm font-medium text-slate-700">Email</label>
                         </div>
-                        <input type="email" class="w-64 px-3 py-2 border border-slate-200 rounded-button text-sm" value="s.johnson@citytraffic.gov">
+                        <input type="email" class="w-64 px-3 py-2 border border-slate-200 rounded-button text-sm" value="{{ user.email }}">
                     </div>
                     
                     <div class="setting-item">

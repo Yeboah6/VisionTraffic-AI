@@ -12,32 +12,14 @@ main_bp = Blueprint('main', __name__)
 def dashboard():
     now = datetime.now()
     user = current_user
-    incidents = Incident.query.all()
+    
+    incidents = Incident.query.filter(
+    Incident.status.in_(['reported', 'investigating', 'in_progress'])
+    ).order_by(Incident.created_at.desc()).limit(5).all()
+    
     return render_template('dashboard/index.html', 
                        user = user,
                        current_date = now.strftime("%B %d, %Y"), 
                        current_time = now.strftime("%I:%M %p"),
                        incidents = incidents
                     )
-
-@main_bp.route('/report')
-@login_required
-def report():
-    now = datetime.now()
-    user = current_user
-    return render_template('dashboard/report.html',
-                           user = user,
-                           current_date = now.strftime("%B %d, %Y"), 
-                           current_time = now.strftime("%I:%M %p")
-                           )
-
-@main_bp.route('/settings')
-@login_required
-def settings():
-    now = datetime.now()
-    user = current_user
-    return render_template('dashboard/settings.html',
-                           user = user,
-                           current_date = now.strftime("%B %d, %Y"), 
-                           current_time = now.strftime("%I:%M %p")
-                           )

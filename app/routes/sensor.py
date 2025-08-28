@@ -16,6 +16,18 @@ def sensor():
     sensors = Sensor.query.order_by(Sensor.display_id).all()
     now = datetime.now()
     user = current_user
+    
+    # Get page number from query parameters, default to 1
+    # page = request.args.get('page', 1, type=int)
+    # per_page = 6  # Number of incidents per page
+    
+    # # Paginate the query
+    # sensors_pagination = Sensor.query.order_by(
+    #     Sensor.created_at.desc()
+    # ).paginate(page=page, per_page=per_page, error_out=False)
+    
+    # sensors = sensors_pagination.items
+    
     return render_template('sensor/sensor.html',
                            user = user,
                            current_date = now.strftime("%B %d, %Y"), 
@@ -150,3 +162,34 @@ def assign_signal(id):
                          sensor=sensor, 
                          signals=signals
                         )
+    
+@sensor_bp.route('/sensors/<uuid:id>/delete', methods=['POST'])
+@login_required
+def delete_sensor(id):
+    try:
+        sensor = Sensor.query.get_or_404(str(id))
+        
+        # Optional: Check if user has permission to delete
+        if sensor.created_by != current_user.id and not current_user.is_admin:
+            flash('You do not have permission to delete this sensor.', 'error')
+            return redirect(url_for('sensor.sensor'))
+        
+        db.session.delete(sensor)
+        db.session.commit()
+        
+        flash('Sensor deleted successfully!', 'success')
+        return redirect(url_for('sensor.sensors'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting sensor: {str(e)}', 'error')
+        return redirect(url_for('sensor.sensor'))
+    
+# @sensor_bp.route('/sensors/<uuid:id>/remove-signal', methods=['POST'])
+# @login_required
+# def remove_signal(id):
+#     sensor = Sensor.query.get_or_404(id)
+#     sensor.signal = None
+#     db.session.commit()
+#     flash('Signal unassigned from sensor successfully!', 'success')
+#     return redirect(url_for('sensor.view', id=sensor.id))

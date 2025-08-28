@@ -15,14 +15,29 @@ camera_bp = Blueprint('camera', __name__)
 def camera():
     now = datetime.now()
     user = current_user
-    cameras = Camera.query.all()
+    
+    # Get pagination parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    # Validate per_page to prevent excessive values
+    if per_page not in [10, 25, 50, 100]:
+        per_page = 10
+    
+    # Paginate the query
+    cameras_pagination = Camera.query.order_by(
+        Camera.created_at.desc()
+    ).paginate(page=page, per_page=per_page, error_out=False)
+    
+    cameras = cameras_pagination.items
     
     return render_template('camera/camera.html',
-                           user = user,
-                           current_date = now.strftime("%B %d, %Y"), 
-                           current_time = now.strftime("%I:%M %p"),
-                           cameras=cameras
-                        )
+                           user=user,
+                           current_date=now.strftime("%B %d, %Y"),
+                           current_time=now.strftime("%I:%M %p"),
+                           cameras=cameras,
+                           pagination=cameras_pagination
+                           )
     
 @camera_bp.route('/cameras/add', methods=['GET', 'POST'])
 @login_required
@@ -108,6 +123,7 @@ def edit(id):
     
     camera = Camera.query.get_or_404(id)
     form = CameraForm(obj=camera)
+    form.location.choices = [(loc.id, loc.name) for loc in Location.query.order_by('name')]
     
     if form.validate_on_submit():
         try:
@@ -175,3 +191,25 @@ def toggle_status(id):
         'is_active': new_status,
         'message': f"Signal {'activated' if new_status else 'deactivated'}"
     })
+
+@camera_bp.route('/cameras/<uuid:id>/delete', methods=['POST'])
+@login_required
+def delete_sensor(id):
+    try:
+        camera = Camera.query.get_or_404(str(id))
+        
+        # Optional: Check if user has permission to delete
+        if camera.created_by != current_user.id and not current_user.is_admin:
+            flash('You do not have permission to delete this camera.', 'error')
+            return redirect(url_for('camera.camera'))
+        
+        db.session.delete(camera)
+        db.session.commit()
+        
+        flash('Camera deleted successfully!', 'success')
+        return redirect(url_for('camera.camera'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting camera: {str(e)}', 'error')
+        return redirect(url_for('camera.camera'))

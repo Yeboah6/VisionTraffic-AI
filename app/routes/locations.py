@@ -14,13 +14,27 @@ loc_bp = Blueprint('loc', __name__)
 def location():
     now = datetime.now()
     user = current_user
-    locations = Location.query.all()
+    
+    # Get page number from query parameters, default to 1
+    page = request.args.get('page', 1, type=int)
+    per_page = 6  # Number of locations per page (matches your grid layout)
+    
+    locationCount = Location.query.all()
+    
+    # Paginate the query
+    locations_pagination = Location.query.order_by(
+        Location.name.asc()  # Or use Location.created_at.desc() for newest first
+    ).paginate(page=page, per_page=per_page, error_out=False)
+    
+    locations = locations_pagination.items
     
     return render_template('locations/location.html',
                            user=user,
                            current_date=now.strftime("%B %d, %Y"),
                            current_time=now.strftime("%I:%M %p"),
-                           locations=locations  # Uncomment if you have locations to display
+                           locations=locations,
+                           pagination=locations_pagination,
+                           locationCount=len(locationCount)
                            )
     
 @loc_bp.route('/locations/add', methods=['GET', 'POST'])

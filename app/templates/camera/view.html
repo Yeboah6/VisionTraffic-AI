@@ -24,6 +24,10 @@
               class="px-4 py-2 bg-primary text-white rounded-button text-sm">
                Edit Camera
            </a>
+           <button onclick="confirmDelete('{{ camera.id }}')" 
+              class="px-4 py-2 bg-red-500 text-white rounded-button text-sm">
+               Delete Camera
+           </button>
         </div>
     </nav>
 
@@ -179,6 +183,33 @@ async function testConnection() {
       }
     }
   }
+</script>
+
+<script>
+function confirmDelete(cameraId) {
+    if (confirm('Are you sure you want to delete this sensor? This action cannot be undone.')) {
+        // Use fetch API for AJAX deletion
+        fetch(`/cameras/${cameraId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Show success message
+                alert('Sensor deleted successfully!');
+                window.location.href = "{{ url_for('camera.camera') }}";
+            } else {
+                throw new Error('Failed to delete sensor');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting sensor. Please try again.');
+        });
+    }
+}
 </script>
 
 {% endblock %}
