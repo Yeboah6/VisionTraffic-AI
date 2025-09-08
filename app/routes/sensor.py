@@ -103,7 +103,13 @@ def edit(id):
 
     if form.validate_on_submit():
         try:
-            form.populate_obj(sensor)
+            sensor.sensor_type=form.sensor_type.data,
+            sensor.lanes_monitored=form.lanes_monitored.data,
+            sensor.direction=form.direction.data,
+            sensor.installation_date=form.installation_date.data,
+            sensor.installation_note=form.installation_notes.data,
+            sensor.location_id=form.location.data,
+            
             db.session.commit()
             flash('Sensor updated successfully!', 'success')
             return redirect(url_for('sensor.view', id=sensor.id))

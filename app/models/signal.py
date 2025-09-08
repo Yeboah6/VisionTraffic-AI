@@ -11,6 +11,7 @@ class Signal(db.Model):
     display_id = db.Column(db.String(50), unique=True)  # SIG_MAIN_001
     name = db.Column(db.String(100))
     address = db.Column(db.String(50), nullable=False)
+    intersection_type = db.Column(db.String(50))
     
     direction = db.Column(db.String(20), nullable=False)
     controller_type = db.Column(db.String(50), nullable=False)

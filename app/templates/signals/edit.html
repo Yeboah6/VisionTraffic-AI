@@ -31,7 +31,7 @@
           <div class="mb-8">
             <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
               <span class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-sm mr-2">1</span>
-              Signal Identification
+              Signal Identification & Location
             </h3>
             <div class="grid grid-cols-2 gap-6">
               <div>
@@ -44,54 +44,46 @@
                 {{ form.name(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm") }}
               </div>
             </div>
+            <br>
+            <div class="grid grid-cols-2 gap-6">
+              <div>
+                {{ form.location_id.label(class="form-label form-required") }}
+                {{ form.location_id(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm bg-white") }}
+                {% for error in form.location_id.errors %}
+                    <span class="text-red-500 text-xs">{{ error }}</span>
+                {% endfor %}
+                <!-- Display current location info for reference -->
+                {% if signal.locations %}
+                    <p class="text-xs text-slate-500 mt-1">
+                        Current: {{ signal.locations.name }}
+                        {% if signal.locations.address %}
+                            - {{ signal.locations.address }}
+                        {% endif %}
+                    </p>
+                {% endif %}
+              </div>
+              <div>
+                  {{ form.address.label(class="form-label form-required") }}
+                  {{ form.address(class="form-control w-full px-3 py-2 border border-slate-200 rounded-button text-sm", placeholder="Enter street address") }}
+                  {% for error in form.address.errors %}
+                      <span class="text-red-500 text-xs">{{ error }}</span>
+                  {% endfor %}
+              </div>
+            </div>
+            <br>
+            <div>
+                {{ form.intersection_type.label(class="form-label form-required") }}
+                {{ form.intersection_type(class="form-control form-select w-full px-3 py-2 border border-slate-200 rounded-button text-sm") }}
+                {% for error in form.intersection_type.errors %}
+                    <span class="text-red-500 text-xs">{{ error }}</span>
+                {% endfor %}
+            </div>
           </div>
-
-         <!-- Section 2: Location Details -->
-<div class="mb-8">
-    <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
-        <span class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-sm mr-2">2</span>
-        Location Configuration
-    </h3>
-    <div class="grid grid-cols-2 gap-6">
-        <div>
-            {{ form.location_id.label(class="form-label form-required") }}
-            {{ form.location_id(class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm bg-white") }}
-            {% for error in form.location_id.errors %}
-                <span class="text-red-500 text-xs">{{ error }}</span>
-            {% endfor %}
-            
-            <!-- Display current location info for reference -->
-            {% if signal.locations %}
-                <p class="text-xs text-slate-500 mt-1">
-                    Current: {{ signal.locations.name }}
-                    {% if signal.locations.address %}
-                        - {{ signal.locations.address }}
-                    {% endif %}
-                </p>
-            {% endif %}
-        </div>
-        <div>
-            {{ form.address.label(class="form-label form-required") }}
-            {{ form.address(class="form-control w-full px-3 py-2 border border-slate-200 rounded-button text-sm", placeholder="Enter street address") }}
-            {% for error in form.address.errors %}
-                <span class="text-red-500 text-xs">{{ error }}</span>
-            {% endfor %}
-        </div>
-    </div>
-    <br>
-    <div>
-        {{ form.direction.label(class="form-label form-required") }}
-        {{ form.direction(class="form-control form-select w-full px-3 py-2 border border-slate-200 rounded-button text-sm") }}
-        {% for error in form.direction.errors %}
-            <span class="text-red-500 text-xs">{{ error }}</span>
-        {% endfor %}
-    </div>
-</div>
 
             <!-- Section 3: Technical Specifications -->
             <div class="mb-8">
               <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
-                <span class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-sm mr-2">3</span>
+                <span class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-sm mr-2">2</span>
                 Technical Configuration
               </h3>
               <div class="grid grid-cols-3 gap-6">
@@ -104,7 +96,7 @@
                 </div>
                 <div>
                   {{ form.ip_address.label(class="form-label form-required")}}
-                  {{ form.ip_address(class="form-control", value=signal.ip_address)}}
+                  {{ form.ip_address(class="form-control", placeholder="192.168.1.100")}}
                   {% for error in form.ip_address.errors %}
                     <span class="text-red-500 text-xs">{{ error }}</span>
                   {% endfor %}
@@ -119,16 +111,63 @@
               </div>
               <div class="mt-4 grid grid-cols-2 gap-6">
                 <div>
-                  {{ form.default_cycle.label(class="form-label form-required")}}
-                  {{ form.default_cycle(class="form-control")}}
-                  {% for error in form.default_cycle.errors %}
+                  {{ form.port.label(class="form-label form-required")}}
+                  {{ form.port(class="form-control", placeholder="5000")}}
+                  {% for error in form.port.errors %}
                     <span class="text-red-500 text-xs">{{ error }}</span>
                   {% endfor %}
                 </div>
                 <div>
+                {{ form.direction.label(class="form-label form-required")}}
+                {{ form.direction(class="form-control form-select")}}
+              
+                {% for error in form.direction.errors %}
+                  <span class="text-red-500 text-xs">{{ error }}</span>
+                {% endfor %}
+              </div>
+              </div>
+            </div>
+
+            <div class="mb-8">
+              <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
+                <span class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-sm mr-2">3</span>
+                Phase Mapping
+              </h3>
+              <div class="grid grid-cols-3 gap-6">
+                <div>
                   {{ form.phases.label(class="form-label form-required")}}
-                  {{ form.phases(class="form-control")}}
+                  {{ form.phases(class="form-control", placeholder="2")}}
                   {% for error in form.phases.errors %}
+                    <span class="text-red-500 text-xs">{{ error }}</span>
+                  {% endfor %}
+                </div>
+                <div>
+                  {{ form.movement_description.label(class="form-label form-required")}}
+                  {{ form.movement_description(class="form-control", placeholder="Northbound Through Green")}}
+                  {% for error in form.movement_description.errors %}
+                    <span class="text-red-500 text-xs">{{ error }}</span>
+                  {% endfor %}
+                </div>
+                <div>
+                  {{ form.default_cycle.label(class="form-label form-required")}}
+                  {{ form.default_cycle(class="form-control", placeholder="30 seconds")}}
+                  {% for error in form.default_cycle.errors %}
+                    <span class="text-red-500 text-xs">{{ error }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="mt-4 grid grid-cols-2 gap-6">
+                <div>
+                  {{ form.min_duration.label(class="form-label form-required")}}
+                  {{ form.min_duration(class="form-control", placeholder="10 Seconds")}}
+                  {% for error in form.min_duration.errors %}
+                    <span class="text-red-500 text-xs">{{ error }}</span>
+                  {% endfor %}
+                </div>
+                <div>
+                  {{ form.max_duration.label(class="form-label form-required")}}
+                  {{ form.max_duration(class="form-control", placeholder="60 Seconds")}}
+                  {% for error in form.max_duration.errors %}
                     <span class="text-red-500 text-xs">{{ error }}</span>
                   {% endfor %}
                 </div>

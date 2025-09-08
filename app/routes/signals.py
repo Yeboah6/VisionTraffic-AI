@@ -44,6 +44,7 @@ def signalManage():
                 display_id=signal_id,
                 name=form.name.data,
                 direction=form.direction.data,
+                intersection_type=form.intersection_type.data,
                 controller_type=form.controller_type.data,
                 ip_address=form.ip_address.data,
                 protocol=form.protocol.data,
@@ -51,6 +52,10 @@ def signalManage():
                 phases=form.phases.data,
                 location_id=form.location_id.data,
                 address = form.address.data,
+                port = form.port.data,
+                min_duration = form.min_duration.data,
+                max_duration = form.max_duration.data,
+                movement_description = form.movement_description.data,
                 created_by=user.id
             )
             
@@ -105,27 +110,26 @@ def edit(id):
     signal = Signal.query.get_or_404(str(id))
     form = SignalForm(obj=signal)
     
-    # CRITICAL: Set choices BEFORE form validation
-    locations = Location.query.order_by('name').all()
-    form.location_id.choices = [(loc.id, loc.name) for loc in locations]
-    print(f"Available choices: {form.location_id.choices}")
-    
-    # Set current value
-    form.location_id.data = signal.location_id
-    print(f"Form location_id data set to: {form.location_id.data}")
+    form.location_id.choices = [(loc.id, loc.name) for loc in Location.query.order_by('name')]
     
     if form.validate_on_submit():
         try:
-            print(f"Submitted location_id: {form.location_id.data}")
             signal.name = form.name.data
+            signal.address = form.address.data
+            signal.location_id = form.location_id.data
+            signal.intersection_type = form.intersection_type.data
+            
             signal.direction = form.direction.data
             signal.controller_type = form.controller_type.data
             signal.ip_address = form.ip_address.data
             signal.protocol = form.protocol.data
+            signal.port = form.port.data
+            
             signal.default_cycle = form.default_cycle.data
             signal.phases = form.phases.data
-            signal.address = form.address.data
-            signal.location_id = form.location_id.data
+            signal.movement_description = form.movement_description.data
+            signal.min_duration = form.min_duration.data
+            signal.max_duration = form.max_duration.data
             
             db.session.commit()
             flash('Signal updated successfully!', 'success')

@@ -16,6 +16,13 @@ class SignalForm(FlaskForm):
         ('westbound', 'Westbound')
     ], validators=[DataRequired()])
     
+    intersection_type = SelectField('Intersection Type', choices=[
+    ('standard', 'Standard 4-way'),
+    ('t-intersection', 'T-intersection'),
+    ('y-intersection', 'Y-intersection'),
+    ('roundabout', 'Roundabout')
+    ], default='standard')
+    
     # Technical Configuration
     controller_type = SelectField('Controller Type', choices=[
         ('scats', 'SCATS'),

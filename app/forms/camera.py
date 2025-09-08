@@ -1,11 +1,12 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, SubmitField, IntegerField, BooleanField, TextAreaField
+from wtforms import StringField, SelectField, SubmitField, IntegerField, BooleanField, TextAreaField, FloatField
 from wtforms.validators import DataRequired, Optional, Regexp, NumberRange, Length, IPAddress
 
 class CameraForm(FlaskForm):
     #Camera ID
     display_id = StringField('Camera ID', validators=[DataRequired(), Length(max=50)])
-    name = StringField('Display Name', validators=[Length(max=100)])
+    name = StringField('Name', validators=[Length(max=100)])
+    address = StringField('Address', validators=[DataRequired()])
     camera_type = SelectField('Camera Type', choices=[
         ('', 'Select....'),
         ('fixed', 'Fixed'),
@@ -47,7 +48,8 @@ class CameraForm(FlaskForm):
         ('https', 'HTTPS'),
     ], validators=[DataRequired()])
     port = IntegerField('Port', validators=[DataRequired(), NumberRange(min=1, max=65535)])
-    stream_url_path = StringField('Stream URL Path', validators=[DataRequired(), Length(max=100)])
+    stream_path = StringField('Stream Path', validators=[DataRequired(), Length(max=100)])
+    rtsp_url = StringField('RTSP Url', validators=[DataRequired()])
     username = StringField('Username', validators=[DataRequired(), Length(max=50)])
     password = StringField('Password', validators=[DataRequired(), Length(max=100)])
     
@@ -65,9 +67,8 @@ class CameraForm(FlaskForm):
         ('southwest', 'Southwest')
         ] ,validators=[DataRequired()])
     
-    elevation = IntegerField('Elevation (m)')
+    elevation = FloatField('Elevation (m)')
 
-    
     #Additional Settings
     maintenance = SelectField('Maintenance Schedule', choices=[
         ('weekly', 'Weekly'),

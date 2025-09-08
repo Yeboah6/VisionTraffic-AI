@@ -5,7 +5,7 @@
 <!-- Main Content -->
 <main class="main-content min-h-screen pb-8">
     <!-- Header -->
-    {% include 'includes/header.html' %}
+    {% include 'includes/header.html' %} 
 
     <nav class="px-6 py-4 bg-white border-b">
         <div class="flex items-center space-x-2 text-sm text-slate-500">
@@ -140,15 +140,24 @@
                     <div class="form-group">
                         <label class="form-label">Coordinates</label>
                         <div class="coordinates-input">
-                            {{ form.lat(class="form-control", value=location.lat, id="location-lat") }}
-                            {{ form.lng(class="form-control", value=location.lng, id="location-lng") }}
+                            {{ form.lat(class="form-control", placeholder="Latitude", id="location-lat") }}
+                            {{ form.lng(class="form-control", placeholder="Longtitude", id="location-lng") }}
                         </div>
+                        <p class="text-xs text-slate-500 mt-1">Click on the map to set coordinates or enter manually</p>
                     </div>
+
+                    <div class="map-preview" id="mapPreview" style="height: 300px; width: 100%;"></div>
                     
-                    <div class="map-preview">
+                    <!-- <div class="map-preview">
                         <div class="map-marker" data-lat="{{ location.lat }}" data-lng="{{ location.lng }}"></div>
+                    </div> -->
+
+                    <div class="preview-item">
+                        <div class="preview-label">Coordinates</div>
+                        <div class="preview-value" id="preview-coords">-</div>
                     </div>
                 </div>
+                
 
                 <!-- Form Actions -->
                 <div class="form-actions">
@@ -163,5 +172,64 @@
         </form>
     </div>
 </main>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mapPreview = document.getElementById('mapPreview');
+    const latInput = document.getElementById('latInput');
+    const lngInput = document.getElementById('lngInput');
+    const coordinatesPreview = document.getElementById('coordinatesPreview');
+    
+    // Set initial coordinates
+    const initialLat = {{ form.lat.data if form.lat.data else 0 }};
+    const initialLng = {{ form.lng.data if form.lng.data else 0 }};
+    const hasInitialCoords = initialLat !== 0 && initialLng !== 0;
+    
+    // Initialize map
+    const map = L.map('mapPreview').setView(
+        hasInitialCoords ? [initialLat, initialLng] : [0, 0], 
+        hasInitialCoords ? 15 : 2
+    );
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    
+    let marker = null;
+    
+    // Add initial marker if coordinates exist
+    if (hasInitialCoords) {
+        marker = L.marker([initialLat, initialLng]).addTo(map);
+        updateCoordinatesPreview(initialLat, initialLng);
+    }
+    
+    // Map click handler
+    map.on('click', function(e) {
+        const lat = e.latlng.lat.toFixed(6);
+        const lng = e.latlng.lng.toFixed(6);
+        
+        // Update inputs
+        latInput.value = lat;
+        lngInput.value = lng;
+        
+        // Update marker
+        if (marker) {
+            map.removeLayer(marker);
+        }
+        marker = L.marker([lat, lng]).addTo(map);
+        
+        // Update preview text
+        updateCoordinatesPreview(lat, lng);
+        
+        // Zoom to the clicked location
+        map.setView([lat, lng], 15);
+    });
+    
+    function updateCoordinatesPreview(lat, lng) {
+        coordinatesPreview.textContent = `Coordinates: ${lat}, ${lng}`;
+    }
+});
+</script>
 
 {% endblock %}

@@ -67,20 +67,17 @@
                   {% endfor %}
                 </div>
               </div>
+              <br>
+              <div>
+                {{ form.intersection_type.label(class="form-label form-required") }}
+                {{ form.intersection_type(class="form-control") }}
+                {% for error in form.intersection_type.errors %}
+                  <span class="text-red-500 text-xs">{{ error }}</span>
+                {% endfor %}
+                </div>
             </div>
 
-            <!-- Section 2: Location Details -->
-            <!-- <div class="mb-8">
-              <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
-                <span class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-sm mr-2">2</span>
-                Location Configuration
-              </h3>
-              
-              <br>
-              
-            </div> -->
-
-            <!-- Section 3: Technical Specifications -->
+            <!-- Section 2: Technical Specifications -->
             <div class="mb-8">
               <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
                 <span class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-sm mr-2">2</span>

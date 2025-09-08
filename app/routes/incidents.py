@@ -12,7 +12,7 @@ import uuid
 
 incident_bp = Blueprint('incident', __name__)
 
-@incident_bp.route('/incident')
+@incident_bp.route('/incidents')
 @login_required
 def incident():
     now = datetime.now()
@@ -127,7 +127,6 @@ def edit_incident(id):
     form.location.choices = [(loc.id, loc.name) for loc in Location.query.order_by('name')]
     
     if form.validate_on_submit():
-        # Manual assignment instead of populate_obj
         incident.type = form.type.data
         incident.title = form.title.data
         incident.description = form.description.data
@@ -158,3 +157,25 @@ def edit_incident(id):
                            form=form,
                            user=user
                            )
+    
+@incident_bp.route('/incidents/<uuid:id>/delete', methods=['POST'])
+@login_required
+def delete_incident(id):
+    try:
+        incident = Incident.query.get_or_404(str(id))
+        
+        # Optional: Check if user has permission to delete
+        if incident.creator != current_user.id and not current_user.is_admin:
+            flash('You do not have permission to delete this incident.', 'error')
+            return redirect(url_for('incident.incident'))
+        
+        db.session.delete(incident)
+        db.session.commit()
+        
+        flash('Incident deleted successfully!', 'success')
+        return redirect(url_for('incident.incident'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting incident: {str(e)}', 'error')
+        return redirect(url_for('incident.incident'))

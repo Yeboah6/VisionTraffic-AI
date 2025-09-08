@@ -1,0 +1,48 @@
+<header class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">Traffic Incident Dashboard</h1>
+                <p class="text-sm text-slate-600">View real-time traffic incidents in your area</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <button class="p-2 bg-slate-100 rounded-full">
+                        <i class="ri-notification-3-line text-slate-600"></i>
+                        <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                </div>
+                <div class="relative">
+                    <button id="userMenuButton" class="flex items-center">
+                        <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-sm font-medium">
+                            U
+                        </div>
+                        <span class="ml-2 text-sm font-medium text-slate-700">{{ user.username }}</span>
+                        <i class="ri-arrow-down-s-line ml-1 text-slate-500"></i>
+                    </button>
+                    <div id="userMenu" class="user-menu card p-2">
+                        <div class="p-3 border-b">
+                            <p class="font-medium text-sm text-slate-500">{{ user.username }}</p>
+                            <p class="text-sm text-slate-500">{{ user.email }}</p>
+                        </div>
+                        <div class="p-1">
+                            <a href="{{ url_for('user.users') }}" class="flex items-center px-3 py-2 rounded-button text-slate-700 hover:bg-slate-100">
+                                <i class="ri-earth-line mr-2"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="{{ url_for('user.profile') }}" class="flex items-center px-3 py-2 rounded-button text-slate-700 hover:bg-slate-100">
+                                <i class="ri-user-line mr-2"></i>
+                                <span>Profile</span>
+                            </a>
+                            <div class="border-t my-1"></div>
+                            <a href="{{ url_for('auth.logout') }}" class="flex items-center px-3 py-2 rounded-button text-slate-700 hover:bg-slate-100">
+                                <i class="ri-logout-box-r-line mr-2"></i>
+                                <span>Sign Out</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

@@ -145,17 +145,29 @@
                             </div>
                         </div>
                         <div class="mt-4">
-                            {{ form.stream_url_path.label(class='form-label form-required') }}
+                            {{ form.rtsp_url.label(class='form-label form-required') }}
                             <div class="flex">
                                 <span class="inline-flex items-center px-3 py-2 border border-slate-200 bg-slate-100 text-slate-500 text-sm rounded-l-button">
                                     rtsp://[IP]:[Port]/
                                 </span>
-                                {{ form.stream_url_path(class='flex-1 px-3 py-2 border-t border-b border-r border-slate-200 rounded-r-button text-sm', placeholder="live.sdp") }}
-                                {% for error in form.stream_url_path.errors %}
+                                {{ form.rtsp_url(class='flex-1 px-3 py-2 border-t border-b border-r border-slate-200 rounded-r-button text-sm', placeholder="rtsp://192.168.1.100:554") }}
+                                {% for error in form.rtsp_url.errors %}
                                     <span class="text-red-500 text-xs">{{ error }}</span>
                                 {% endfor %}
                             </div>
                             <p class="text-xs text-slate-500 mt-1">Example: rtsp://192.168.1.100:554/live.sdp</p>
+                        </div>
+                        <div class="mt-4">
+                            {{ form.stream_path.label(class='form-label form-required') }}
+                            <div class="flex">
+                                <span class="inline-flex items-center px-3 py-2 border border-slate-200 bg-slate-100 text-slate-500 text-sm rounded-l-button">
+                                </span>
+                                {{ form.stream_path(class='flex-1 px-3 py-2 border-t border-b border-r border-slate-200 rounded-r-button text-sm', placeholder="live.sdp") }}
+                                {% for error in form.stream_path.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Example: rtsp://....../live.sdp</p>
                         </div>
                         <div class="mt-4">
                             <label class="block text-sm font-medium text-slate-700 mb-1">Credentials</label>
@@ -210,17 +222,27 @@
                                 {% endfor %}
                             </div>
                             <div>
+                                {{ form.address.label(class='form-label form-required') }}
+                                {{ form.address(class='form-control') }}
+                                {% for error in form.address.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6 mt-4">
+                            <div>
+                                {{ form.elevation.label(class='form-label') }}
+                                {{ form.elevation(class='form-control', placeholder="Eg; 25.5") }}
+                                {% for error in form.elevation.errors %}
+                                    <span class="text-red-500 text-xs">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div>
                                 {{ form.direction.label(class='form-label form-required') }}
                                 {{ form.direction(class='form-control form-select') }}
                                 {% for error in form.direction.errors %}
                                     <span class="text-red-500 text-xs">{{ error }}</span>
                                 {% endfor %}
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-6 mt-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Elevation (m)</label>
-                                <input type="number" class="w-full px-3 py-2 border border-slate-200 rounded-button text-sm" placeholder="25.5">
                             </div>
                         </div>
                     </div>

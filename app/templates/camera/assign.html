@@ -28,7 +28,10 @@
                         <!-- Camera thumbnail -->
                     </div>
                     <h3 class="font-medium">{{ camera.display_id }}</h3>
-                    <p class="text-sm text-slate-500">{{ camera.location.name if camera.location else 'No location' }}</p>
+                    <div class="grid grid-cols-2 gap-5">
+                        <p class="text-sm text-slate-500">{{ camera.location.name if camera.location else 'No location' }}</p>
+                        <p class="text-sm text-slate-500">{{ camera.direction|capitalize }}</p>
+                    </div>
                 </div>
             </div>
 
@@ -52,7 +55,13 @@
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h3 class="font-medium">{{ signal.display_id }}</h3>
-                                    <p class="text-sm text-slate-500">{{ signal.locations.name }}</p>
+                                    <div class="grid grid-cols-4 gap-6">
+                                        <p class="text-sm text-slate-500">{{ signal.locations.name }}</p>
+                                        <p class="text-sm text-slate-500">{{ signal.direction|capitalize }}</p>
+                                        <!-- <p class="text-sm text-slate-500">{{ signal.address }}</p> -->
+                                        <p class="text-sm text-slate-500">Phase: {{ signal.phases }}</p>
+                                        <p class="text-sm text-slate-500">{{ signal.movement_description }}</p>
+                                    </div>
                                 </div>
                                 <button onclick="assignSignal('{{ signal.id }}')" 
                                         class="px-3 py-1 rounded-button text-sm 

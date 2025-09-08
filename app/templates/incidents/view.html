@@ -47,7 +47,7 @@
                         </div>
                         <div class="flex items-center">
                             <i class="ri-user-line mr-2"></i>
-                            <span>By {{ incident.user_id }}</span>
+                            <span>By {{ incident.creator.username|capitalize }}</span>
                         </div>
                     </div>
                 </div>
@@ -86,7 +86,7 @@
                                     </div>
                                     <div class="flex justify-between">
                                         <span class="text-sm text-slate-600">Lanes Affected:</span>
-                                        <span class="text-sm font-medium">{{ incident.lanes_affected }}</span>
+                                        <span class="text-sm font-medium">{{ incident.lanes_affected|capitalize }}</span>
                                     </div>
                                     <div class="flex justify-between">
                                         <span class="text-sm text-slate-600">Emergency Services:</span>
@@ -201,7 +201,7 @@
                         <div class="space-y-3">
                             <div>
                                 <label class="block text-xs text-slate-500 mb-1">Incident ID</label>
-                                <p class="text-sm font-medium">{{ incident.incident_id }}</p>
+                                <p class="text-sm font-medium">#{{ incident.incident_id }}</p>
                             </div>
                             <div>
                                 <label class="block text-xs text-slate-500 mb-1">Reported At</label>

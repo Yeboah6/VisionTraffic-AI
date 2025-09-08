@@ -27,6 +27,32 @@
             <div class="p-6">
                 <form method="POST" id="edit-sensor-form">
                     {{ form.hidden_tag() }}
+                    
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">
+                                    {{ message }}
+                                    {% if request.args.get('expired') %}
+                                        <p>Your session has expired. Please login again.</p>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    {% if form.errors %}
+                        <div class="bg-red-100 text-red-700 p-4 rounded mb-4">
+                            <strong>Form Errors:</strong>
+                            <ul>
+                                {% for field, errors in form.errors.items() %}
+                                    {% for error in errors %}
+                                        <li>{{ field }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
 
                     <!-- Location Section -->
                     <div class="mb-8">
@@ -67,7 +93,7 @@
                     </div>
 
                     <!-- Status Section -->
-                    <div class="mb-8">
+                    <!-- <div class="mb-8">
                         <h3 class="text-lg font-medium text-slate-800 mb-4 flex items-center">
                             <span class="section-number">3</span>
                             Status Configuration
@@ -78,7 +104,7 @@
                                 <span>Active</span>
                             </label>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Installation Details -->
                     <div class="mb-8">

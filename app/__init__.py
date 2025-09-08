@@ -53,6 +53,7 @@ def create_app():
     from app.routes.sensor import sensor_bp
     from app.routes.report import report_bp
     from app.routes.settings import settings_bp
+    from app.routes.user import user_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -63,9 +64,7 @@ def create_app():
     app.register_blueprint(sensor_bp)
     app.register_blueprint(report_bp)
     app.register_blueprint(settings_bp)
+    app.register_blueprint(user_bp)
 
     
-
-    
-
     return app

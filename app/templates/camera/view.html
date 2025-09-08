@@ -1,6 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
 
+<style>
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+
 <main class="main-content min-h-screen pb-8">
     <!-- Header with breadcrumbs -->
      {% include 'includes/header.html' %}
@@ -13,7 +23,7 @@
         </div>
         <h1 class="text-xl font-semibold text-slate-800">{{ camera.display_id }}</h1>
         <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
-            {{ camera.location.name if camera.location else 'Unassigned' }}
+            {{ camera.location.name }} | | {{ camera.address }}
         </div>
         <div class="flex items-center space-x-3">
            <span class="px-3 py-1 rounded-full text-xs 
@@ -65,8 +75,16 @@
                         <p class="font-medium">{{ camera.ip_address }}</p>
                     </div>
                     <div>
+                        <label class="block text-sm text-slate-500 mb-1">RTSP URL</label>
+                        <p class="font-small" style="font-size: .7rem;">{{ camera.rtsp_url }}</p>
+                    </div>
+                    <div>
                         <label class="block text-sm text-slate-500 mb-1">Stream URL</label>
-                        <p class="font-small" style="font-size: .7rem;">{{ camera.stream_protocol }}://{{ camera.username }}:••••@{{ camera.ip_address }}:{{ camera.port }}/{{ camera.stream_url_path }}</p>
+                        <p class="font-small" style="font-size: .7rem;">{{ camera.stream_path }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-500 mb-1">Elevation</label>
+                        <p class="font-small">{{ camera.elevation }}m</p>
                     </div>
                 </div>
                 <div class="p-6">
@@ -122,22 +140,21 @@
                     <h2 class="font-semibold">Live Preview</h2>
                 </div>
                 <div class="p-6">
-                    <div class="aspect-video bg-slate-100 rounded-lg flex items-center justify-center">
-                        {% if camera.is_active %}
-                        <div class="relative w-full h-full">
-                            <!-- In production: RTSP stream would be embedded here -->
-                            <div class="absolute inset-0 bg-black flex items-center justify-center text-white">
-                                <div class="text-center">
-                                    <i class="ri-live-line text-2xl mb-2"></i>
-                                    <p>Live Stream: {{ camera.display_id }}</p>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="aspect-video bg-slate-100 rounded-lg overflow-hidden">
+                        {% if camera.is_active and hls_url %}
+                            <!-- HLS Player -->
+                            <video id="camera-stream" class="w-full h-full" controls autoplay muted>
+                                <source src="{{ hls_url }}" type="application/x-mpegURL">
+                                Your browser does not support the video tag.
+                            </video>
                         {% else %}
-                        <div class="text-center p-6">
-                            <i class="ri-error-warning-line text-3xl text-slate-400 mb-2"></i>
-                            <p class="text-slate-500">Camera is currently offline</p>
-                        </div>
+                            <div class="text-center p-6">
+                                <i class="ri-error-warning-line text-3xl text-slate-400 mb-2"></i>
+                                <p class="text-slate-500">Camera is currently offline</p>
+                                {% if not hls_url %}
+                                <p class="text-slate-400 text-sm mt-2">Stream conversion not available</p>
+                                {% endif %}
+                            </div>
                         {% endif %}
                     </div>
                 </div>
@@ -146,14 +163,48 @@
     </div>
 </main>
 
+<!-- Add HLS.js library for better browser compatibility -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('camera-stream');
+    if (video && Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(video.src);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+            video.play();
+        });
+    }
+});
+</script>
+
 <script>
 async function testConnection() {
-    const response = await fetch("{{ url_for('camera.test_connection', id=camera.id) }}");
-    const result = await response.json();
-    if (result.success) {
-        alert("Connection test successful!");
-    } else {
-        alert("Connection failed: " + result.message);
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="ri-loader-4-line animate-spin mr-1"></i> Testing...';
+    button.disabled = true;
+    
+    try {
+        const response = await fetch("{{ url_for('camera.test_connection', id=camera.id) }}");
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('Connection test successful!', 'success');
+        } else {
+            let message = result.message;
+            if (result.issues && result.issues.length > 0) {
+                message += '\n\nIssues detected:\n' + result.issues.join('\n• ');
+            }
+            showNotification(message, 'error');
+        }
+    } catch (error) {
+        showNotification('Network error: Could not test connection', 'error');
+    } finally {
+        button.innerHTML = originalText;
+        button.disabled = false;
     }
 }
 </script>

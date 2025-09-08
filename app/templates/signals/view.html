@@ -43,7 +43,7 @@
             <p class="font-medium">{{ signal.locations.name }}</p>
           </div>
           <div>
-            <label class="block text-sm text-slate-500 mb-1">Intersection</label>
+            <label class="block text-sm text-slate-500 mb-1">Name</label>
             <p class="font-medium">{{ signal.name or '-' }}</p>
           </div>
           <div>
@@ -53,6 +53,14 @@
           <div>
             <label class="block text-sm text-slate-500 mb-1">Address</label>
             <p class="font-medium">{{ signal.address|capitalize }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-slate-500 mb-1">Movement Description</label>
+            <p class="font-medium">{{ signal.movement_description }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-slate-500 mb-1">Intersection</label>
+            <p class="font-medium">{{ signal.intersection_type|capitalize }}</p>
           </div>
         </div>
          <div class="p-6">
@@ -67,17 +75,17 @@
           <h2 class="font-semibold">Technical Specifications</h2>
         </div>
         <div class="p-6 space-y-4">
-            <div class="flex items-center justify-between">
-                <div>
-                  <label class="block text-sm text-slate-500 mb-1">Status</label>
-                  <p class="font-medium">{{ 'Active' if signal.is_active else 'Inactive' }}</p>
-                </div>
-                <button onclick="toggleStatus('{{ signal.id }}')" 
-                        class="toggle-btn flex items-center {{ 'justify-end bg-primary' if signal.is_active else 'justify-start bg-slate-200' }} 
-                               w-12 h-6 rounded-full p-1 transition-all duration-300">
-                  <span class="w-4 h-4 bg-white rounded-full shadow-md"></span>
-                </button>
-              </div>
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm text-slate-500 mb-1">Status</label>
+              <p class="font-medium">{{ 'Active' if signal.is_active else 'Inactive' }}</p>
+            </div>
+            <button onclick="toggleStatus('{{ signal.id }}')" 
+                    class="toggle-btn flex items-center {{ 'justify-end bg-primary' if signal.is_active else 'justify-start bg-slate-200' }} 
+                           w-12 h-6 rounded-full p-1 transition-all duration-300">
+              <span class="w-4 h-4 bg-white rounded-full shadow-md"></span>
+            </button>
+          </div>
           <div>
             <label class="block text-sm text-slate-500 mb-1">Controller Type</label>
             <p class="font-medium">{{ signal.controller_type|upper }}</p>
@@ -89,6 +97,30 @@
           <div>
             <label class="block text-sm text-slate-500 mb-1">Protocol</label>
             <p class="font-medium">{{ signal.protocol|upper }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-slate-500 mb-1">Port</label>
+            <p class="font-medium">{{ signal.port }}</p>
+          </div>
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm text-slate-500 mb-1">Default Cycles</label>
+              <p class="font-medium">{{ signal.default_cycle }}</p>
+            </div>
+            <div>
+              <label class="block text-sm text-slate-500 mb-1">Phases</label>
+              <p class="font-medium">{{ signal.phases }}</p>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm text-slate-500 mb-1">Min Durations</label>
+               <p class="font-medium">{{ signal.min_duration }}</p>
+            </div>
+            <div>
+              <label class="block text-sm text-slate-500 mb-1">Max Durations</label>
+              <p class="font-medium">{{ signal.max_duration }}</p>
+            </div>
           </div>
         </div>
       </div>

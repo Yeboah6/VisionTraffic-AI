@@ -96,7 +96,7 @@
                                 <span class="incident-type-badge accident">{{ incident.type|capitalize}}</span>
                                 <span class="ml-2 text-xs text-slate-500">#{{ incident.incident_id}}</span>
                             </div>
-                            <div class="text-xs text-slate-500">Reported {{ incident.created_at|time_ago }}</div>
+                            <div class="text-xs text-slate-500">Reported {{ incident.created_at|time_ago }} </div>
                         </div>
                         <h3 class="mt-1 font-medium">{{ incident.title}}</h3>
                         <p class="text-sm text-slate-600 mt-1">{{ incident.vehicles_involved}} vehicles involved, northbound lanes blocked, {{ incident.emergency_services|capitalize}}</p>
@@ -203,6 +203,10 @@
                     <td class="px-4 py-3 text-sm">
                         <a href="{{ url_for('incident.view_incident', id=incident.id) }}" class="text-primary mr-2"><i class="ri-eye-line mr-1"></i> </a>
                         <a href="{{ url_for('incident.edit_incident', id=incident.id) }}" class="text-primary"><i class="ri-edit-line mr-1"></i> </a>
+                        <button onclick="confirmDelete('{{ incident.id }}')"
+                                class="text-red-600">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
                     </td>
                 </tr>
                 {% else %}
@@ -282,64 +286,30 @@
 </main>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Toggle incident report form
-    const newIncidentBtn = document.getElementById('newIncidentBtn');
-    const cancelIncidentBtn = document.getElementById('cancelIncidentReport');
-    const incidentForm = document.getElementById('incidentReportForm');
-    
-    if (newIncidentBtn && incidentForm) {
-        newIncidentBtn.addEventListener('click', function() {
-            incidentForm.classList.remove('hidden');
-            window.scrollTo({
-                top: incidentForm.offsetTop - 20,
-                behavior: 'smooth'
-            });
-        });
-    }
-    
-    if (cancelIncidentBtn && incidentForm) {
-        cancelIncidentBtn.addEventListener('click', function() {
-            incidentForm.classList.add('hidden');
-        });
-    }
-
-    // Media upload functionality
-    const mediaUploadBox = document.querySelector('.media-upload-box');
-    const mediaInput = document.getElementById('incidentMedia');
-    const mediaPreviewContainer = document.getElementById('mediaPreviewContainer');
-    
-    if (mediaUploadBox && mediaInput) {
-        mediaUploadBox.addEventListener('click', function() {
-            mediaInput.click();
-        });
-        
-        mediaInput.addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
-                mediaPreviewContainer.innerHTML = '';
-                
-                Array.from(e.target.files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        const thumb = document.createElement('div');
-                        thumb.className = 'evidence-thumbnail';
-                        
-                        if (file.type.startsWith('image/')) {
-                            thumb.style.backgroundImage = `url(${event.target.result})`;
-                        } else if (file.type.startsWith('video/')) {
-                            thumb.innerHTML = '<div class="absolute inset-0 flex items-center justify-center bg-slate-800 text-white"><i class="ri-video-line"></i></div>';
-                        } else {
-                            thumb.innerHTML = '<div class="absolute inset-0 flex items-center justify-center bg-slate-100 text-slate-400"><i class="ri-file-line"></i></div>';
-                        }
-                        
-                        mediaPreviewContainer.appendChild(thumb);
-                    };
-                    reader.readAsDataURL(file);
-                });
+function confirmDelete(incidentId) {
+    if (confirm('Are you sure you want to delete this incident? This action cannot be undone.')) {
+        // Use fetch API for AJAX deletion
+        fetch(`/incidents/${incidentId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
             }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Show success message
+                alert('Incident deleted successfully!');
+                window.location.reload();
+            } else {
+                throw new Error('Failed to delete incident');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting incident. Please try again.');
         });
     }
-
-});
+}
 </script>
+
 {% endblock %}

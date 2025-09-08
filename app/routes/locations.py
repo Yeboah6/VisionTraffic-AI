@@ -137,3 +137,25 @@ def toggle_status(id):
         'status': new_status,
         'message': f"Signal {'activated' if new_status else 'pending'}"
     })
+    
+@loc_bp.route('/locations/<uuid:id>/delete', methods=['POST'])
+@login_required
+def delete_location(id):
+    try:
+        location = Location.query.get_or_404(str(id))
+        
+        # Optional: Check if user has permission to delete
+        if location.created_by != current_user.id and not current_user.is_admin:
+            flash('You do not have permission to delete this location.', 'error')
+            return redirect(url_for('loc.location'))
+        
+        db.session.delete(location)
+        db.session.commit()
+        
+        flash('location deleted successfully!', 'success')
+        return redirect(url_for('loc.location'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting location: {str(e)}', 'error')
+        return redirect(url_for('loc.location'))
