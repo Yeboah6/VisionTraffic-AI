@@ -5,6 +5,8 @@ from flask_login import LoginManager
 from config import Config
 import humanize
 from datetime import datetime, timezone
+from app.services.sumo_service import sumo_service
+from app.services.ai_service import ai_service  # Add this import
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -37,6 +39,10 @@ def create_app():
     login_manager.init_app(app)
     migrate.init_app(app, db)
     
+    # Initialize services
+    sumo_service.init_app(app)
+    ai_service.init_app(app)
+    
     # Login manager configuration
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
@@ -54,6 +60,7 @@ def create_app():
     from app.routes.report import report_bp
     from app.routes.settings import settings_bp
     from app.routes.user import user_bp
+    from app.routes.sumo_ai import sumo_ai_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -65,6 +72,7 @@ def create_app():
     app.register_blueprint(report_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(user_bp)
+    app.register_blueprint(sumo_ai_bp, url_prefix='/sumo_ai')
 
     
     return app

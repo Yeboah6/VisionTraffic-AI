@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <main class="main-content">
+        <!-- Header -->
+        <div class="px-6 py-4 bg-white border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-semibold text-gray-900">SUMO Traffic Simulation</h1>
+                    <p class="text-sm text-gray-500 mt-1">Real-time traffic simulation with AI-powered optimization</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span id="simulation-status" class="status-badge status-idle">
+                        <div class="w-2 h-2 bg-current rounded-full mr-2"></div>
+                        Not Running
+                    </span>
+                    <button class="secondary-button">
+                        <i class="ri-settings-line mr-2"></i>
+                        Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="px-6 py-6">
+            <!-- Status Overview -->
+            <div class="grid grid-cols-4 gap-6 mb-6">
+                <div class="card p-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-slate-500">Active Vehicles</p>
+                            <h3 class="text-2xl font-semibold mt-1" id="vehicle-count">0</h3>
+                            <p class="text-xs text-blue-600 mt-1 flex items-center">
+                                <i class="ri-car-line mr-1"></i>
+                                <span>In simulation</span>
+                            </p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                            <i class="ri-car-line text-blue-500 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card p-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-slate-500">Traffic Lights</p>
+                            <h3 class="text-2xl font-semibold mt-1" id="traffic-light-count">12</h3>
+                            <p class="text-xs text-green-600 mt-1 flex items-center">
+                                <i class="ri-traffic-light-line mr-1"></i>
+                                <span>Active signals</span>
+                            </p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                            <i class="ri-traffic-light-line text-green-500 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card p-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-slate-500">Average Speed</p>
+                            <h3 class="text-2xl font-semibold mt-1" id="avg-speed">0 m/s</h3>
+                            <p class="text-xs text-yellow-600 mt-1 flex items-center">
+                                <i class="ri-speed-line mr-1"></i>
+                                <span>Current flow</span>
+                            </p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
+                            <i class="ri-speed-line text-yellow-500 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card p-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-slate-500">AI Efficiency</p>
+                            <h3 class="text-2xl font-semibold mt-1" id="ai-efficiency">95.2%</h3>
+                            <p class="text-xs text-purple-600 mt-1 flex items-center">
+                                <i class="ri-brain-line mr-1"></i>
+                                <span>Optimization active</span>
+                            </p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                            <i class="ri-brain-line text-purple-500 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Grid -->
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Left Column -->
+                <div class="col-span-2 space-y-6">
+                    <!-- Real-time Visualization -->
+                    <div class="card overflow-hidden">
+                        <div class="p-4 border-b flex items-center justify-between">
+                            <h2 class="font-semibold">Real-time Simulation View</h2>
+                            <div class="flex items-center space-x-2">
+                                <button class="secondary-button text-sm py-2 px-3">
+                                    <i class="ri-fullscreen-line mr-1"></i>
+                                    Fullscreen
+                                </button>
+                                <button id="refresh-visualization" class="secondary-button text-sm py-2 px-3">
+                                    <i class="ri-refresh-line mr-1"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="visualization-container">
+                            <div class="visualization-placeholder">
+                                <i class="ri-roadster-line text-6xl mb-4 opacity-60"></i>
+                                <h3 class="text-xl font-medium mb-2">SUMO Simulation View</h3>
+                                <p class="text-sm opacity-80">Start simulation to see live traffic visualization</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Simulation Statistics -->
+                    <div class="card">
+                        <div class="p-4 border-b flex items-center justify-between">
+                            <h2 class="font-semibold">Simulation Statistics</h2>
+                            <button id="refresh-stats" class="secondary-button text-sm py-2 px-3">
+                                <i class="ri-bar-chart-line mr-1"></i>
+                                Refresh
+                            </button>
+                        </div>
+                        <div class="p-4">
+                            <div id="simulation-stats" class="grid grid-cols-2 gap-4">
+                                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                    <div class="text-2xl font-bold text-gray-900" id="total-distance">0 km</div>
+                                    <div class="text-sm text-gray-500">Total Distance</div>
+                                </div>
+                                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                    <div class="text-2xl font-bold text-gray-900" id="simulation-time">0:00</div>
+                                    <div class="text-sm text-gray-500">Simulation Time</div>
+                                </div>
+                                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                    <div class="text-2xl font-bold text-gray-900" id="waiting-time">0 s</div>
+                                    <div class="text-sm text-gray-500">Avg Waiting Time</div>
+                                </div>
+                                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                    <div class="text-2xl font-bold text-gray-900" id="co2-emissions">0 mg</div>
+                                    <div class="text-sm text-gray-500">CO₂ Emissions</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <!-- Simulation Control -->
+                    <div class="card">
+                        <div class="p-4 border-b">
+                            <h2 class="font-semibold">Simulation Control</h2>
+                        </div>
+                        <div class="p-4 space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Configuration File</label>
+                                <select class="form-control" id="config-file">
+                                    <option value="sumo_configs/Traci.sumocfg">Simple Scenario</option>
+                                    <option value="sumo_configs/complex.sumocfg">Complex Scenario</option>
+                                    <option value="sumo_configs/highway.sumocfg">Highway Network</option>
+                                </select>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium">AI Control</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5">Enable intelligent traffic optimization</p>
+                                </div>
+                                <label class="custom-switch">
+                                    <input type="checkbox" id="ai-control" checked>
+                                    <span class="switch-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <button id="start-simulation" class="primary-button w-full">
+                                    <i class="ri-play-line mr-2"></i>
+                                    Start Simulation
+                                </button>
+                                <button id="stop-simulation" class="danger-button w-full">
+                                    <i class="ri-stop-line mr-2"></i>
+                                    Stop Simulation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- AI Performance -->
+                    <div class="card">
+                        <div class="p-4 border-b flex items-center justify-between">
+                            <h2 class="font-semibold">AI Performance</h2>
+                            <button id="refresh-performance" class="secondary-button text-sm py-2 px-3">
+                                <i class="ri-refresh-line mr-1"></i>
+                                Refresh
+                            </button>
+                        </div>
+                        <div class="p-4">
+                            <div id="ai-performance" class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600">Traffic Flow</span>
+                                    <span class="font-medium">Optimal</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-500 h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                                
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600">Response Time</span>
+                                    <span class="font-medium">12ms</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-500 h-2 rounded-full" style="width: 92%"></div>
+                                </div>
+                                
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600">Accuracy</span>
+                                    <span class="font-medium">98.7%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-purple-500 h-2 rounded-full" style="width: 98%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Traffic Light Control -->
+                    <div class="card">
+                        <div class="p-4 border-b">
+                            <h2 class="font-semibold">Traffic Light Control</h2>
+                        </div>
+                        <div class="p-4">
+                            <form id="tl-control-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Traffic Light ID</label>
+                                    <input type="text" class="form-control" id="tl-id" placeholder="e.g., junction_1" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Signal State</label>
+                                    <select class="form-control" id="tl-state" required>
+                                        <option value="GGG">Green (all directions)</option>
+                                        <option value="rrr">Red (all directions)</option>
+                                        <option value="yyy">Yellow (all directions)</option>
+                                        <option value="Grr">North Green</option>
+                                        <option value="rGr">East Green</option>
+                                        <option value="rrG">South Green</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Duration (seconds)</label>
+                                    <input type="number" class="form-control" id="tl-duration" value="10" min="1" max="300">
+                                </div>
+                                
+                                <button type="submit" class="primary-button w-full">
+                                    <i class="ri-traffic-light-line mr-2"></i>
+                                    Set Traffic Light
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Traffic Prediction -->
+                    <div class="card">
+                        <div class="p-4 border-b">
+                            <h2 class="font-semibold">Traffic Prediction</h2>
+                        </div>
+                        <div class="p-4">
+                            <div id="traffic-prediction" class="mb-4 text-sm text-gray-600">
+                                Run prediction to see AI-generated traffic forecasts for the next hour.
+                            </div>
+                            <button id="run-prediction" class="primary-button w-full">
+                                <i class="ri-forecast-line mr-2"></i>
+                                Predict Next Hour
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- <script>
+        // Simulation state management
+        let simulationRunning = false;
+        let simulationInterval = null;
+        
+        // DOM elements
+        const startButton = document.getElementById('start-simulation');
+        const stopButton = document.getElementById('stop-simulation');
+        const statusBadge = document.getElementById('simulation-status');
+        const configSelect = document.getElementById('config-file');
+        const aiControlToggle = document.getElementById('ai-control');
+        const tlControlForm = document.getElementById('tl-control-form');
+        const refreshButtons = document.querySelectorAll('[id^="refresh-"]');
+        const runPredictionButton = document.getElementById('run-prediction');
+        
+        // Status update function
+        function updateStatus(status) {
+            statusBadge.className = 'status-badge';
+            switch(status) {
+                case 'running':
+                    statusBadge.classList.add('status-running');
+                    statusBadge.innerHTML = '<div class="w-2 h-2 bg-current rounded-full mr-2 animate-pulse"></div>Running';
+                    break;
+                case 'stopped':
+                    statusBadge.classList.add('status-stopped');
+                    statusBadge.innerHTML = '<div class="w-2 h-2 bg-current rounded-full mr-2"></div>Stopped';
+                    break;
+                default:
+                    statusBadge.classList.add('status-idle');
+                    statusBadge.innerHTML = '<div class="w-2 h-2 bg-current rounded-full mr-2"></div>Not Running';
+            }
+        }
+        
+        // Simulate real-time data updates
+        function updateSimulationData() {
+            if (!simulationRunning) return;
+            
+            // Update vehicle count
+            const vehicleCount = Math.floor(Math.random() * 500) + 100;
+            document.getElementById('vehicle-count').textContent = vehicleCount.toLocaleString();
+            
+            // Update average speed
+            const avgSpeed = (Math.random() * 20 + 10).toFixed(1);
+            document.getElementById('avg-speed').textContent = `${avgSpeed} m/s`;
+            
+            // Update simulation time
+            const now = new Date();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('simulation-time').textContent = `${minutes}:${seconds}`;
+            
+            // Update statistics
+            document.getElementById('total-distance').textContent = `${(Math.random() * 1000 + 500).toFixed(1)} km`;
+            document.getElementById('waiting-time').textContent = `${(Math.random() * 60 + 20).toFixed(1)} s`;
+            document.getElementById('co2-emissions').textContent = `${(Math.random() * 1000 + 200).toFixed(0)} mg`;
+        }
+        
+        // Event listeners
+        startButton.addEventListener('click', function() {
+            if (simulationRunning) return;
+            
+            simulationRunning = true;
+            updateStatus('running');
+            
+            // Start simulation interval
+            simulationInterval = setInterval(updateSimulationData, 2000);
+            
+            // Update visualization placeholder
+            const placeholder = document.querySelector('.visualization-placeholder');
+            if (placeholder) {
+                placeholder.innerHTML = `
+                    <i class="ri-roadster-line text-6xl mb-4 opacity-60 animate-pulse"></i>
+                    <h3 class="text-xl font-medium mb-2">Simulation Active</h3>
+                    <p class="text-sm opacity-80">Configuration: ${configSelect.options[configSelect.selectedIndex].text}</p>
+                    <p class="text-sm opacity-80">AI Control: ${aiControlToggle.checked ? 'Enabled' : 'Disabled'}</p>
+                `;
+            }
+            
+            // Initial data update
+            updateSimulationData();
+        });
+        
+        stopButton.addEventListener('click', function() {
+            if (!simulationRunning) return;
+            
+            simulationRunning = false;
+            updateStatus('stopped');
+            
+            // Clear simulation interval
+            if (simulationInterval) {
+                clearInterval(simulationInterval);
+                simulationInterval = null;
+            }
+            
+            // Reset visualization placeholder
+            const placeholder = document.querySelector('.visualization-placeholder');
+            if (placeholder) {
+                placeholder.innerHTML = `
+                    <i class="ri-roadster-line text-6xl mb-4 opacity-60"></i>
+                    <h3 class="text-xl font-medium mb-2">SUMO Simulation View</h3>
+                    <p class="text-sm opacity-80">Start simulation to see live traffic visualization</p>
+                `;
+            }
+        });
+        
+        // Traffic light control form
+        tlControlForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const tlId = document.getElementById('tl-id').value;
+            const tlState = document.getElementById('tl-state').value;
+            const tlDuration = document.getElementById('tl-duration').value;
+            
+            // Simulate API call
+            alert(`Traffic light ${tlId} set to ${tlState} for ${tlDuration} seconds`);
+        });
+        
+        // Refresh buttons
+        refreshButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                icon.classList.add('animate-spin');
+                
+                setTimeout(() => {
+                    icon.classList.remove('animate-spin');
+                    
+                    if (this.id === 'refresh-performance' && simulationRunning) {
+                        // Update AI performance metrics
+                        console.log('Refreshing AI performance metrics...');
+                    } else if (this.id === 'refresh-stats' && simulationRunning) {
+                        updateSimulationData();
+                    } else if (this.id === 'refresh-visualization') {
+                        console.log('Refreshing visualization...');
+                    }
+                }, 1000);
+            });
+        });
+        
+        // Prediction button
+        runPredictionButton.addEventListener('click', function() {
+            const predictionDiv = document.getElementById('traffic-prediction');
+            const originalText = predictionDiv.innerHTML;
+            
+            predictionDiv.innerHTML = '<div class="flex items-center text-blue-600"><i class="ri-loader-line animate-spin mr-2"></i>Generating prediction...</div>';
+            
+            setTimeout(() => {
+                predictionDiv.innerHTML = `
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>Next 15 min:</span>
+                            <span class="font-medium text-green-600">Light traffic</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Next 30 min:</span>
+                            <span class="font-medium text-yellow-600">Moderate traffic</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Next 60 min:</span>
+                            <span class="font-medium text-red-600">Heavy traffic</span>
+                        </div>
+                    </div>
+                `;
+            }, 2000);
+        });
+        
+        // AI Control toggle
+        aiControlToggle.addEventListener('change', function() {
+            const efficiency = document.getElementById('ai-efficiency');
+            if (this.checked) {
+                efficiency.textContent = '95.2%';
+                efficiency.parentElement.querySelector('.text-xs span').textContent = 'Optimization active';
+            } else {
+                efficiency.textContent = '67.8%';
+                efficiency.parentElement.querySelector('.text-xs span').textContent = 'Manual control';
+            }
+        });
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus('idle');
+        });
+    </script> -->
+
+{% endblock %}
+
+
+
