@@ -1,0 +1,42 @@
+<aside class="sidebar overflow-y-auto">
+        <div class="p-4 flex items-center border-b border-slate-700">
+            <span class="text-2xl font-['Delius'] text-white">VisionTraffic AI</span>
+        </div>
+        
+        <nav class="mt-6 px-4">
+            <div class="space-y-1">
+                <a href="{{ url_for('main.dashboard') }}"
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'main.dashboard' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+                    <div class="w-5 h-5 flex items-center justify-center mr-3">
+                        <i class="ri-dashboard-line"></i>
+                    </div>
+                    <span>Dashboard</span>
+                </a>
+                
+                
+            </div>
+        </nav>
+        
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center">
+                    <div class="w-5 h-5 flex items-center justify-center text-white">
+                        <i class="ri-user-line"></i>
+                    </div>
+                </div>
+                {% if user %}
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-white">{{ user.username|capitalize }}</p>
+                    <p class="text-xs text-slate-400">{{ user.email }}</p>
+                </div>
+                {% endif %}
+                <div class="ml-auto">
+                    <a href="{{ url_for('auth.logout') }}" class="text-slate-400 hover:text-white">
+                        <div class="w-5 h-5 flex items-center justify-center">
+                            <i class="ri-logout-box-line"></i>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </aside>

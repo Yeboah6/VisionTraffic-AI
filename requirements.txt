@@ -1,0 +1,15 @@
+flask
+flask-sqlalchemy
+flask-migrate
+flask-login
+flask-wft
+python-dotenv
+traci
+sumolib
+libsumo
+tensorflow
+scikit-learn
+pandas
+numpy
+joblib
+email-validator

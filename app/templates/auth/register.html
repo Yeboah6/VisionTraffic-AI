@@ -1,0 +1,67 @@
+{% extends "auth_base.html" %}
+
+{% block content %}
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">
+                <h1 class="text-2xl font-['Delius'] text-white">VisionTraffic AI</h1>
+            </div>
+            <p>Sign up to access your dashboard</p>
+        </div>
+
+        <!-- {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %} -->
+        
+        <form action="{{ url_for('auth.register') }}" method="POST">
+
+            <!-- <div class="row grid grid-cols-2 gap-4"> -->
+                <div class="form-group">
+                    <label for="username" class="form-required">User name</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="username" class="form-control" placeholder="Enter Username" value="{{username}}">
+                    </div>
+                </div>
+
+            <div class="form-group">
+                <label for="email" class="form-required">Email</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="email" class="form-control" placeholder="Enter Email" value="{{email}}">
+                </div>
+            </div>
+            <!-- </div> -->
+            
+            <!-- <div class="row grid grid-cols-2 gap-4"> -->
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" class="form-control" placeholder="••••••••">
+                    </div>
+                </div>
+
+            <div class="form-group">
+                <label for="password">Confirm Password</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="confirm_password" class="form-control" placeholder="••••••••">
+                </div>
+            </div>
+            <!-- </div> -->
+            
+            
+            <button type="submit" class="btn btn-primary">Register</button>
+            
+            <div class="login-footer">
+                <p>Aleady have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>
+            </div>
+        </form>
+    </div>
+
+{% endblock %}

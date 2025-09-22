@@ -1,0 +1,40 @@
+<header class="bg-white shadow-sm">
+    <div class="flex items-center justify-between px-6 py-4">
+        <div class="flex items-center">
+            <h1 class="text-xl font-semibold text-slate-800">Traffic Control Dashboard</h1>
+            <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
+                {{ current_date }} • {{ current_time }}
+            </div>
+        </div>
+        
+        <!-- <div class="space-y-2">
+            <button id="start-simulation" class="primary-button ">
+                <i class="ri-play-line mr-2"></i>
+                Start
+            </button>
+            <button id="stop-simulation" class="danger-button">
+                <i class="ri-stop-line mr-2"></i>
+                Stop
+            </button>
+        </div>   -->
+
+        <div class="flex items-center space-x-4">
+            <button id="start-simulation" class="rounded-full bg-green-500 text-white w-10 h-10 flex items-center justify-center">
+                <i class="ri-play-line mr-2"></i>
+            </button>
+            <button id="stop-simulation" class="rounded-full bg-red-500 text-white w-10 h-10 flex items-center justify-center">
+                <i class="ri-stop-line mr-2"></i>
+            </button>
+            <span id="simulation-status" class="status-badge status-idle">
+                <div class="w-2 h-2 bg-current rounded-full mr-2"></div>
+                Not Running
+            </span>
+            <button class="relative w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                <div class="w-5 h-5 flex items-center justify-center text-slate-600">
+                    <i class="ri-notification-3-line"></i>
+                </div>
+                <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+            </button>
+        </div>
+    </div>
+</header>

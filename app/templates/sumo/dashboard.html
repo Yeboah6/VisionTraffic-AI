@@ -1,0 +1,613 @@
+<!-- app/templates/sumo/dashboard.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid main-content min-h-screen pb-8">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">SUMO Traffic Simulation Dashboard</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Control Panel -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Simulation Control</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group mb-3">
+                                        <label for="configFile">Configuration File:</label>
+                                        <select id="configFile" class="form-control">
+                                            <option value="complex.sumocfg">Complex Scenario</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-check mb-3">
+                                        <input type="checkbox" class="form-check-input" id="guiMode">
+                                        <label class="form-check-label" for="guiMode">Enable GUI</label>
+                                    </div>
+                                    
+                                    <div class="btn-group" role="group">
+                                        <button id="startBtn" class="btn btn-success">Start Simulation</button>
+                                        <button id="stopBtn" class="btn btn-danger" disabled>Stop Simulation</button>
+                                        <button id="stepBtn" class="btn btn-primary" disabled>Step</button>
+                                        <button id="runContinuousBtn" class="btn btn-info" disabled>Run Continuous</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Simulation Status</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Status:</strong> <span id="simulationStatus" class="badge badge-secondary">Stopped</span></p>
+                                            <p><strong>Time:</strong> <span id="simulationTime">0</span> seconds</p>
+                                            <p><strong>Total Vehicles:</strong> <span id="totalVehicles">0</span></p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Average Speed:</strong> <span id="averageSpeed">0</span> m/s</p>
+                                            <p><strong>Waiting Vehicles:</strong> <span id="waitingVehicles">0</span></p>
+                                            <p><strong>Traffic Lights:</strong> <span id="trafficLightsCount">0</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Statistics Charts -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Vehicle Count Over Time</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="vehicleChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Average Speed Over Time</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="speedChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Live Data Tables -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Active Vehicles</h5>
+                                </div>
+                                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table table-striped table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Vehicle ID</th>
+                                                <th>Speed (m/s)</th>
+                                                <th>Road</th>
+                                                <th>Waiting Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="vehiclesTable">
+                                            <tr>
+                                                <td colspan="4" class="text-center">No vehicles active</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Traffic Lights</h5>
+                                </div>
+                                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table table-striped table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Light ID</th>
+                                                <th>State</th>
+                                                <th>Phase</th>
+                                                <th>Next Switch</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="trafficLightsTable">
+                                            <tr>
+                                                <td colspan="5" class="text-center">No traffic lights</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Add Vehicle Form -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Add Vehicle</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="addVehicleForm">
+                                        <div class="form-group">
+                                            <label for="routeId">Route ID:</label>
+                                            <input type="text" id="routeId" class="form-control" placeholder="e.g., route_0" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="vehicleId">Vehicle ID (optional):</label>
+                                            <input type="text" id="vehicleId" class="form-control" placeholder="Auto-generated if empty">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary" disabled id="addVehicleBtn">Add Vehicle</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert for notifications -->
+<div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1050;"></div>
+
+<script>
+// SUMO Dashboard JavaScript
+class SUMODashboard {
+    constructor() {
+        this.isRunning = false;
+        this.updateInterval = null;
+        this.vehicleChart = null;
+        this.speedChart = null;
+        this.vehicleData = [];
+        this.speedData = [];
+        this.maxDataPoints = 50;
+        
+        this.initializeCharts();
+        this.bindEvents();
+        this.updateStatus();
+    }
+    
+    initializeCharts() {
+        // Vehicle count chart
+        const vehicleCtx = document.getElementById('vehicleChart').getContext('2d');
+        this.vehicleChart = new Chart(vehicleCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Vehicle Count',
+                    data: [],
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // Speed chart
+        const speedCtx = document.getElementById('speedChart').getContext('2d');
+        this.speedChart = new Chart(speedCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Average Speed (m/s)',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    bindEvents() {
+        document.getElementById('startBtn').addEventListener('click', () => this.startSimulation());
+        document.getElementById('stopBtn').addEventListener('click', () => this.stopSimulation());
+        document.getElementById('stepBtn').addEventListener('click', () => this.stepSimulation());
+        document.getElementById('runContinuousBtn').addEventListener('click', () => this.runContinuous());
+        document.getElementById('addVehicleForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addVehicle();
+        });
+    }
+    
+    async startSimulation() {
+        const configFile = document.getElementById('configFile').value;
+        const gui = document.getElementById('guiMode').checked;
+        
+        try {
+            const response = await fetch('/sumo/api/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    config_file: configFile,
+                    gui: gui
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                this.showAlert('Simulation started successfully', 'success');
+                this.isRunning = true;
+                this.updateControlButtons();
+                this.startAutoUpdate();
+            } else {
+                this.showAlert('Failed to start simulation: ' + data.message, 'danger');
+            }
+        } catch (error) {
+            this.showAlert('Error starting simulation: ' + error.message, 'danger');
+        }
+    }
+    
+    async stopSimulation() {
+        try {
+            const response = await fetch('/sumo/api/stop', {
+                method: 'POST'
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                this.showAlert('Simulation stopped', 'info');
+                this.isRunning = false;
+                this.updateControlButtons();
+                this.stopAutoUpdate();
+                this.resetData();
+            } else {
+                this.showAlert('Failed to stop simulation: ' + data.message, 'danger');
+            }
+        } catch (error) {
+            this.showAlert('Error stopping simulation: ' + error.message, 'danger');
+        }
+    }
+    
+    async stepSimulation() {
+        try {
+            const response = await fetch('/sumo/api/step', {
+                method: 'POST'
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                this.updateDashboard(data.data);
+            } else {
+                this.showAlert('Failed to step simulation: ' + data.message, 'warning');
+            }
+        } catch (error) {
+            this.showAlert('Error stepping simulation: ' + error.message, 'danger');
+        }
+    }
+    
+    async runContinuous() {
+        try {
+            const response = await fetch('/sumo/api/run_continuous', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    max_steps: 3600
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                this.showAlert('Continuous simulation started', 'info');
+            } else {
+                this.showAlert('Failed to start continuous simulation: ' + data.message, 'danger');
+            }
+        } catch (error) {
+            this.showAlert('Error starting continuous simulation: ' + error.message, 'danger');
+        }
+    }
+    
+    async addVehicle() {
+        const routeId = document.getElementById('routeId').value;
+        const vehicleId = document.getElementById('vehicleId').value;
+        
+        try {
+            const response = await fetch('/sumo/api/add_vehicle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    route_id: routeId,
+                    vehicle_id: vehicleId || null
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                this.showAlert('Vehicle added successfully', 'success');
+                document.getElementById('addVehicleForm').reset();
+            } else {
+                this.showAlert('Failed to add vehicle: ' + data.message, 'danger');
+            }
+        } catch (error) {
+            this.showAlert('Error adding vehicle: ' + error.message, 'danger');
+        }
+    }
+    
+    async updateStatus() {
+        try {
+            const response = await fetch('/sumo/api/status');
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                this.isRunning = data.running;
+                this.updateControlButtons();
+                
+                if (this.isRunning) {
+                    this.updateDashboard(data.data);
+                }
+            }
+        } catch (error) {
+            console.error('Error updating status:', error);
+        }
+    }
+    
+    updateDashboard(data) {
+        // Update status information
+        document.getElementById('simulationStatus').textContent = this.isRunning ? 'Running' : 'Stopped';
+        document.getElementById('simulationStatus').className = 'badge ' + (this.isRunning ? 'badge-success' : 'badge-secondary');
+        document.getElementById('simulationTime').textContent = data.current_time || 0;
+        document.getElementById('totalVehicles').textContent = data.total_vehicles || 0;
+        document.getElementById('averageSpeed').textContent = (data.average_speed || 0).toFixed(2);
+        
+        // Update charts
+        this.updateCharts(data);
+        
+        // Update tables
+        this.updateVehiclesTable(data.vehicles || {});
+        this.updateTrafficLightsTable(data.traffic_lights || {});
+        
+        // Update statistics
+        this.updateStatistics();
+    }
+    
+    updateCharts(data) {
+        const time = data.current_time || 0;
+        const vehicleCount = data.total_vehicles || 0;
+        const avgSpeed = data.average_speed || 0;
+        
+        // Add new data points
+        this.vehicleData.push({ time, count: vehicleCount });
+        this.speedData.push({ time, speed: avgSpeed });
+        
+        // Limit data points
+        if (this.vehicleData.length > this.maxDataPoints) {
+            this.vehicleData.shift();
+        }
+        if (this.speedData.length > this.maxDataPoints) {
+            this.speedData.shift();
+        }
+        
+        // Update vehicle chart
+        this.vehicleChart.data.labels = this.vehicleData.map(d => d.time);
+        this.vehicleChart.data.datasets[0].data = this.vehicleData.map(d => d.count);
+        this.vehicleChart.update('none');
+        
+        // Update speed chart
+        this.speedChart.data.labels = this.speedData.map(d => d.time);
+        this.speedChart.data.datasets[0].data = this.speedData.map(d => d.speed);
+        this.speedChart.update('none');
+    }
+    
+    updateVehiclesTable(vehicles) {
+        const tbody = document.getElementById('vehiclesTable');
+        
+        if (Object.keys(vehicles).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No vehicles active</td></tr>';
+            return;
+        }
+        
+        const rows = Object.values(vehicles).map(vehicle => `
+            <tr>
+                <td>${vehicle.id}</td>
+                <td>${vehicle.speed.toFixed(2)}</td>
+                <td>${vehicle.road_id}</td>
+                <td>${vehicle.waiting_time.toFixed(1)}s</td>
+            </tr>
+        `).join('');
+        
+        tbody.innerHTML = rows;
+    }
+    
+    updateTrafficLightsTable(trafficLights) {
+        const tbody = document.getElementById('trafficLightsTable');
+        
+        if (Object.keys(trafficLights).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">No traffic lights</td></tr>';
+            document.getElementById('trafficLightsCount').textContent = '0';
+            return;
+        }
+        
+        document.getElementById('trafficLightsCount').textContent = Object.keys(trafficLights).length;
+        
+        const rows = Object.values(trafficLights).map(tl => `
+            <tr>
+                <td>${tl.id}</td>
+                <td>
+                    <span class="badge badge-${this.getStateColor(tl.state)}">${tl.state}</span>
+                </td>
+                <td>${tl.phase}</td>
+                <td>${tl.next_switch.toFixed(1)}s</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="dashboard.setTrafficLightPhase('${tl.id}', ${(tl.phase + 1) % 4})">
+                        Next Phase
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+        
+        tbody.innerHTML = rows;
+    }
+    
+    async setTrafficLightPhase(tlId, phase) {
+        try {
+            const response = await fetch(`/sumo/api/traffic_lights/${tlId}/phase`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ phase: phase })
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                this.showAlert(`Traffic light ${tlId} phase set to ${phase}`, 'success');
+            } else {
+                this.showAlert('Failed to set traffic light phase: ' + data.message, 'danger');
+            }
+        } catch (error) {
+            this.showAlert('Error setting traffic light phase: ' + error.message, 'danger');
+        }
+    }
+    
+    getStateColor(state) {
+        if (state.includes('G') || state.includes('g')) return 'success';
+        if (state.includes('Y') || state.includes('y')) return 'warning';
+        if (state.includes('R') || state.includes('r')) return 'danger';
+        return 'secondary';
+    }
+    
+    async updateStatistics() {
+        try {
+            const response = await fetch('/sumo/api/statistics');
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                const stats = data.statistics;
+                document.getElementById('waitingVehicles').textContent = stats.waiting_vehicles || 0;
+            }
+        } catch (error) {
+            console.error('Error updating statistics:', error);
+        }
+    }
+    
+    updateControlButtons() {
+        document.getElementById('startBtn').disabled = this.isRunning;
+        document.getElementById('stopBtn').disabled = !this.isRunning;
+        document.getElementById('stepBtn').disabled = !this.isRunning;
+        document.getElementById('runContinuousBtn').disabled = !this.isRunning;
+        document.getElementById('addVehicleBtn').disabled = !this.isRunning;
+    }
+    
+    startAutoUpdate() {
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+        }
+        
+        this.updateInterval = setInterval(() => {
+            this.updateStatus();
+        }, 1000); // Update every second
+    }
+    
+    stopAutoUpdate() {
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+            this.updateInterval = null;
+        }
+    }
+    
+    resetData() {
+        this.vehicleData = [];
+        this.speedData = [];
+        this.vehicleChart.data.labels = [];
+        this.vehicleChart.data.datasets[0].data = [];
+        this.speedChart.data.labels = [];
+        this.speedChart.data.datasets[0].data = [];
+        this.vehicleChart.update();
+        this.speedChart.update();
+        
+        document.getElementById('vehiclesTable').innerHTML = '<tr><td colspan="4" class="text-center">No vehicles active</td></tr>';
+        document.getElementById('trafficLightsTable').innerHTML = '<tr><td colspan="5" class="text-center">No traffic lights</td></tr>';
+        
+        document.getElementById('simulationTime').textContent = '0';
+        document.getElementById('totalVehicles').textContent = '0';
+        document.getElementById('averageSpeed').textContent = '0.00';
+        document.getElementById('waitingVehicles').textContent = '0';
+        document.getElementById('trafficLightsCount').textContent = '0';
+    }
+    
+    showAlert(message, type) {
+        const alertContainer = document.getElementById('alertContainer');
+        const alertId = 'alert-' + Date.now();
+        
+        const alertHtml = `
+            <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            </div>
+        `;
+        
+        alertContainer.innerHTML = alertHtml;
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            const alert = document.getElementById(alertId);
+            if (alert) {
+                alert.remove();
+            }
+        }, 5000);
+    }
+}
+
+// Initialize dashboard when page loads
+let dashboard;
+document.addEventListener('DOMContentLoaded', function() {
+    dashboard = new SUMODashboard();
+});
+</script>
+{% endblock %}
