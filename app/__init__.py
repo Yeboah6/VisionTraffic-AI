@@ -4,6 +4,9 @@ from app.extensions import db, login_manager
 from config import Config
 import humanize
 from datetime import datetime, timezone
+from logging.handlers import RotatingFileHandler
+import logging
+import os
 from app.routes.auth import auth_bp
 from app.routes.main import main_bp
 from app.routes.sumo import sumo_bp
@@ -47,5 +50,18 @@ def create_app():
             value = value.replace(tzinfo=timezone.utc)
         now = datetime.now(timezone.utc)
         return humanize.naturaltime(now - value)
+    
+    # Configure logging
+    if not app.debug:
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+        file_handler = RotatingFileHandler('logs/ai_traffic.log', maxBytes=10240, backupCount=10)
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+
+        app.logger.setLevel(logging.INFO)
+        app.logger.info('AI Traffic Management System startup')
     
     return app

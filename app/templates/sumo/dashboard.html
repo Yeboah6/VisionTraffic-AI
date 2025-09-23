@@ -31,7 +31,10 @@
                                     </div>
                                     
                                     <div class="btn-group" role="group">
-                                        <button id="startBtn" class="btn btn-success">Start Simulation</button>
+                                        <button id="startBtn" class="rounded-full bg-green-500 text-white w-10 h-10 flex items-center justify-center">
+                                            <i class="ri-play-line mr-2"></i>
+                                        </button>
+                                        <!-- <button id="startBtn" class="btn btn-success">Start Simulation</button> -->
                                         <button id="stopBtn" class="btn btn-danger" disabled>Stop Simulation</button>
                                         <button id="stepBtn" class="btn btn-primary" disabled>Step</button>
                                         <button id="runContinuousBtn" class="btn btn-info" disabled>Run Continuous</button>
@@ -176,7 +179,10 @@
 
 <script>
 // SUMO Dashboard JavaScript
-class SUMODashboard {
+// Add this to your SUMO dashboard template or create a separate JS file
+// app/static/js/sumo_dashboard.js
+
+class AuthAwareSUMODashboard {
     constructor() {
         this.isRunning = false;
         this.updateInterval = null;
@@ -185,165 +191,201 @@ class SUMODashboard {
         this.vehicleData = [];
         this.speedData = [];
         this.maxDataPoints = 50;
+        this.authChecked = false;
         
-        this.initializeCharts();
-        this.bindEvents();
-        this.updateStatus();
-    }
-    
-    initializeCharts() {
-        // Vehicle count chart
-        const vehicleCtx = document.getElementById('vehicleChart').getContext('2d');
-        this.vehicleChart = new Chart(vehicleCtx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Vehicle Count',
-                    data: [],
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-        
-        // Speed chart
-        const speedCtx = document.getElementById('speedChart').getContext('2d');
-        this.speedChart = new Chart(speedCtx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Average Speed (m/s)',
-                    data: [],
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+        this.checkAuth().then(() => {
+            if (this.authChecked) {
+                this.initializeCharts();
+                this.bindEvents();
+                this.updateStatus();
             }
         });
     }
     
-    bindEvents() {
-        document.getElementById('startBtn').addEventListener('click', () => this.startSimulation());
-        document.getElementById('stopBtn').addEventListener('click', () => this.stopSimulation());
-        document.getElementById('stepBtn').addEventListener('click', () => this.stepSimulation());
-        document.getElementById('runContinuousBtn').addEventListener('click', () => this.runContinuous());
-        document.getElementById('addVehicleForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.addVehicle();
+    async checkAuth() {
+        try {
+            // Check if user is authenticated by making a simple API call
+            const response = await fetch('/sumo/api/status', {
+                method: 'GET',
+                credentials: 'same-origin', // Include session cookies
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest', // Identify as AJAX request
+                }
+            });
+            
+            if (response.status === 401) {
+                this.showAuthError();
+                return false;
+            }
+            
+            if (response.status === 200) {
+                this.authChecked = true;
+                return true;
+            }
+            
+            throw new Error('Unexpected response status: ' + response.status);
+            
+        } catch (error) {
+            console.error('Auth check failed:', error);
+            this.showAuthError();
+            return false;
+        }
+    }
+    
+    showAuthError() {
+        const alertContainer = document.getElementById('alertContainer') || document.body;
+        const alertHtml = `
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>Authentication Required!</strong> 
+                You need to be logged in to use the SUMO simulation features.
+                <a href="/login?next=${encodeURIComponent(window.location.pathname)}" class="btn btn-sm btn-primary ml-2">
+                    Login
+                </a>
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            </div>
+        `;
+        alertContainer.insertAdjacentHTML('afterbegin', alertHtml);
+        
+        // Disable all control buttons
+        this.disableControls();
+    }
+    
+    disableControls() {
+        const buttons = ['startBtn', 'stopBtn', 'stepBtn', 'runContinuousBtn', 'addVehicleBtn'];
+        buttons.forEach(btnId => {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.disabled = true;
+                btn.title = 'Login required';
+            }
         });
+    }
+    
+    async makeAuthenticatedRequest(url, options = {}) {
+        // Add authentication headers and credentials
+        const defaultHeaders = {
+            'X-Requested-With': 'XMLHttpRequest'
+        };
+        
+        // Only add Content-Type for requests with body data
+        if (options.body) {
+            defaultHeaders['Content-Type'] = 'application/json';
+        }
+        
+        const defaultOptions = {
+            credentials: 'same-origin', // Include session cookies
+            headers: {
+                ...defaultHeaders,
+                ...options.headers
+            }
+        };
+        
+        const finalOptions = { ...defaultOptions, ...options };
+        
+        try {
+            const response = await fetch(url, finalOptions);
+            
+            // Check if session expired
+            if (response.status === 401) {
+                this.showAlert('Session expired. Please login again.', 'warning');
+                setTimeout(() => {
+                    window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+                }, 2000);
+                return null;
+            }
+            
+            return response;
+            
+        } catch (error) {
+            console.error('Request failed:', error);
+            this.showAlert('Network error. Please try again.', 'danger');
+            return null;
+        }
     }
     
     async startSimulation() {
         const configFile = document.getElementById('configFile').value;
         const gui = document.getElementById('guiMode').checked;
         
-        try {
-            const response = await fetch('/sumo/api/start', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    config_file: configFile,
-                    gui: gui
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.status === 'success') {
-                this.showAlert('Simulation started successfully', 'success');
-                this.isRunning = true;
-                this.updateControlButtons();
-                this.startAutoUpdate();
-            } else {
-                this.showAlert('Failed to start simulation: ' + data.message, 'danger');
-            }
-        } catch (error) {
-            this.showAlert('Error starting simulation: ' + error.message, 'danger');
+        const response = await this.makeAuthenticatedRequest('/sumo/api/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                config_file: configFile,
+                gui: gui
+            })
+        });
+        
+        if (!response) return;
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            this.showAlert('Simulation started successfully', 'success');
+            this.isRunning = true;
+            this.updateControlButtons();
+            this.startAutoUpdate();
+        } else {
+            this.showAlert('Failed to start simulation: ' + data.message, 'danger');
         }
     }
     
     async stopSimulation() {
-        try {
-            const response = await fetch('/sumo/api/stop', {
-                method: 'POST'
-            });
-            
-            const data = await response.json();
-            
-            if (data.status === 'success') {
-                this.showAlert('Simulation stopped', 'info');
-                this.isRunning = false;
-                this.updateControlButtons();
-                this.stopAutoUpdate();
-                this.resetData();
-            } else {
-                this.showAlert('Failed to stop simulation: ' + data.message, 'danger');
-            }
-        } catch (error) {
-            this.showAlert('Error stopping simulation: ' + error.message, 'danger');
+        const response = await this.makeAuthenticatedRequest('/sumo/api/stop', {
+            method: 'POST'
+        });
+        
+        if (!response) return;
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            this.showAlert('Simulation stopped', 'info');
+            this.isRunning = false;
+            this.updateControlButtons();
+            this.stopAutoUpdate();
+            this.resetData();
+        } else {
+            this.showAlert('Failed to stop simulation: ' + data.message, 'danger');
         }
     }
     
     async stepSimulation() {
-        try {
-            const response = await fetch('/sumo/api/step', {
-                method: 'POST'
-            });
-            
-            const data = await response.json();
-            
-            if (data.status === 'success') {
-                this.updateDashboard(data.data);
-            } else {
-                this.showAlert('Failed to step simulation: ' + data.message, 'warning');
-            }
-        } catch (error) {
-            this.showAlert('Error stepping simulation: ' + error.message, 'danger');
+        const response = await this.makeAuthenticatedRequest('/sumo/api/step', {
+            method: 'POST'
+        });
+        
+        if (!response) return;
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            this.updateDashboard(data.data);
+        } else {
+            this.showAlert('Failed to step simulation: ' + data.message, 'warning');
         }
     }
     
     async runContinuous() {
-        try {
-            const response = await fetch('/sumo/api/run_continuous', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    max_steps: 3600
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.status === 'success') {
-                this.showAlert('Continuous simulation started', 'info');
-            } else {
-                this.showAlert('Failed to start continuous simulation: ' + data.message, 'danger');
-            }
-        } catch (error) {
-            this.showAlert('Error starting continuous simulation: ' + error.message, 'danger');
+        const response = await this.makeAuthenticatedRequest('/sumo/api/run_continuous', {
+            method: 'POST',
+            body: JSON.stringify({
+                max_steps: 3600
+            })
+        });
+        
+        if (!response) return;
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            this.showAlert('Continuous simulation started', 'info');
+        } else {
+            this.showAlert('Failed to start continuous simulation: ' + data.message, 'danger');
         }
     }
     
@@ -351,195 +393,148 @@ class SUMODashboard {
         const routeId = document.getElementById('routeId').value;
         const vehicleId = document.getElementById('vehicleId').value;
         
-        try {
-            const response = await fetch('/sumo/api/add_vehicle', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    route_id: routeId,
-                    vehicle_id: vehicleId || null
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.status === 'success') {
-                this.showAlert('Vehicle added successfully', 'success');
-                document.getElementById('addVehicleForm').reset();
-            } else {
-                this.showAlert('Failed to add vehicle: ' + data.message, 'danger');
-            }
-        } catch (error) {
-            this.showAlert('Error adding vehicle: ' + error.message, 'danger');
+        const response = await this.makeAuthenticatedRequest('/sumo/api/add_vehicle', {
+            method: 'POST',
+            body: JSON.stringify({
+                route_id: routeId,
+                vehicle_id: vehicleId || null
+            })
+        });
+        
+        if (!response) return;
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            this.showAlert('Vehicle added successfully', 'success');
+            document.getElementById('addVehicleForm').reset();
+        } else {
+            this.showAlert('Failed to add vehicle: ' + data.message, 'danger');
         }
     }
     
     async updateStatus() {
-        try {
-            const response = await fetch('/sumo/api/status');
-            const data = await response.json();
+        const response = await this.makeAuthenticatedRequest('/sumo/api/status');
+        
+        if (!response) return;
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            this.isRunning = data.running;
+            this.updateControlButtons();
             
-            if (data.status === 'success') {
-                this.isRunning = data.running;
-                this.updateControlButtons();
-                
-                if (this.isRunning) {
-                    this.updateDashboard(data.data);
-                }
+            if (this.isRunning) {
+                this.updateDashboard(data.data);
             }
-        } catch (error) {
-            console.error('Error updating status:', error);
         }
-    }
-    
-    updateDashboard(data) {
-        // Update status information
-        document.getElementById('simulationStatus').textContent = this.isRunning ? 'Running' : 'Stopped';
-        document.getElementById('simulationStatus').className = 'badge ' + (this.isRunning ? 'badge-success' : 'badge-secondary');
-        document.getElementById('simulationTime').textContent = data.current_time || 0;
-        document.getElementById('totalVehicles').textContent = data.total_vehicles || 0;
-        document.getElementById('averageSpeed').textContent = (data.average_speed || 0).toFixed(2);
-        
-        // Update charts
-        this.updateCharts(data);
-        
-        // Update tables
-        this.updateVehiclesTable(data.vehicles || {});
-        this.updateTrafficLightsTable(data.traffic_lights || {});
-        
-        // Update statistics
-        this.updateStatistics();
-    }
-    
-    updateCharts(data) {
-        const time = data.current_time || 0;
-        const vehicleCount = data.total_vehicles || 0;
-        const avgSpeed = data.average_speed || 0;
-        
-        // Add new data points
-        this.vehicleData.push({ time, count: vehicleCount });
-        this.speedData.push({ time, speed: avgSpeed });
-        
-        // Limit data points
-        if (this.vehicleData.length > this.maxDataPoints) {
-            this.vehicleData.shift();
-        }
-        if (this.speedData.length > this.maxDataPoints) {
-            this.speedData.shift();
-        }
-        
-        // Update vehicle chart
-        this.vehicleChart.data.labels = this.vehicleData.map(d => d.time);
-        this.vehicleChart.data.datasets[0].data = this.vehicleData.map(d => d.count);
-        this.vehicleChart.update('none');
-        
-        // Update speed chart
-        this.speedChart.data.labels = this.speedData.map(d => d.time);
-        this.speedChart.data.datasets[0].data = this.speedData.map(d => d.speed);
-        this.speedChart.update('none');
-    }
-    
-    updateVehiclesTable(vehicles) {
-        const tbody = document.getElementById('vehiclesTable');
-        
-        if (Object.keys(vehicles).length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No vehicles active</td></tr>';
-            return;
-        }
-        
-        const rows = Object.values(vehicles).map(vehicle => `
-            <tr>
-                <td>${vehicle.id}</td>
-                <td>${vehicle.speed.toFixed(2)}</td>
-                <td>${vehicle.road_id}</td>
-                <td>${vehicle.waiting_time.toFixed(1)}s</td>
-            </tr>
-        `).join('');
-        
-        tbody.innerHTML = rows;
-    }
-    
-    updateTrafficLightsTable(trafficLights) {
-        const tbody = document.getElementById('trafficLightsTable');
-        
-        if (Object.keys(trafficLights).length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">No traffic lights</td></tr>';
-            document.getElementById('trafficLightsCount').textContent = '0';
-            return;
-        }
-        
-        document.getElementById('trafficLightsCount').textContent = Object.keys(trafficLights).length;
-        
-        const rows = Object.values(trafficLights).map(tl => `
-            <tr>
-                <td>${tl.id}</td>
-                <td>
-                    <span class="badge badge-${this.getStateColor(tl.state)}">${tl.state}</span>
-                </td>
-                <td>${tl.phase}</td>
-                <td>${tl.next_switch.toFixed(1)}s</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="dashboard.setTrafficLightPhase('${tl.id}', ${(tl.phase + 1) % 4})">
-                        Next Phase
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-        
-        tbody.innerHTML = rows;
     }
     
     async setTrafficLightPhase(tlId, phase) {
-        try {
-            const response = await fetch(`/sumo/api/traffic_lights/${tlId}/phase`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ phase: phase })
-            });
-            
-            const data = await response.json();
-            
-            if (data.status === 'success') {
-                this.showAlert(`Traffic light ${tlId} phase set to ${phase}`, 'success');
-            } else {
-                this.showAlert('Failed to set traffic light phase: ' + data.message, 'danger');
-            }
-        } catch (error) {
-            this.showAlert('Error setting traffic light phase: ' + error.message, 'danger');
+        const response = await this.makeAuthenticatedRequest(`/sumo/api/traffic_lights/${tlId}/phase`, {
+            method: 'POST',
+            body: JSON.stringify({ phase: phase })
+        });
+        
+        if (!response) return;
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            this.showAlert(`Traffic light ${tlId} phase set to ${phase}`, 'success');
+        } else {
+            this.showAlert('Failed to set traffic light phase: ' + data.message, 'danger');
         }
     }
     
-    getStateColor(state) {
-        if (state.includes('G') || state.includes('g')) return 'success';
-        if (state.includes('Y') || state.includes('y')) return 'warning';
-        if (state.includes('R') || state.includes('r')) return 'danger';
-        return 'secondary';
+    // ... rest of your existing methods (initializeCharts, updateDashboard, etc.)
+    // Copy all the other methods from your original dashboard class
+    
+    initializeCharts() {
+        // Vehicle count chart
+        const vehicleCtx = document.getElementById('vehicleChart');
+        if (vehicleCtx) {
+            this.vehicleChart = new Chart(vehicleCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Vehicle Count',
+                        data: [],
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Speed chart
+        const speedCtx = document.getElementById('speedChart');
+        if (speedCtx) {
+            this.speedChart = new Chart(speedCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Average Speed (m/s)',
+                        data: [],
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
     }
     
-    async updateStatistics() {
-        try {
-            const response = await fetch('/sumo/api/statistics');
-            const data = await response.json();
-            
-            if (data.status === 'success') {
-                const stats = data.statistics;
-                document.getElementById('waitingVehicles').textContent = stats.waiting_vehicles || 0;
-            }
-        } catch (error) {
-            console.error('Error updating statistics:', error);
+    bindEvents() {
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const stepBtn = document.getElementById('stepBtn');
+        const runContinuousBtn = document.getElementById('runContinuousBtn');
+        const addVehicleForm = document.getElementById('addVehicleForm');
+        
+        if (startBtn) startBtn.addEventListener('click', () => this.startSimulation());
+        if (stopBtn) stopBtn.addEventListener('click', () => this.stopSimulation());
+        if (stepBtn) stepBtn.addEventListener('click', () => this.stepSimulation());
+        if (runContinuousBtn) runContinuousBtn.addEventListener('click', () => this.runContinuous());
+        if (addVehicleForm) {
+            addVehicleForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.addVehicle();
+            });
         }
     }
     
     updateControlButtons() {
-        document.getElementById('startBtn').disabled = this.isRunning;
-        document.getElementById('stopBtn').disabled = !this.isRunning;
-        document.getElementById('stepBtn').disabled = !this.isRunning;
-        document.getElementById('runContinuousBtn').disabled = !this.isRunning;
-        document.getElementById('addVehicleBtn').disabled = !this.isRunning;
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const stepBtn = document.getElementById('stepBtn');
+        const runContinuousBtn = document.getElementById('runContinuousBtn');
+        const addVehicleBtn = document.getElementById('addVehicleBtn');
+        
+        if (startBtn) startBtn.disabled = this.isRunning;
+        if (stopBtn) stopBtn.disabled = !this.isRunning;
+        if (stepBtn) stepBtn.disabled = !this.isRunning;
+        if (runContinuousBtn) runContinuousBtn.disabled = !this.isRunning;
+        if (addVehicleBtn) addVehicleBtn.disabled = !this.isRunning;
     }
     
     startAutoUpdate() {
@@ -549,7 +544,7 @@ class SUMODashboard {
         
         this.updateInterval = setInterval(() => {
             this.updateStatus();
-        }, 1000); // Update every second
+        }, 1000);
     }
     
     stopAutoUpdate() {
@@ -559,30 +554,11 @@ class SUMODashboard {
         }
     }
     
-    resetData() {
-        this.vehicleData = [];
-        this.speedData = [];
-        this.vehicleChart.data.labels = [];
-        this.vehicleChart.data.datasets[0].data = [];
-        this.speedChart.data.labels = [];
-        this.speedChart.data.datasets[0].data = [];
-        this.vehicleChart.update();
-        this.speedChart.update();
-        
-        document.getElementById('vehiclesTable').innerHTML = '<tr><td colspan="4" class="text-center">No vehicles active</td></tr>';
-        document.getElementById('trafficLightsTable').innerHTML = '<tr><td colspan="5" class="text-center">No traffic lights</td></tr>';
-        
-        document.getElementById('simulationTime').textContent = '0';
-        document.getElementById('totalVehicles').textContent = '0';
-        document.getElementById('averageSpeed').textContent = '0.00';
-        document.getElementById('waitingVehicles').textContent = '0';
-        document.getElementById('trafficLightsCount').textContent = '0';
-    }
-    
     showAlert(message, type) {
         const alertContainer = document.getElementById('alertContainer');
-        const alertId = 'alert-' + Date.now();
+        if (!alertContainer) return;
         
+        const alertId = 'alert-' + Date.now();
         const alertHtml = `
             <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
                 ${message}
@@ -594,13 +570,23 @@ class SUMODashboard {
         
         alertContainer.innerHTML = alertHtml;
         
-        // Auto-dismiss after 5 seconds
         setTimeout(() => {
             const alert = document.getElementById(alertId);
             if (alert) {
                 alert.remove();
             }
         }, 5000);
+    }
+    
+    // Add other methods as needed...
+    updateDashboard(data) {
+        // Implementation for updating dashboard with simulation data
+        // Add your existing updateDashboard code here
+    }
+    
+    resetData() {
+        // Implementation for resetting chart data
+        // Add your existing resetData code here
     }
 }
 
