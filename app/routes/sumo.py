@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, jsonify, request
 from app.services.sumo_service import sumo_service
+from app.models.traffic_light import TrafficLightConfig
 
 sumo_bp = Blueprint('sumo', __name__, url_prefix='/sumo')
 
@@ -100,6 +101,75 @@ def get_traffic_lights():
     """Get traffic light states"""
     traffic_lights = sumo_service.get_traffic_lights()
     return jsonify(traffic_lights)
+
+# Get detailed information for a specific traffic light Endpoints
+@sumo_bp.route('/api/traffic-lights/<tl_id>', methods=['GET'])
+def get_traffic_light_detail(tl_id):
+    """Get detailed information for a specific traffic light"""
+    detail = sumo_service.get_traffic_light_analysis(tl_id)
+    return jsonify(detail)
+
+# Get historical data for a traffic light Endpoints
+@sumo_bp.route('/api/traffic-lights/<tl_id>/history', methods=['GET'])
+def get_traffic_light_history(tl_id):
+    """Get historical data for a traffic light"""
+    limit = request.args.get('limit', 100, type=int)
+    history = sumo_service.get_traffic_light_history(tl_id, limit)
+    return jsonify(history)
+
+# Set traffic light to specific phase Endpoints
+@sumo_bp.route('/api/traffic-lights/<tl_id>/set-phase', methods=['POST'])
+def set_traffic_light_phase(tl_id):
+    """Set traffic light to specific phase"""
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form
+    
+    phase = data.get('phase')
+    if phase is None:
+        return jsonify({"error": "Phase parameter required"}), 400
+    
+    try:
+        phase = int(phase)
+    except ValueError:
+        return jsonify({"error": "Phase must be an integer"}), 400
+    
+    result = sumo_service.set_traffic_light_phase(tl_id, phase)
+    return jsonify(result)
+
+# Change traffic light program Endpoints
+@sumo_bp.route('/api/traffic-lights/<tl_id>/set-program', methods=['POST'])
+def set_traffic_light_program(tl_id):
+    """Change traffic light program"""
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form
+    
+    program_id = data.get('program_id')
+    if not program_id:
+        return jsonify({"error": "program_id parameter required"}), 400
+    
+    result = sumo_service.set_traffic_light_program(tl_id, program_id)
+    return jsonify(result)
+
+# Get all traffic light configurations Endpoints
+@sumo_bp.route('/api/traffic-lights/configs', methods=['GET'])
+def get_traffic_light_configs():
+    """Get all traffic light configurations"""
+    configs = TrafficLightConfig.query.all()
+    return jsonify([config.to_dict() for config in configs])
+
+# Get configuration for a specific traffic light
+@sumo_bp.route('/api/traffic-lights/<tl_id>/config', methods=['GET'])
+def get_traffic_light_config(tl_id):
+    """Get configuration for a specific traffic light"""
+    config = TrafficLightConfig.query.filter_by(traffic_light_id=tl_id).first()
+    if config:
+        return jsonify(config.to_dict())
+    else:
+        return jsonify({"error": "Configuration not found"}), 404
 
 # Get edge/lane statistics Endpoints
 @sumo_bp.route('/api/edges', methods=['GET'])

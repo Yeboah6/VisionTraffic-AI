@@ -1,11 +1,14 @@
+from flask import current_app
 import subprocess
 import os
 import sys
-import signal
 import threading
 import json
 import time
 from typing import Optional, Dict, Any, List
+from datetime import datetime
+from app.extensions import db
+from app.models.traffic_light import TrafficLightLog, TrafficLightConfig
 
 class SumoService:
     def __init__(self):
@@ -16,6 +19,9 @@ class SumoService:
         self.current_config = None
         self.traci = None
         self.simulation_step = 0
+        self.traffic_light_history = {}
+        self.last_tl_update = 0
+        self.tl_update_interval = 5  # seconds
         
         # Initialize monitoring data with default values
         self.monitoring_data = {
@@ -295,6 +301,12 @@ class SumoService:
             # Get current simulation time
             current_time = self.traci.simulation.getTime()
             
+            # Update traffic light data less frequently to avoid DB overload
+            if current_time - self.last_tl_update >= self.tl_update_interval:
+                self._update_traffic_light_data(current_time)
+                self.last_tl_update = current_time
+                
+            
             # Get vehicle information
             vehicle_ids = self.traci.vehicle.getIDList()
             vehicle_count = len(vehicle_ids)
@@ -412,7 +424,326 @@ class SumoService:
             
         except Exception as e:
             print(f"Error updating simulation data: {e}")
+    
+    # Update traffic light data and store in DB
+    def _update_traffic_light_data(self, current_time: float):
+        """Update comprehensive traffic light data and store in DB"""
+        try:
+            tl_ids = self.traci.trafficlight.getIDList()
             
+            for tl_id in tl_ids:
+                try:
+                    # Get basic traffic light state
+                    state = self.traci.trafficlight.getRedYellowGreenState(tl_id)
+                    phase = self.traci.trafficlight.getPhase(tl_id)
+                    phase_duration = self.traci.trafficlight.getPhaseDuration(tl_id)
+                    
+                    # Get program information
+                    program_id = self.traci.trafficlight.getProgram(tl_id)
+                    next_switch = self.traci.trafficlight.getNextSwitch(tl_id) - current_time
+                    
+                    # Get vehicle counts for each lane controlled by this traffic light
+                    controlled_lanes = self.traci.trafficlight.getControlledLanes(tl_id)
+                    total_vehicles = 0
+                    waiting_vehicles = 0
+                    
+                    for lane_id in controlled_lanes:
+                        lane_vehicles = self.traci.lane.getLastStepVehicleNumber(lane_id)
+                        lane_waiting = self.traci.lane.getLastStepHaltingNumber(lane_id)
+                        total_vehicles += lane_vehicles
+                        waiting_vehicles += lane_waiting
+                    
+                    # Get phase name if available
+                    phase_name = self._get_phase_name(state)
+                    
+                    # Store in database with proper application context
+                    self._store_traffic_light_log(
+                        tl_id=tl_id,
+                        scenario=self.current_config,
+                        simulation_time=current_time,
+                        state=state,
+                        phase=phase,
+                        phase_name=phase_name,
+                        duration=phase_duration,
+                        next_switch=next_switch,
+                        vehicle_count=total_vehicles,
+                        waiting_vehicles=waiting_vehicles
+                    )
+                    
+                    # Update traffic light configuration if not exists
+                    self._update_traffic_light_config(tl_id, program_id, phase)
+                    
+                    # Update monitoring data for API
+                    self.monitoring_data['traffic_lights'].append({
+                        'id': tl_id,
+                        'state': state,
+                        'phase': phase,
+                        'phase_name': phase_name,
+                        'duration': phase_duration,
+                        'next_switch': next_switch,
+                        'program_id': program_id,
+                        'controlled_lanes': controlled_lanes,
+                        'vehicle_count': total_vehicles,
+                        'waiting_vehicles': waiting_vehicles,
+                        'current_state_analysis': self._analyze_traffic_light_state(state, waiting_vehicles)
+                    })
+                    
+                except Exception as e:
+                    print(f"Error processing traffic light {tl_id}: {e}")
+                    continue
+                    
+        except Exception as e:
+            print(f"Error updating traffic light data: {e}")
+    
+    # Store traffic light data in database
+    def _store_traffic_light_log(self, **kwargs):
+        """Store traffic light data in database with proper context"""
+        try:
+            # Use application context for database operations
+            # from flask import current_app
+            with current_app.app_context():
+                # Map parameters to correct column names
+                log_data = {
+                    'traffic_light_id': kwargs.get('tl_id'),  # Map to correct column name
+                    'scenario': kwargs.get('scenario'),
+                    'simulation_time': kwargs.get('simulation_time'),
+                    'state': kwargs.get('state'),
+                    'phase': kwargs.get('phase'),
+                    'phase_name': kwargs.get('phase_name'),
+                    'duration': kwargs.get('duration'),
+                    'next_switch': kwargs.get('next_switch'),
+                    'vehicle_count': kwargs.get('vehicle_count'),
+                    'waiting_vehicles': kwargs.get('waiting_vehicles')
+                }
+
+                log = TrafficLightLog(**log_data)
+                db.session.add(log)
+                db.session.commit()
+                print(f"✓ Stored traffic light log for {kwargs.get('tl_id')}")
+
+        except Exception as e:
+            print(f"Error storing traffic light log: {e}")
+            db.session.rollback()
+    
+    # Update traffic light configuration
+    def _update_traffic_light_config(self, tl_id: str, program_id: str, current_phase: int):
+        """Update or create traffic light configuration with proper context"""
+        try:
+            # from flask import current_app
+            with current_app.app_context():
+                config = TrafficLightConfig.query.filter_by(
+                    traffic_light_id=tl_id, 
+                    scenario=self.current_config
+                ).first()
+                
+                if not config:
+                    # Get complete phase information
+                    phases = self._get_traffic_light_phases(tl_id, program_id)
+                    
+                    config = TrafficLightConfig(
+                        traffic_light_id=tl_id,
+                        scenario=self.current_config,
+                        program_id=program_id,
+                        phases=json.dumps(phases) if phases else None,
+                        current_phase_index=current_phase,
+                        cycle_time=self._calculate_cycle_time(phases),
+                        is_adaptive=False
+                    )
+                    db.session.add(config)
+                else:
+                    config.current_phase_index = current_phase
+                    config.updated_at = datetime.utcnow()
+                
+                db.session.commit()
+                print(f"✓ Updated traffic light config for {tl_id}")
+                
+        except Exception as e:
+            print(f"Error updating traffic light config: {e}")
+            
+    # Get complete phase information for a traffic light
+    def _get_traffic_light_phases(self, tl_id: str, program_id: str) -> List[Dict]:
+        """Get complete phase information for a traffic light"""
+        try:
+            # Get the number of phases
+            phase_count = self.traci.trafficlight.getPhaseNumber(tl_id)
+            phases = []
+            
+            for phase_index in range(phase_count):
+                try:
+                    duration = self.traci.trafficlight.getPhaseDuration(tl_id)
+                    state = self.traci.trafficlight.getRedYellowGreenState(tl_id)
+                    
+                    phases.append({
+                        'index': phase_index,
+                        'duration': duration,
+                        'state': state,
+                        'name': self._get_phase_name(state),
+                        'min_duration': self._get_phase_min_duration(tl_id, phase_index),
+                        'max_duration': self._get_phase_max_duration(tl_id, phase_index)
+                    })
+                    
+                    # Move to next phase to get its data
+                    if phase_index < phase_count - 1:
+                        self.traci.trafficlight.setPhase(tl_id, phase_index + 1)
+                        
+                except Exception as e:
+                    print(f"Error getting phase {phase_index} for {tl_id}: {e}")
+                    continue
+            
+            # Return to original phase
+            self.traci.trafficlight.setPhase(tl_id, 0)
+            return phases
+            
+        except Exception as e:
+            print(f"Error getting phases for {tl_id}: {e}")
+            return []
+    
+    # Get phase name from state string
+    def _get_phase_name(self, state: str) -> str:
+        """Convert traffic light state to phase name"""
+        if 'G' in state and 'r' in state:
+            return 'MAIN_GREEN'
+        elif 'y' in state and 'r' in state:
+            return 'YELLOW'
+        elif 'r' in state and 'G' in state:
+            return 'SIDE_GREEN'
+        elif 'r' in state and 'y' in state:
+            return 'SIDE_YELLOW'
+        elif 'g' in state and 'r' in state:
+            return 'PEDESTRIAN_GREEN'
+        else:
+            return 'UNKNOWN'
+        
+    # Analyze traffic light state for optimization opportunities
+    def _analyze_traffic_light_state(self, state: str, waiting_vehicles: int) -> Dict:
+        """Analyze traffic light state for optimization opportunities"""
+        analysis = {
+            'efficiency_score': 0,
+            'recommendations': [],
+            'congestion_level': 'LOW'
+        }
+        
+        # Calculate efficiency based on green time vs waiting vehicles
+        green_ratio = state.count('G') + state.count('g') / len(state) if state else 0
+        analysis['efficiency_score'] = green_ratio * 100
+        
+        # Add recommendations
+        if waiting_vehicles > 10 and green_ratio < 0.3:
+            analysis['recommendations'].append('Consider increasing green time for congested direction')
+            analysis['congestion_level'] = 'HIGH'
+        elif waiting_vehicles > 5:
+            analysis['congestion_level'] = 'MEDIUM'
+        
+        if 'rrrr' in state:  # All red phase
+            analysis['recommendations'].append('All-red phase detected, check if necessary')
+        
+        return analysis
+    
+    # Calculate total cycle time from phases
+    def _calculate_cycle_time(self, phases: List[Dict]) -> float:
+        """Calculate total cycle time from phases"""
+        if not phases:
+            return 0
+        return sum(phase.get('duration', 0) for phase in phases)
+    
+    # Get maximum duration for a phase (if available)
+    def _get_phase_min_duration(self, tl_id: str, phase_index: int) -> float:
+        """Get minimum duration for a phase (if available)"""
+        try:
+            # This might require accessing TLS program details
+            return 5.0  # Default minimum
+        except:
+            return 5.0
+    
+    # Get maximum duration for a phase (if available)
+    def _get_phase_max_duration(self, tl_id: str, phase_index: int) -> float:
+        """Get maximum duration for a phase (if available)"""
+        try:
+            # This might require accessing TLS program details
+            return 60.0  # Default maximum
+        except:
+            return 60.0
+    
+    # New methods for traffic light control
+    def set_traffic_light_phase(self, tl_id: str, phase: int) -> Dict[str, Any]:
+        """Set traffic light to specific phase"""
+        if not self.is_running or not self.traci:
+            return {"success": False, "error": "Simulation not running"}
+        
+        try:
+            self.traci.trafficlight.setPhase(tl_id, phase)
+            return {"success": True, "message": f"Traffic light {tl_id} set to phase {phase}"}
+        except Exception as e:
+            return {"success": False, "error": f"Failed to set phase: {str(e)}"}
+    
+    # Change traffic light program
+    def set_traffic_light_program(self, tl_id: str, program_id: str) -> Dict[str, Any]:
+        """Change traffic light program"""
+        if not self.is_running or not self.traci:
+            return {"success": False, "error": "Simulation not running"}
+        
+        try:
+            self.traci.trafficlight.setProgram(tl_id, program_id)
+            return {"success": True, "message": f"Traffic light {tl_id} set to program {program_id}"}
+        except Exception as e:
+            return {"success": False, "error": f"Failed to set program: {str(e)}"}
+    
+    # Get historical data for a specific traffic light
+    def get_traffic_light_history(self, tl_id: str, limit: int = 100) -> List[Dict]:
+        """Get historical data for a specific traffic light"""
+        logs = TrafficLightLog.query.filter_by(traffic_light_id=tl_id)\
+                                  .order_by(TrafficLightLog.simulation_time.desc())\
+                                  .limit(limit)\
+                                  .all()
+        return [log.to_dict() for log in logs]
+    
+    # Get comprehensive analysis for a traffic light
+    def get_traffic_light_analysis(self, tl_id: str) -> Dict[str, Any]:
+        """Get comprehensive analysis for a traffic light"""
+        # Get recent logs
+        recent_logs = self.get_traffic_light_history(tl_id, 50)
+        
+        if not recent_logs:
+            return {"error": "No data available for this traffic light"}
+        
+        # Calculate statistics
+        total_vehicles = sum(log['vehicle_count'] for log in recent_logs)
+        avg_waiting = sum(log['waiting_vehicles'] for log in recent_logs) / len(recent_logs)
+        
+        # Phase distribution
+        phase_times = {}
+        for log in recent_logs:
+            phase = log['phase_name']
+            phase_times[phase] = phase_times.get(phase, 0) + (log['duration'] or 0)
+        
+        return {
+            'traffic_light_id': tl_id,
+            'analysis_period': f"{recent_logs[-1]['simulation_time']} to {recent_logs[0]['simulation_time']}",
+            'total_vehicles_observed': total_vehicles,
+            'average_waiting_vehicles': round(avg_waiting, 2),
+            'phase_time_distribution': phase_times,
+            'efficiency_recommendations': self._generate_efficiency_recommendations(recent_logs)
+        }
+    
+    # Generate efficiency recommendations based on historical data
+    def _generate_efficiency_recommendations(self, logs: List[Dict]) -> List[str]:
+        """Generate efficiency recommendations based on historical data"""
+        recommendations = []
+        
+        if len(logs) < 10:
+            return ["Insufficient data for analysis"]
+        
+        # Analyze green time vs waiting vehicles
+        green_phases = [log for log in logs if 'GREEN' in log['phase_name']]
+        if green_phases:
+            avg_green_time = sum(log['duration'] or 0 for log in green_phases) / len(green_phases)
+            avg_waiting_during_green = sum(log['waiting_vehicles'] for log in green_phases) / len(green_phases)
+            
+            if avg_waiting_during_green > 5 and avg_green_time < 20:
+                recommendations.append("Consider increasing green phase duration")
+        
+        return recommendations
+    
     def _reset_monitoring_data(self):
         """Reset monitoring data for new simulation"""
         self.monitoring_data = {
