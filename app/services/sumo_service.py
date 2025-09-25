@@ -1,313 +1,42 @@
-# # app/services/sumo_service.py
-# import traci
-# import sumolib
-# import threading
-# import time
-# import json
-# import os
-# from typing import Dict, List, Optional, Tuple
-# import logging
-
-# logger = logging.getLogger(__name__)
-
-# class SUMOService:
-#     """Service class to handle SUMO simulation integration"""
-    
-#     def __init__(self):
-#         self.sumo_running = False
-#         self.sumo_thread = None
-#         self.simulation_data = {
-#             'vehicles': {},
-#             'traffic_lights': {},
-#             'detectors': {},
-#             'current_time': 0,
-#             'total_vehicles': 0,
-#             'average_speed': 0
-#         }
-#         self._lock = threading.Lock()
-#         self.listeners = []  # For real-time updates
-        
-#     def add_listener(self, callback):
-#         """Add a callback function to receive simulation updates"""
-#         self.listeners.append(callback)
-        
-#     def remove_listener(self, callback):
-#         """Remove a callback function"""
-#         if callback in self.listeners:
-#             self.listeners.remove(callback)
-    
-#     def _notify_listeners(self, data):
-#         """Notify all registered listeners of simulation updates"""
-#         for callback in self.listeners:
-#             try:
-#                 callback(data)
-#             except Exception as e:
-#                 logger.error(f"Error notifying listener: {e}")
-    
-#     def start_simulation(self, config_file: str = "Traci.sumocfg", gui: bool = True) -> bool:
-#         """Start SUMO simulation using routing link approach"""
-#         try:
-#             if self.sumo_running:
-#                 logger.warning("SUMO simulation already running")
-#                 return True
-
-#             # Check if SUMO_HOME is set
-#             if 'SUMO_HOME' not in os.environ:
-#                 logger.error("SUMO_HOME environment variable not set")
-#                 return False
-
-#             # Define SUMO configuration similar to the first approach
-#             if gui:
-#                 # Use full path to sumo-gui executable
-#                 sumo_binary = os.path.join(os.environ['SUMO_HOME'], 'bin', 'sumo-gui')
-#                 # Check if executable exists
-#                 if not os.path.exists(sumo_binary):
-#                     logger.error(f"SUMO-GUI executable not found: {sumo_binary}")
-#                     # Try alternative path (Linux/Mac)
-#                     sumo_binary = os.path.join(os.environ['SUMO_HOME'], 'bin', 'sumo-gui.exe')
-#                     if not os.path.exists(sumo_binary):
-#                         logger.error("SUMO-GUI executable not found in SUMO_HOME/bin")
-#                         return False
-#             else:
-#                 sumo_binary = os.path.join(os.environ['SUMO_HOME'], 'bin', 'sumo')
-
-#             # Build SUMO command configuration list
-#             sumo_config = [
-#                 sumo_binary,
-#                 '-c', "sumo_configs/Traci.sumocfg",
-#                 '--step-length', '0.05',
-#                 '--delay', '1000',
-#                 '--lateral-resolution', '0.1'
-#                 '-start'
-#             ]
-
-#             # Add GUI-specific options if needed
-#             if gui:
-#                 # Remove --start for GUI to allow manual control
-#                 # sumo_config.extend(['--start'])  # Start simulation immediately in GUI
-#                 pass
-#             else:
-#                 sumo_config.extend(['--start', '--quit-on-end'])
-
-#             logger.info(f"Starting SUMO with config: {' '.join(sumo_config)}")
-
-#             # Start SUMO with TraCI using the configuration list
-#             traci.start(sumo_config)
-
-#             with self._lock:
-#                 self.sumo_running = True
-
-#             logger.info(f"SUMO simulation started successfully - Config: {config_file}, GUI: {gui}")
-#             return True
-
-#         except Exception as e:
-#             logger.error(f"Error starting SUMO: {e}")
-#             logger.exception("Full traceback:")
-#             return False
-    
-#     def stop_simulation(self):
-#         """Stop SUMO simulation"""
-#         try:
-#             if self.sumo_running:
-#                 traci.close()
-#                 with self._lock:
-#                     self.sumo_running = False
-#                     self.simulation_data = {
-#                         'vehicles': {},
-#                         'traffic_lights': {},
-#                         'detectors': {},
-#                         'current_time': 0,
-#                         'total_vehicles': 0,
-#                         'average_speed': 0
-#                     }
-#                 logger.info("SUMO simulation stopped")
-#         except Exception as e:
-#             logger.error(f"Error stopping SUMO: {e}")
-    
-#     def step_simulation(self) -> bool:
-#         """Advance simulation by one step and update data"""
-#         if not self.sumo_running:
-#             return False
-            
-#         try:
-#             traci.simulationStep()
-#             self._update_simulation_data()
-#             return True
-#         except Exception as e:
-#             logger.error(f"Error stepping simulation: {e}")
-#             with self._lock:
-#                 self.sumo_running = False
-#             return False
-    
-#     def _update_simulation_data(self):
-#         """Update internal simulation data"""
-#         try:
-#             current_time = traci.simulation.getTime()
-            
-#             # Get vehicle information
-#             vehicles = {}
-#             vehicle_ids = traci.vehicle.getIDList()
-#             speeds = []
-            
-#             for veh_id in vehicle_ids:
-#                 try:
-#                     position = traci.vehicle.getPosition(veh_id)
-#                     speed = traci.vehicle.getSpeed(veh_id)
-#                     road_id = traci.vehicle.getRoadID(veh_id)
-                    
-#                     vehicles[veh_id] = {
-#                         'id': veh_id,
-#                         'position': position,
-#                         'speed': speed,
-#                         'road_id': road_id,
-#                         'lane_id': traci.vehicle.getLaneID(veh_id),
-#                         'waiting_time': traci.vehicle.getWaitingTime(veh_id)
-#                     }
-#                     speeds.append(speed)
-#                 except Exception as e:
-#                     logger.warning(f"Error getting data for vehicle {veh_id}: {e}")
-            
-#             # Get traffic light information
-#             traffic_lights = {}
-#             for tl_id in traci.trafficlight.getIDList():
-#                 try:
-#                     traffic_lights[tl_id] = {
-#                         'id': tl_id,
-#                         'state': traci.trafficlight.getRedYellowGreenState(tl_id),
-#                         'phase': traci.trafficlight.getPhase(tl_id),
-#                         'next_switch': traci.trafficlight.getNextSwitch(tl_id)
-#                     }
-#                 except Exception as e:
-#                     logger.warning(f"Error getting data for traffic light {tl_id}: {e}")
-            
-#             # Calculate statistics
-#             avg_speed = sum(speeds) / len(speeds) if speeds else 0
-            
-#             with self._lock:
-#                 self.simulation_data = {
-#                     'vehicles': vehicles,
-#                     'traffic_lights': traffic_lights,
-#                     'detectors': {},  # Can be extended for induction loops
-#                     'current_time': current_time,
-#                     'total_vehicles': len(vehicles),
-#                     'average_speed': avg_speed,
-#                     'simulation_ended': traci.simulation.getMinExpectedNumber() == 0
-#                 }
-            
-#             # Notify listeners
-#             self._notify_listeners(self.simulation_data.copy())
-            
-#         except Exception as e:
-#             logger.error(f"Error updating simulation data: {e}")
-    
-#     def get_simulation_data(self) -> Dict:
-#         """Get current simulation data"""
-#         with self._lock:
-#             return self.simulation_data.copy()
-    
-#     def is_running(self) -> bool:
-#         """Check if simulation is running"""
-#         return self.sumo_running
-    
-#     def get_vehicle_info(self, vehicle_id: str) -> Optional[Dict]:
-#         """Get information for a specific vehicle"""
-#         with self._lock:
-#             return self.simulation_data['vehicles'].get(vehicle_id)
-    
-#     def get_traffic_light_info(self, tl_id: str) -> Optional[Dict]:
-#         """Get information for a specific traffic light"""
-#         with self._lock:
-#             return self.simulation_data['traffic_lights'].get(tl_id)
-    
-#     def set_traffic_light_phase(self, tl_id: str, phase: int) -> bool:
-#         """Set traffic light phase"""
-#         if not self.sumo_running:
-#             return False
-        
-#         try:
-#             traci.trafficlight.setPhase(tl_id, phase)
-#             return True
-#         except Exception as e:
-#             logger.error(f"Error setting traffic light phase: {e}")
-#             return False
-    
-#     def add_vehicle(self, route_id: str, vehicle_id: str = None, depart_time: int = None) -> bool:
-#         """Add a vehicle to the simulation"""
-#         if not self.sumo_running:
-#             return False
-        
-#         try:
-#             if vehicle_id is None:
-#                 vehicle_id = f"vehicle_{int(time.time())}"
-            
-#             if depart_time is None:
-#                 depart_time = int(traci.simulation.getTime())
-            
-#             traci.vehicle.add(vehicle_id, route_id, departTime=depart_time)
-#             return True
-#         except Exception as e:
-#             logger.error(f"Error adding vehicle: {e}")
-#             return False
-    
-#     def run_continuous_simulation(self, max_steps: int = 3600):
-#         """Run simulation continuously in a separate thread"""
-#         def simulation_loop():
-#             step_count = 0
-#             while self.sumo_running and step_count < max_steps:
-#                 if not self.step_simulation():
-#                     break
-                    
-#                 # Check if simulation has ended
-#                 with self._lock:
-#                     if self.simulation_data.get('simulation_ended', False):
-#                         break
-                
-#                 step_count += 1
-#                 time.sleep(0.1)  # Control simulation speed
-            
-#             # Clean up
-#             self.stop_simulation()
-        
-#         if not self.sumo_running:
-#             return False
-        
-#         self.sumo_thread = threading.Thread(target=simulation_loop)
-#         self.sumo_thread.daemon = True
-#         self.sumo_thread.start()
-#         return True
-    
-#     def get_network_info(self) -> Dict:
-#         """Get network information"""
-#         if not self.sumo_running:
-#             return {}
-        
-#         try:
-#             return {
-#                 'edges': list(traci.edge.getIDList()),
-#                 'junctions': list(traci.junction.getIDList()),
-#                 'routes': list(traci.route.getIDList()),
-#                 'vehicle_types': list(traci.vehicletype.getIDList())
-#             }
-#         except Exception as e:
-#             logger.error(f"Error getting network info: {e}")
-#             return {}
-
-# # Global SUMO service instance
-# sumo_service = SUMOService()
-
 import subprocess
 import os
+import sys
 import signal
 import threading
+import json
 import time
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 class SumoService:
     def __init__(self):
         self.simulation_process: Optional[subprocess.Popen] = None
         self.simulation_thread: Optional[threading.Thread] = None
+        self.monitoring_thread: Optional[threading.Thread] = None
         self.is_running = False
         self.current_config = None
+        self.traci = None
+        self.simulation_step = 0
+        
+        # Initialize monitoring data with default values
+        self.monitoring_data = {
+            'vehicle_count': 0,
+            'average_speed': 0.0,
+            'current_time': 0,
+            'vehicle_ids': [],
+            'traffic_stats': {
+                'total_vehicles': 0,
+                'avg_speed_kmh': 0.0,
+                'simulation_time': 0,
+                'throughput': 0,
+                'density': 0.0,
+                'waiting_vehicles': 0,
+                'co2_emission': 0.0,
+                'fuel_consumption': 0.0
+            },
+            'vehicles': [],
+            'traffic_lights': [],
+            'edges': []
+        }
         
         # SUMO configurations directory
         self.sumo_configs_dir = os.path.join(
@@ -315,54 +44,145 @@ class SumoService:
             'sumo_configs'
         )
         
-        # Available scenarios
+        # Set SUMO_HOME path (adjust this to your SUMO installation)
+        self.set_sumo_path()
+        
+        # Available scenarios - EXPANDED LIST
         self.available_scenarios = {
-            'simple': {
+            'complex': {
                 'config': 'complex.sumocfg',
-                'name': 'Simple Intersection',
-                'description': 'A basic 4-way intersection scenario'
+                'name': 'Complex Intersection',
+                'description': 'A basic 4-way intersection scenario',
+                'complexity': 'Beginner'
             },
-            # Add more scenarios as needed
+            'traci': {
+                'config': 'Traci.sumocfg',
+                'name': 'Complex Intersection',
+                'description': 'Multiple lanes with traffic lights',
+                'complexity': 'Intermediate'
+            },
+            'simple': {
+                'config': 'simple.sumocfg',
+                'name': 'Highway Simulation',
+                'description': 'Multi-lane highway with merging',
+                'complexity': 'Advanced'
+            },
+            'please': {
+                'config': 'please.sumocfg',
+                'name': 'Roundabout',
+                'description': 'Single and multi-lane roundabout',
+                'complexity': 'Intermediate'
+            }
         }
+        
+        # Set SUMO_HOME path
+        self.set_sumo_path()
+        
+        # Verify scenario files exist
+        self._verify_scenario_files()
+        
+    def _verify_scenario_files(self):
+        """Verify that all scenario configuration files exist"""
+        missing_files = []
+        for scenario_name, scenario_info in self.available_scenarios.items():
+            config_file = scenario_info['config']
+            config_path = os.path.join(self.sumo_configs_dir, config_file)
+            if not os.path.exists(config_path):
+                missing_files.append(config_path)
+                print(f"Warning: Scenario file not found: {config_path}")
+        
+        if missing_files:
+            print(f"Missing scenario files: {missing_files}")
+        
+    def set_sumo_path(self):
+        """Set up SUMO environment variables"""
+        try:
+            # Common SUMO installation paths
+            possible_paths = [
+                os.environ.get('SUMO_HOME', ''),
+                'C:/Program Files (x86)/Eclipse/Sumo',
+                'C:/Program Files/Eclipse/Sumo',
+                '/usr/share/sumo',
+                '/opt/sumo'
+            ]
+            
+            for sumo_path in possible_paths:
+                if sumo_path and os.path.exists(sumo_path):
+                    os.environ['SUMO_HOME'] = sumo_path
+                    tools_dir = os.path.join(sumo_path, 'tools')
+                    if tools_dir not in sys.path:
+                        sys.path.append(tools_dir)
+                    print(f"SUMO_HOME set to: {sumo_path}")
+                    break
+            else:
+                print("Warning: SUMO_HOME not found. TraCI functionality will be limited.")
+                
+        except Exception as e:
+            print(f"Error setting SUMO path: {e}")
     
     def get_available_scenarios(self) -> Dict[str, Any]:
         """Return available SUMO scenarios"""
         return self.available_scenarios
     
-    def start_simulation(self, scenario: str = 'simple', gui: bool = True) -> Dict[str, Any]:
+    def auto_discover_scenarios(self) -> Dict[str, Any]:
+        """Auto-discover SUMO config files in the configs directory"""
+        discovered = {}
+        if os.path.exists(self.sumo_configs_dir):
+            for file in os.listdir(self.sumo_configs_dir):
+                if file.endswith('.sumocfg'):
+                    scenario_name = file.replace('.sumocfg', '')
+                    if scenario_name not in self.available_scenarios:
+                        discovered[scenario_name] = {
+                            'config': file,
+                            'name': scenario_name.replace('_', ' ').title(),
+                            'description': f'Auto-discovered {scenario_name} scenario',
+                            'complexity': 'Unknown'
+                        }
+        return discovered
+    # Start simulation with specified scenario  
+    def start_simulation(self, scenario: str, gui: bool = True) -> Dict[str, Any]:
         """Start SUMO simulation with the specified scenario"""
+        
+        if not scenario:
+            return {"success": False, "error": "No scenario provided"}
+    
         if self.is_running:
             return {"success": False, "error": "Simulation is already running"}
         
-        if scenario not in self.available_scenarios:
-            return {"success": False, "error": f"Scenario '{scenario}' not found"}
+        # Check both predefined and auto-discovered scenarios
+        all_scenarios = {**self.available_scenarios, **self.auto_discover_scenarios()}
+        
+        if scenario not in all_scenarios:
+            available = list(all_scenarios.keys())
+            return {"success": False, "error": f"Scenario '{scenario}' not found. Available: {available}"}
         
         try:
-            config_file = self.available_scenarios[scenario]['config']
+            config_file = all_scenarios[scenario]['config']
             config_path = os.path.join(self.sumo_configs_dir, config_file)
+            
+            print(f"Attempting to start scenario: {scenario} with config: {config_path}")
             
             if not os.path.exists(config_path):
                 return {"success": False, "error": f"Config file not found: {config_path}"}
             
-            # Build SUMO command
-            sumo_binary = 'sumo-gui' if gui else 'sumo'
-            sumo_cmd = [
-                sumo_binary,
-                '-c', config_path,
-                '--step-length', '0.1',
-                '--delay', '100'
-            ]
+            # Reset monitoring data when starting new simulation
+            self._reset_monitoring_data()
             
-            # Start simulation in a separate thread to avoid blocking
+            # Start simulation in a separate thread
             self.simulation_thread = threading.Thread(
-                target=self._run_simulation,
-                args=(sumo_cmd, scenario)
+                target=self._run_simulation_with_traci,
+                args=(config_path, scenario, gui)
             )
             self.simulation_thread.daemon = True
             self.simulation_thread.start()
             
-            # Wait a moment for the process to start
-            time.sleep(2)
+            # Wait for simulation to start
+            for _ in range(10):  # Wait up to 2 seconds
+                if self.is_running:
+                    break
+                time.sleep(0.2)
+            else:
+                return {"success": False, "error": "Simulation failed to start within timeout period"}
             
             if self.is_running:
                 self.current_config = scenario
@@ -370,6 +190,7 @@ class SumoService:
                     "success": True,
                     "message": f"SUMO simulation started successfully with {scenario} scenario",
                     "scenario": scenario,
+                    "config_file": config_file,
                     "pid": self.simulation_process.pid if self.simulation_process else None
                 }
             else:
@@ -378,63 +199,331 @@ class SumoService:
         except Exception as e:
             return {"success": False, "error": f"Failed to start simulation: {str(e)}"}
     
-    def _run_simulation(self, sumo_cmd: list, scenario: str):
-        """Run SUMO simulation in a separate thread"""
+    # Run simulation with TraCI
+    def _run_simulation_with_traci(self, config_path: str, scenario: str, gui: bool):
+        """Run SUMO simulation with TraCI connection"""
         try:
-            self.is_running = True
-            self.simulation_process = subprocess.Popen(
-                sumo_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
-            self.simulation_process.wait()
+            # Import TraCI
+            try:
+                import traci
+                self.traci = traci
+            except ImportError as e:
+                self.is_running = False
+                return
+
+            # Build SUMO command with proper GUI handling
+            if gui:
+                sumo_binary = 'sumo-gui'
+                sumo_cmd = [
+                    sumo_binary,
+                    '-c', config_path,
+                    '--step-length', '0.1',
+                    '--delay', '100',
+                    '--start',
+                ]
+            else:
+                sumo_binary = 'sumo'
+                sumo_cmd = [
+                    sumo_binary,
+                    '-c', config_path,
+                    '--step-length', '0.1'
+                ]
+
+            print(f"SUMO command: {' '.join(sumo_cmd)}")
+
+            # Start TraCI connection
+            print("Starting TraCI connection...")
+            try:
+                self.traci.start(sumo_cmd)
+                self.is_running = True
+                self.simulation_step = 0
+
+            except Exception as e:
+                self.is_running = False
+                return
+
+            print(f"TraCI simulation started for scenario: {scenario}")
+
+            # Main simulation loop
+            max_steps = 10000
+            while self.is_running and self.simulation_step < max_steps:
+                try:
+                    # Perform simulation step
+                    self.traci.simulationStep()
+                    self.simulation_step += 1
+
+                    # Update monitoring data every 10 steps
+                    if self.simulation_step % 10 == 0:
+                        self._update_simulation_data()
+
+                    # Small delay for GUI responsiveness
+                    if gui:
+                        time.sleep(0.1)
+                    else:
+                        time.sleep(0.05)
+
+                except Exception as e:
+                    break
+                
+            print(f"Simulation ended after {self.simulation_step} steps")
+
         except Exception as e:
-            print(f"Simulation error: {e}")
+            print(f"✗ Simulation error: {e}")
+            import traceback
+            traceback.print_exc()
         finally:
+            # Clean up
+            if self.traci and hasattr(self.traci, 'close'):
+                try:
+                    self.traci.close()
+                    print("✓ TraCI connection closed")
+                except:
+                    print("✗ Error closing TraCI connection")
+
             self.is_running = False
-            self.simulation_process = None
+            self.traci = None
             self.current_config = None
-    
-    def stop_simulation(self) -> Dict[str, Any]:
-        """Stop the running SUMO simulation"""
-        if not self.is_running or not self.simulation_process:
-            return {"success": False, "error": "No simulation is currently running"}
+            self.simulation_step = 0
+            
+    # Update monitoring data using TraCI
+    def _update_simulation_data(self):
+        """Update monitoring data using TraCI calls"""
+        if not self.traci or not self.is_running:
+            return
         
         try:
-            # Terminate the process
-            self.simulation_process.terminate()
+            # Get current simulation time
+            current_time = self.traci.simulation.getTime()
             
-            # Wait for process to terminate
+            # Get vehicle information
+            vehicle_ids = self.traci.vehicle.getIDList()
+            vehicle_count = len(vehicle_ids)
+            
+            # Calculate average speed
+            speeds = []
+            vehicles_data = []
+            
+            for veh_id in vehicle_ids:
+                try:
+                    speed = self.traci.vehicle.getSpeed(veh_id)
+                    speeds.append(speed)
+                    
+                    position = self.traci.vehicle.getPosition(veh_id)
+                    road_id = self.traci.vehicle.getRoadID(veh_id)
+                    lane_id = self.traci.vehicle.getLaneID(veh_id)
+                    vehicle_type = self.traci.vehicle.getTypeID(veh_id)
+                    
+                    vehicles_data.append({
+                        'id': veh_id,
+                        'speed': speed * 3.6,  # Convert to km/h
+                        'position': position,
+                        'road_id': road_id,
+                        'lane_id': lane_id,
+                        'type': vehicle_type,
+                        'waiting_time': self.traci.vehicle.getWaitingTime(veh_id)
+                    })
+                except Exception as e:
+                    print(f"Error getting data for vehicle {veh_id}: {e}")
+                    continue
+            
+            avg_speed = sum(speeds) / len(speeds) * 3.6 if speeds else 0  # km/h
+            
+            # Get traffic light information
+            traffic_lights = []
             try:
-                self.simulation_process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                self.simulation_process.kill()
-                self.simulation_process.wait()
+                tl_ids = self.traci.trafficlight.getIDList()
+                for tl_id in tl_ids:
+                    try:
+                        state = self.traci.trafficlight.getRedYellowGreenState(tl_id)
+                        phase = self.traci.trafficlight.getPhase(tl_id)
+                        traffic_lights.append({
+                            'id': tl_id,
+                            'state': state,
+                            'phase': phase
+                        })
+                    except:
+                        continue
+            except:
+                pass  # Traffic lights might not be available
             
-            self.is_running = False
-            self.simulation_process = None
-            self.current_config = None
+            # Get edge/lane information
+            edges_data = []
+            try:
+                lane_ids = self.traci.lane.getIDList()
+                edge_stats = {}
+                
+                for lane_id in lane_ids:
+                    try:
+                        edge_id = lane_id[:-2]  # Remove lane index
+                        if edge_id not in edge_stats:
+                            edge_stats[edge_id] = {
+                                'vehicle_count': 0,
+                                'avg_speed': 0,
+                                'lane_count': 0
+                            }
+                        
+                        edge_stats[edge_id]['vehicle_count'] += self.traci.lane.getLastStepVehicleNumber(lane_id)
+                        edge_stats[edge_id]['avg_speed'] += self.traci.lane.getLastStepMeanSpeed(lane_id)
+                        edge_stats[edge_id]['lane_count'] += 1
+                    except:
+                        continue
+                
+                for edge_id, stats in edge_stats.items():
+                    if stats['lane_count'] > 0:
+                        edges_data.append({
+                            'id': edge_id,
+                            'vehicle_count': stats['vehicle_count'],
+                            'avg_speed': (stats['avg_speed'] / stats['lane_count']) * 3.6,
+                            'occupancy': stats['vehicle_count'] / (stats['lane_count'] * 20)  # Rough estimate
+                        })
+            except:
+                pass
             
-            return {"success": True, "message": "SUMO simulation stopped successfully"}
+            # Get simulation-wide statistics
+            try:
+                co2_emission = self.traci.simulation.getCO2Emission()
+                fuel_consumption = self.traci.simulation.getFuelConsumption()
+                waiting_time = self.traci.simulation.getWaitingTime()
+            except:
+                co2_emission = 0
+                fuel_consumption = 0
+                waiting_time = 0
+            
+            # Update monitoring data
+            self.monitoring_data.update({
+                'vehicle_count': vehicle_count,
+                'average_speed': avg_speed,
+                'current_time': current_time,
+                'vehicle_ids': vehicle_ids,
+                'vehicles': vehicles_data,
+                'traffic_lights': traffic_lights,
+                'edges': edges_data,
+                'traffic_stats': {
+                    'total_vehicles': vehicle_count,
+                    'avg_speed_kmh': avg_speed,
+                    'simulation_time': current_time,
+                    'throughput': vehicle_count * 2,  # Simplified metric
+                    'density': vehicle_count / max(len(edges_data), 1),
+                    'waiting_vehicles': sum(1 for v in vehicles_data if v['waiting_time'] > 10),
+                    'co2_emission': co2_emission,
+                    'fuel_consumption': fuel_consumption
+                }
+            })
             
         except Exception as e:
-            return {"success": False, "error": f"Failed to stop simulation: {str(e)}"}
-    
+            print(f"Error updating simulation data: {e}")
+            
+    def _reset_monitoring_data(self):
+        """Reset monitoring data for new simulation"""
+        self.monitoring_data = {
+            'vehicle_count': 0,
+            'average_speed': 0.0,
+            'current_time': 0,
+            'vehicle_ids': [],
+            'traffic_stats': {
+                'total_vehicles': 0,
+                'avg_speed_kmh': 0.0,
+                'simulation_time': 0,
+                'throughput': 0,
+                'density': 0.0,
+                'waiting_vehicles': 0,
+                'co2_emission': 0.0,
+                'fuel_consumption': 0.0
+            },
+            'vehicles': [],
+            'traffic_lights': [],
+            'edges': []
+        }
+        self.simulation_step = 0
+
+    # Get current simulation status
     def get_status(self) -> Dict[str, Any]:
         """Get current simulation status"""
         return {
             "is_running": self.is_running,
             "current_scenario": self.current_config,
+            "simulation_step": self.simulation_step,
             "available_scenarios": list(self.available_scenarios.keys())
         }
+        
+    # Get current simulation statistics  
+    def get_simulation_stats(self) -> Dict[str, Any]:
+        """Get current simulation statistics"""
+        if not hasattr(self, 'monitoring_data'):
+            self._reset_monitoring_data()
+            
+        return {
+            "monitoring": self.monitoring_data,
+            "scenario_info": self.available_scenarios.get(self.current_config, {}),
+            "simulation_step": self.simulation_step,
+            "is_running": self.is_running
+        }
+        
+    def get_vehicle_list(self) -> List[Dict[str, Any]]:
+        """Get list of current vehicles in simulation"""
+        if not hasattr(self, 'monitoring_data') or not self.monitoring_data['vehicles']:
+            return []
+        
+        return self.monitoring_data['vehicles']
     
+    def get_traffic_lights(self) -> List[Dict[str, Any]]:
+        """Get current traffic light states"""
+        if not hasattr(self, 'monitoring_data'):
+            return []
+        
+        return self.monitoring_data['traffic_lights']
+    
+    def get_edges(self) -> List[Dict[str, Any]]:
+        """Get current edge/lane statistics"""
+        if not hasattr(self, 'monitoring_data'):
+            return []
+        
+        return self.monitoring_data['edges']
+    
+    def stop_simulation(self) -> Dict[str, Any]:
+        """Stop the running SUMO simulation"""
+        if not self.is_running:
+            return {"success": False, "error": "No simulation is currently running"}
+        
+        try:
+            self.is_running = False  # This will break the simulation loop
+            
+            # Give it a moment to stop gracefully
+            time.sleep(1)
+            
+            # Force close TraCI if still connected
+            if self.traci and hasattr(self.traci, 'close'):
+                try:
+                    self.traci.close()
+                except:
+                    pass
+            
+            self.current_config = None
+            self.traci = None
+            
+            return {"success": True, "message": "SUMO simulation stopped successfully"}
+            
+        except Exception as e:
+            return {"success": False, "error": f"Failed to stop simulation: {str(e)}"}
+        
     def check_sumo_availability(self) -> Dict[str, Any]:
         """Check if SUMO is properly installed and available"""
         try:
             result = subprocess.run(['sumo', '--version'], 
                                   capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
-                return {"available": True, "version": result.stdout.strip()}
+                # Also check if TraCI can be imported
+                try:
+                    import traci
+                    traci_available = True
+                except ImportError:
+                    traci_available = False
+                
+                return {
+                    "available": True, 
+                    "version": result.stdout.strip(),
+                    "traci_available": traci_available
+                }
             else:
                 return {"available": False, "error": result.stderr}
         except FileNotFoundError:
