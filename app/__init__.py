@@ -10,6 +10,7 @@ import os
 from app.routes.auth import auth_bp
 from app.routes.main import main_bp
 from app.routes.sumo import sumo_bp
+from app.services.sumo_service import sumo_service
 # from app.routes.api import api_bp  # Uncomment if API routes are needed
 
 migrate = Migrate()
@@ -28,6 +29,9 @@ def create_app():
     migrate.init_app(app, db)
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
+    
+    # Initialize the SumoService with app context
+    sumo_service.init_app(app)
     
     # Register blueprints
     from app.routes.auth import auth_bp
