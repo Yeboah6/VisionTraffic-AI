@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="main-content min-h-screen pb-8">
+    <!-- Header -->
+    {% include 'includes/header.html' %}
+    
+    <!-- Breadcrumb -->
+    <nav class="px-6 py-4 bg-white border-b">
+        <div class="flex items-center space-x-2 text-sm text-slate-500">
+            <a href="{{ url_for('incident.incidents') }}" class="hover:text-primary">Incidents</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <span>View Incident</span>
+        </div>
+    </nav>
+
+    <div class="px-6 py-6">
+        <!-- Incident Header -->
+        <div class="card mb-6">
+            <div class="p-6 flex items-start justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <span class="incident-type-badge {{ incident.type|lower }}">{{ incident.type|capitalize }}</span>
+                            <span class="ml-2 text-sm text-slate-500">#{{ incident.incident_id }}</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-3 py-1 bg-{{ incident.severity|lower }}-100 text-{{ incident.severity|lower }}-700 text-xs rounded-full capitalize">
+                                {{ incident.severity }}
+                            </span>
+                            <span class="px-3 py-1 bg-{{ incident.status|lower }}-100 text-{{ incident.status|lower }}-700 text-xs rounded-full capitalize">
+                                {{ incident.status }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <h1 class="text-2xl font-semibold text-slate-800 mb-2">{{ incident.title }}</h1>
+                    
+                    <div class="flex items-center space-x-6 text-sm text-slate-600">
+                        <div class="flex items-center">
+                            <i class="ri-map-pin-line mr-2"></i>
+                            <span>{{ incident.location_rel.name if incident.location_rel.name else 'Unknown location' }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="ri-time-line mr-2"></i>
+                            <span>Reported {{ incident.created_at|time_ago }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="ri-user-line mr-2"></i>
+                            <span>By {{ incident.creator.username|capitalize }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="ml-6 flex items-center space-x-2">
+                    <a href="{{ url_for('incident.edit_incident', id=incident.id) }}" 
+                       class="px-4 py-2 bg-primary text-white rounded-button text-sm flex items-center">
+                        <i class="ri-edit-line mr-2"></i>
+                        Edit Incident
+                    </a>
+                    <button class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                        <i class="ri-more-2-line text-slate-600"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column - Incident Details -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Incident Description -->
+                <div class="card">
+                    <div class="p-6">
+                        <h3 class="text-lg font-medium text-slate-800 mb-4">Incident Details</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Description</label>
+                                <p class="text-sm text-slate-600 bg-slate-50 p-4 rounded">{{ incident.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Evidence Section -->
+                 {% if media_files and media_files|length > 0 %}
+                     <div class="media-files mt-3">
+                        <div class="flex flex-wrap gap-2 mt-2">
+                            {% for media_file in media_files %}
+                                {% if media_file is string %}
+                                    {% if media_file.endswith(('.jpg', '.jpeg', '.png', '.gif')) %}
+                                    <div class="media-item">
+                                        <img src="{{ url_for('static', filename='uploads/' + media_file) }}" 
+                                             alt="Incident evidence" 
+                                             class="w-20 h-20 object-cover rounded border"
+                                             onerror="this.style.display='none'; console.log('Failed to load: {{ media_file }}')">
+                                    </div>
+                                    {% else %}
+                                    <div class="media-item">
+                                        <div class="w-20 h-20 bg-gray-200 rounded border flex items-center justify-center">
+                                            <i class="ri-video-line text-xl text-gray-500"></i>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% else %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% else %}
+                        <div class="text-muted">No media files</div> 
+                    {% endif %}
+                <!-- {% if incident.media_files %}
+                <div class="card">
+                    <div class="p-6">
+                        <h3 class="text-lg font-medium text-slate-800 mb-4">Evidence & Media</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {% for media_file in incident.media_files.split(',') %}
+                            <div class="evidence-thumbnail group">
+                                {% if media_file.endswith(('.jpg', '.jpeg', '.png', '.gif')) %}
+                                <img src="{{ url_for('static', filename='uploads/' + media_file) }}" 
+                                     alt="Evidence" class="w-full h-full object-cover">
+                                {% elif media_file.endswith(('.mp4', '.mov', '.avi')) %}
+                                <div class="absolute inset-0 flex items-center justify-center bg-slate-800">
+                                    <i class="ri-video-line text-2xl text-white"></i>
+                                </div>
+                                {% else %}
+                                <div class="absolute inset-0 flex items-center justify-center bg-slate-100">
+                                    <i class="ri-file-line text-2xl text-slate-400"></i>
+                                </div>
+                                {% endif %}
+                                <div class="evidence-thumbnail-overlay">
+                                    <button class="p-2 bg-white rounded-full hover:bg-slate-100">
+                                        <i class="ri-download-line"></i>
+                                    </button>
+                                    <button class="p-2 bg-white rounded-full hover:bg-slate-100">
+                                        <i class="ri-fullscreen-line"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %} -->
+
+                <!-- Timeline -->
+                <div class="card">
+                    <div class="p-6">
+                        <h3 class="text-lg font-medium text-slate-800 mb-4">Incident Timeline</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="w-3 h-3 bg-primary rounded-full mt-1.5 mr-4"></div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start">
+                                        <span class="text-sm font-medium">Incident Reported</span>
+                                        <span class="text-xs text-slate-500">{{ incident.created_at|time_ago }}</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 mt-1">Initial report created by system</p>
+                                </div>
+                            </div>
+                            {% if incident.updated_at != incident.created_at %}
+                            <div class="flex items-start">
+                                <div class="w-3 h-3 bg-blue-500 rounded-full mt-1.5 mr-4"></div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start">
+                                        <span class="text-sm font-medium">Incident Updated</span>
+                                        <span class="text-xs text-slate-500">{{ incident.updated_at }}</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 mt-1">Details were modified</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Actions & Metadata -->
+            <div class="space-y-6">
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="p-6">
+                        <h3 class="text-lg font-medium text-slate-800 mb-4">Quick Actions</h3>
+                        <div class="space-y-2">
+                            <button class="w-full px-4 py-3 bg-red-100 text-red-700 rounded-button text-sm flex items-center justify-center">
+                                <i class="ri-alarm-warning-line mr-2"></i>
+                                <span>Send Emergency Alert</span>
+                            </button>
+                            <button class="w-full px-4 py-3 bg-blue-100 text-blue-700 rounded-button text-sm flex items-center justify-center">
+                                <i class="ri-road-map-line mr-2"></i>
+                                <span>View on Map</span>
+                            </button>
+                            {% if incident.status != 'resolved' %}
+                            <button class="w-full px-4 py-3 bg-green-100 text-green-700 rounded-button text-sm flex items-center justify-center">
+                                <i class="ri-check-line mr-2"></i>
+                                <span>Mark as Resolved</span>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Incident Metadata -->
+                <div class="card">
+                    <div class="p-6">
+                        <h3 class="text-lg font-medium text-slate-800 mb-4">Incident Metadata</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">Incident ID</label>
+                                <p class="text-sm font-medium">#{{ incident.incident_id }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">Reported At</label>
+                                <p class="text-sm">{{ incident.created_at }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">Last Updated</label>
+                                <p class="text-sm">{{ incident.updated_at }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">Priority Level</label>
+                                <span class="px-3 py-1 bg-{{ incident.severity|lower }}-100 text-{{ incident.severity|lower }}-700 text-xs rounded-full capitalize">
+                                    {{ incident.severity }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+.evidence-thumbnail {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.evidence-thumbnail-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.evidence-thumbnail:hover .evidence-thumbnail-overlay {
+    opacity: 1;
+}
+
+.incident-type-badge {
+    @apply px-3 py-1 rounded-full text-xs font-medium;
+}
+
+.incident-type-badge.accident { @apply bg-red-100 text-red-700; }
+.incident-type-badge.congestion { @apply bg-yellow-100 text-yellow-700; }
+.incident-type-badge.roadwork { @apply bg-blue-100 text-blue-700; }
+.incident-type-badge.weather { @apply bg-gray-100 text-gray-700; }
+.incident-type-badge.other { @apply bg-purple-100 text-purple-700; }
+</style>
+{% endblock %}

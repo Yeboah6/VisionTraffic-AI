@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Main Content -->
+<main class="main-content min-h-screen pb-8">
+    <!-- Header -->
+    {% include 'includes/header.html' %} 
+
+    <nav class="px-6 py-4 bg-white border-b">
+        <div class="flex items-center space-x-2 text-sm text-slate-500">
+            <a href="{{ url_for('location.location') }}" class="hover:text-primary">Locations</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <a href="{{ url_for('location.view_location', id=location.id) }}" class="hover:text-primary">{{ location.location_id }}</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <span>Edit Location</span>
+        </div>
+    </nav>
+
+    <!-- Edit Location Content -->
+    <div class="px-6 py-6">
+        <form action="{{ url_for('location.edit_location', id=location.id) }}" method="POST">
+            {{ form.hidden_tag() }}
+            <div class="location-form-container">
+                <!-- Basic Information Section -->
+                <div class="card form-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="ri-information-line"></i>
+                        </div>
+                        <h2 class="text-lg font-medium">Basic Information</h2>
+                    </div>
+                    
+                    <div class="form">
+                        <div class="form-group">
+                            {{ form.name.label(class="form-label form-required") }}
+                            {{ form.name(class="form-control", value=location.name) }}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control form-textarea") }}
+                    </div>
+                </div>
+
+                <!-- Geographic Information Section -->
+                <div class="card form-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="ri-map-pin-line"></i>
+                        </div>
+                        <h2 class="text-lg font-medium">Geographic Information</h2>
+                    </div>
+                    
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            {{ form.city.label(class="form-label") }}
+                            {{ form.city(class="form-control", value=location.city) }}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.region.label(class="form-label") }}
+                            {{ form.region(class="form-control", value=location.region) }}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.country.label(class="form-label") }}
+                        {{ form.country(class="form-control", value=location.country) }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Coordinates</label>
+                        <div class="coordinates-input">
+                            {{ form.latitude(class="form-control", placeholder="Latitude", id="location-lat") }}
+                            {{ form.longitude(class="form-control", placeholder="Longitude", id="location-lng") }}
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Click on the map to set coordinates or enter manually</p>
+                    </div>
+
+                    <div class="map-preview" id="mapPreview" style="height: 300px; width: 100%;"></div>
+                </div>
+                
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <a href="{{ url_for('location.view_location', id=location.id) }}" class="px-4 py-2 border border-slate-200 bg-white rounded-button">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-button">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</main>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mapPreview = document.getElementById('mapPreview');
+    const latInput = document.getElementById('latInput');
+    const lngInput = document.getElementById('lngInput');
+    const coordinatesPreview = document.getElementById('coordinatesPreview');
+    
+    // Set initial coordinates
+    const initialLat = {{ form.latitude.data if form.latitude.data else 0 }};
+    const initialLng = {{ form.longitude.data if form.longitude.data else 0 }};
+    const hasInitialCoords = initialLat !== 0 && initialLng !== 0;
+    
+    // Initialize map
+    const map = L.map('mapPreview').setView(
+        hasInitialCoords ? [initialLat, initialLng] : [0, 0], 
+        hasInitialCoords ? 15 : 2
+    );
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    
+    let marker = null;
+    
+    // Add initial marker if coordinates exist
+    if (hasInitialCoords) {
+        marker = L.marker([initialLat, initialLng]).addTo(map);
+        updateCoordinatesPreview(initialLat, initialLng);
+    }
+    
+    // Map click handler
+    map.on('click', function(e) {
+        const lat = e.latlng.lat.toFixed(6);
+        const lng = e.latlng.lng.toFixed(6);
+        
+        // Update inputs
+        latInput.value = lat;
+        lngInput.value = lng;
+        
+        // Update marker
+        if (marker) {
+            map.removeLayer(marker);
+        }
+        marker = L.marker([lat, lng]).addTo(map);
+        
+        // Update preview text
+        updateCoordinatesPreview(lat, lng);
+        
+        // Zoom to the clicked location
+        map.setView([lat, lng], 15);
+    });
+    
+    function updateCoordinatesPreview(lat, lng) {
+        coordinatesPreview.textContent = `Coordinates: ${lat}, ${lng}`;
+    }
+});
+</script>
+
+{% endblock %}

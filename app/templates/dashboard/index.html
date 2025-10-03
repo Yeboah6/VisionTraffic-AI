@@ -253,7 +253,34 @@
                     
                     <!-- Current Incidents -->
                     <div class="card">
-                       
+                        <div class="p-4 border-b flex items-center justify-between">
+                            <h2 class="font-semibold">Current Incidents</h2>
+                            <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">{{ incidents|length }} Active</span>
+                        </div>
+                        <div class="p-2">
+                            {% for incident in incidents %}
+                            <div class="divide-y">
+                                <div class="p-3 flex items-start">
+                                    <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                                        <div class="w-4 h-4 flex items-center justify-center text-red-600">
+                                            <i class="ri-alert-line"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="text-sm font-medium">{{incident.title}}</h4>
+                                        <p class="text-xs text-slate-500 mt-0.5">{{incident.location_rel.name}}</p>
+                                        <div class="flex items-center mt-1">
+                                            <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{{incident.severity}}</span>
+                                            <span class="text-xs text-slate-400 ml-2">{{incident.created_at|time_ago}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            <div class="p-3 text-center">
+                                <a href="{{ url_for('incident.incidents') }}" class="text-primary text-sm">View All Incidents</a>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Traffic Control -->
@@ -273,17 +300,6 @@
                                         <span class="switch-slider"></span>
                                     </label>
                                 </div>
-                                
-                                <!-- <div class="flex items-center justify-between">
-                                    <div>
-                                        <h4 class="text-sm font-medium">Rush Hour Mode</h4>
-                                        <p class="text-xs text-slate-500 mt-0.5">Prioritize main arterial roads</p>
-                                    </div>
-                                    <label class="custom-switch">
-                                        <input type="checkbox" checked>
-                                        <span class="switch-slider"></span>
-                                    </label>
-                                </div> -->
                                 
                                 <div class="flex items-center justify-between">
                                     <div>

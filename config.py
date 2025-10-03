@@ -15,7 +15,7 @@ class Config:
     
     UPLOAD_FOLDER = 'app/static/uploads'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'pdf'}
-    MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10MB
+    MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50MB
     
     # SUMO Configuration
     SUMO_BINARY = os.environ.get('SUMO_BINARY')

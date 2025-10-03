@@ -1,0 +1,538 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Main Content -->
+<main class="main-content min-h-screen pb-8 bg-slate-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-slate-200">
+        <div class="flex items-center justify-between px-6 py-4">
+            <div class="flex items-center">
+                <h1 class="text-2xl font-bold text-slate-800">System Settings</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-medium flex items-center transition-all hover:bg-primary-dark">
+                    <div class="w-4 h-4 flex items-center justify-center mr-2">
+                        <i class="ri-save-line"></i>
+                    </div>
+                    <span>Save Changes</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Settings Content -->
+    <div class="px-6 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Left Navigation -->
+            <div class="lg:col-span-1">
+                <div class="card sticky top-6">
+                    <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Settings</h3>
+                    <nav class="space-y-2">
+                        <a href="#system-config" class="settings-nav-item active">
+                            <i class="ri-settings-3-line mr-3"></i>
+                            System Configuration
+                        </a>
+                        <a href="#notifications" class="settings-nav-item">
+                            <i class="ri-notification-3-line mr-3"></i>
+                            Notifications
+                        </a>
+                        <a href="#api-access" class="settings-nav-item">
+                            <i class="ri-code-s-slash-line mr-3"></i>
+                            API Access
+                        </a>
+                        <a href="#user-profile" class="settings-nav-item">
+                            <i class="ri-user-line mr-3"></i>
+                            Your Profile
+                        </a>
+                        <a href="#team-management" class="settings-nav-item">
+                            <i class="ri-team-line mr-3"></i>
+                            Team Members
+                        </a>
+                        <a href="#audit-log" class="settings-nav-item">
+                            <i class="ri-history-line mr-3"></i>
+                            Recent Activity
+                        </a>
+                        <a href="#danger-zone" class="settings-nav-item text-red-600">
+                            <i class="ri-alert-line mr-3"></i>
+                            Danger Zone
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Settings Content -->
+            <div class="lg:col-span-3">
+                <!-- System Settings Section -->
+                <div id="system-config" class="card settings-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="ri-settings-3-line"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold">System Configuration</h2>
+                            <p class="text-sm text-slate-500 mt-1">Configure core system settings and preferences</p>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">System Name</label>
+                            <p class="setting-description">The display name for your traffic management system</p>
+                        </div>
+                        <input type="text" class="w-full max-w-md px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" value="City Traffic Control Center">
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Time Zone</label>
+                            <p class="setting-description">Affects all timestamps and scheduling</p>
+                        </div>
+                        <select class="w-full max-w-md px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary custom-select">
+                            <option>(UTC-08:00) Pacific Time (US & Canada)</option>
+                            <option>(UTC-07:00) Mountain Time (US & Canada)</option>
+                            <option>(UTC-06:00) Central Time (US & Canada)</option>
+                            <option>(UTC-05:00) Eastern Time (US & Canada)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Date Format</label>
+                            <p class="setting-description">How dates are displayed throughout the system</p>
+                        </div>
+                        <select class="w-full max-w-md px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary custom-select">
+                            <option>MM/DD/YYYY (12/31/2023)</option>
+                            <option>DD/MM/YYYY (31/12/2023)</option>
+                            <option>YYYY-MM-DD (2023-12-31)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Auto-Refresh Interval</label>
+                            <p class="setting-description">How often the system refreshes traffic data</p>
+                        </div>
+                        <select class="w-full max-w-md px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary custom-select">
+                            <option>30 seconds</option>
+                            <option selected>1 minute</option>
+                            <option>5 minutes</option>
+                            <option>10 minutes</option>
+                            <option>Manual refresh only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Notification Settings Section -->
+                <div id="notifications" class="card settings-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="ri-notification-3-line"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold">Notifications</h2>
+                            <p class="text-sm text-slate-500 mt-1">Manage how and when you receive alerts</p>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Email Notifications</label>
+                            <p class="setting-description">Receive email alerts for critical incidents</p>
+                        </div>
+                        <label class="custom-switch">
+                            <input type="checkbox" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">SMS Alerts</label>
+                            <p class="setting-description">Receive text messages for emergency situations</p>
+                        </div>
+                        <label class="custom-switch">
+                            <input type="checkbox">
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Critical Incident Alerts</label>
+                            <p class="setting-description">Immediate notifications for major incidents</p>
+                        </div>
+                        <label class="custom-switch">
+                            <input type="checkbox" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Daily Summary Report</label>
+                            <p class="setting-description">Email with daily traffic statistics</p>
+                        </div>
+                        <label class="custom-switch">
+                            <input type="checkbox" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- API Settings Section -->
+                <div id="api-access" class="card settings-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="ri-code-s-slash-line"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold">API Access</h2>
+                            <p class="text-sm text-slate-500 mt-1">Configure external system integration</p>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">API Access</label>
+                            <p class="setting-description">Enable external system integration</p>
+                        </div>
+                        <label class="custom-switch">
+                            <input type="checkbox" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">API Key</label>
+                            <p class="setting-description">Use this key for authenticating API requests</p>
+                        </div>
+                        <div class="api-key-container">
+                            <div class="api-key-value-container">
+                                <span class="api-key-value">traf_sec_7a3b9c2e5f1d0e8f</span>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium transition-all hover:bg-blue-200">
+                                    <i class="ri-file-copy-line mr-1"></i> Copy
+                                </button>
+                                <button class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium transition-all hover:bg-slate-200">
+                                    <i class="ri-refresh-line mr-1"></i> Regenerate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Rate Limit</label>
+                            <p class="setting-description">Maximum API requests per minute</p>
+                        </div>
+                        <select class="w-full max-w-md px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary custom-select">
+                            <option>10 requests</option>
+                            <option selected>30 requests</option>
+                            <option>60 requests</option>
+                            <option>100 requests</option>
+                            <option>Unlimited</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- User Profile Section -->
+                <div id="user-profile" class="card settings-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold">Your Profile</h2>
+                            <p class="text-sm text-slate-500 mt-1">Manage your account settings</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center mb-6">
+                        <div class="user-avatar-large">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="font-semibold text-lg">{{ user.username|capitalize }}</h3>
+                            <p class="text-sm text-slate-500">{{ user.email }}</p>
+                            <button class="mt-2 text-primary text-sm font-medium flex items-center">
+                                <i class="ri-camera-line mr-1"></i> Change Avatar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="setting-item">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Username</label>
+                            <input type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" value="{{ user.username }}">
+                        </div>
+                        
+                        <div class="setting-item">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Email</label>
+                            <input type="email" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" value="{{ user.email }}">
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-slate-700">Two-Factor Authentication</label>
+                            <p class="setting-description">Add an extra layer of security to your account</p>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <label class="custom-switch">
+                                <input type="checkbox" checked>
+                                <span class="switch-slider"></span>
+                            </label>
+                            <button class="px-4 py-2 border border-slate-300 bg-white rounded-lg text-sm font-medium transition-all hover:bg-slate-50">
+                                Configure 2FA
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 pt-6 border-t border-slate-200">
+                        <h3 class="text-md font-medium text-slate-700 mb-4">Change Password</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Current Password</label>
+                                <input type="password" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">New Password</label>
+                                <input type="password" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                            </div>
+                        </div>
+                        <button class="mt-4 px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-medium transition-all hover:bg-primary-dark">
+                            Update Password
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Team Management Section -->
+                <div id="team-management" class="card settings-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="ri-team-line"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold">Team Members</h2>
+                            <p class="text-sm text-slate-500 mt-1">Manage users with access to this system</p>
+                        </div>
+                    </div>
+                    
+                    <div class="team-member">
+                        <div class="team-member-avatar">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-sm font-medium">Michael Chen</h3>
+                            <p class="text-xs text-slate-500">Traffic Operator</p>
+                        </div>
+                        <div class="text-xs text-slate-500 mr-4">Active now</div>
+                        <button class="text-slate-400 hover:text-primary transition-colors">
+                            <i class="ri-more-2-line"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="team-member">
+                        <div class="team-member-avatar">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-sm font-medium">David Rodriguez</h3>
+                            <p class="text-xs text-slate-500">Traffic Analyst</p>
+                        </div>
+                        <div class="text-xs text-slate-500 mr-4">Last active: 2h ago</div>
+                        <button class="text-slate-400 hover:text-primary transition-colors">
+                            <i class="ri-more-2-line"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="team-member">
+                        <div class="team-member-avatar">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-sm font-medium">Emily Wilson</h3>
+                            <p class="text-xs text-slate-500">System Administrator</p>
+                        </div>
+                        <div class="text-xs text-slate-500 mr-4">Last active: 1d ago</div>
+                        <button class="text-slate-400 hover:text-primary transition-colors">
+                            <i class="ri-more-2-line"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button id="add-team-member-btn" class="w-full px-4 py-3 border-2 border-dashed border-slate-300 bg-slate-50 rounded-lg text-sm flex items-center justify-center transition-all hover:bg-slate-100">
+                            <i class="ri-add-line mr-2"></i> Add Team Member
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Audit Log Section -->
+                <div id="audit-log" class="card settings-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="ri-history-line"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold">Recent Activity</h2>
+                            <p class="text-sm text-slate-500 mt-1">Track system changes and user actions</p>
+                        </div>
+                    </div>
+                    
+                    <div class="audit-log-item">
+                        <div class="flex justify-between text-sm">
+                            <span class="font-medium">Settings updated</span>
+                            <span class="text-slate-500">2 hours ago</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Notification preferences changed by Sarah Johnson</p>
+                    </div>
+                    
+                    <div class="audit-log-item">
+                        <div class="flex justify-between text-sm">
+                            <span class="font-medium">New user added</span>
+                            <span class="text-slate-500">1 day ago</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">David Rodriguez added to team by Sarah Johnson</p>
+                    </div>
+                    
+                    <div class="audit-log-item">
+                        <div class="flex justify-between text-sm">
+                            <span class="font-medium">API key regenerated</span>
+                            <span class="text-slate-500">3 days ago</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Security action by Emily Wilson</p>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-slate-200">
+                        <button class="text-primary text-sm font-medium flex items-center transition-colors hover:text-primary-dark">
+                            <i class="ri-eye-line mr-1"></i> View Full Audit Log
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Danger Zone Section -->
+                <div id="danger-zone" class="card danger-zone">
+                    <div class="section-header">
+                        <div class="section-icon" style="background-color: #fee2e2; color: #dc2626;">
+                            <i class="ri-alert-line"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-red-600">Danger Zone</h2>
+                            <p class="text-sm text-red-500 mt-1">Irreversible actions with system-wide impact</p>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-red-600">Reset System Configuration</label>
+                            <p class="setting-description">Revert all settings to their default values</p>
+                        </div>
+                        <button class="px-5 py-2.5 border border-red-300 bg-white text-red-600 rounded-lg text-sm font-medium transition-all hover:bg-red-50">
+                            Reset Settings
+                        </button>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label class="block text-sm font-medium text-red-600">Delete All Data</label>
+                            <p class="setting-description">Permanently remove all traffic and incident records</p>
+                        </div>
+                        <button class="px-5 py-2.5 border border-red-300 bg-white text-red-600 rounded-lg text-sm font-medium transition-all hover:bg-red-50">
+                            Purge Database
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Add Team Member Modal -->
+<div id="add-team-member-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-slate-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-slate-800">Add Team Member</h3>
+                <button id="close-modal" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="ri-close-line text-xl"></i>
+                </button>
+            </div>
+            <p class="text-sm text-slate-500 mt-1">Invite a new member to your team</p>
+        </div>
+        
+        <form id="add-team-member-form" class="p-6 space-y-4">
+            <div>
+                <label for="member-name" class="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                <input type="text" id="member-name" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Enter full name" required>
+            </div>
+            
+            <div>
+                <label for="member-email" class="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                <input type="email" id="member-email" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Enter email address" required>
+            </div>
+            
+            <div>
+                <label for="member-role" class="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                <select id="member-role" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                    <option value="Traffic Operator">Traffic Operator</option>
+                    <option value="Traffic Analyst">Traffic Analyst</option>
+                    <option value="System Administrator">System Administrator</option>
+                    <option value="View Only">View Only</option>
+                </select>
+            </div>
+            
+            <div>
+                <label for="member-department" class="block text-sm font-medium text-slate-700 mb-1">Department</label>
+                <select id="member-department" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                    <option value="Operations">Operations</option>
+                    <option value="Analysis">Analysis</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Management">Management</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Permissions</label>
+                <div class="space-y-2">
+                    <label class="flex items-center">
+                        <input type="checkbox" class="rounded border-slate-300 text-primary focus:ring-primary" checked>
+                        <span class="ml-2 text-sm text-slate-700">View traffic data</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" class="rounded border-slate-300 text-primary focus:ring-primary" checked>
+                        <span class="ml-2 text-sm text-slate-700">Manage incidents</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" class="rounded border-slate-300 text-primary focus:ring-primary">
+                        <span class="ml-2 text-sm text-slate-700">System configuration</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" class="rounded border-slate-300 text-primary focus:ring-primary">
+                        <span class="ml-2 text-sm text-slate-700">User management</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="pt-4">
+                <label for="welcome-message" class="block text-sm font-medium text-slate-700 mb-1">Welcome Message (Optional)</label>
+                <textarea id="welcome-message" rows="3" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Add a personalized welcome message..."></textarea>
+            </div>
+        </form>
+        
+        <div class="p-6 border-t border-slate-200 bg-slate-50 rounded-b-xl">
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-add-member" class="px-4 py-2.5 border border-slate-300 bg-white text-slate-700 rounded-lg text-sm font-medium transition-all hover:bg-slate-50">
+                    Cancel
+                </button>
+                <button id="submit-add-member" class="px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium transition-all hover:bg-primary-dark flex items-center">
+                    <i class="ri-user-add-line mr-2"></i> Add Team Member
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

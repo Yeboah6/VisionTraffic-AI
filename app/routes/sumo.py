@@ -1,6 +1,15 @@
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, render_template, jsonify, request, current_app
+from app.extensions import db
+
+# Services
 from app.services.sumo_service import sumo_service
-from app.models.traffic_light import TrafficLightConfig
+from app.services.camera_service import camera_service
+from app.services.ai_traffic_service import ai_traffic_service
+
+# Models
+# from app.models.traffic_light import TrafficLightConfig
+from app.models.camera import Camera, CameraMetrics
+
 
 sumo_bp = Blueprint('sumo', __name__, url_prefix='/sumo')
 
@@ -154,23 +163,6 @@ def set_traffic_light_program(tl_id):
     result = sumo_service.set_traffic_light_program(tl_id, program_id)
     return jsonify(result)
 
-# Get all traffic light configurations Endpoints
-# @sumo_bp.route('/api/traffic-lights/configs', methods=['GET'])
-# def get_traffic_light_configs():
-#     """Get all traffic light configurations"""
-#     configs = TrafficLightConfig.query.all()
-#     return jsonify([config.to_dict() for config in configs])
-
-# Get configuration for a specific traffic light
-# @sumo_bp.route('/api/traffic-lights/<tl_id>/config', methods=['GET'])
-# def get_traffic_light_config(tl_id):
-#     """Get configuration for a specific traffic light"""
-#     config = TrafficLightConfig.query.filter_by(traffic_light_id=tl_id).first()
-#     if config:
-#         return jsonify(config.to_dict())
-#     else:
-#         return jsonify({"error": "Configuration not found"}), 404
-
 # Get edge/lane statistics Endpoints
 @sumo_bp.route('/api/edges', methods=['GET'])
 def get_edges():
@@ -189,52 +181,105 @@ def get_vehicle_detail(vehicle_id):
     else:
         return jsonify({"error": "Vehicle not found"}), 404
 
-# Get detailed info about a specific scenario Endpoints
-# @sumo_bp.route('/api/scenario-info/<scenario_name>', methods=['GET'])
-# def get_scenario_info(scenario_name):
-#     """Get detailed info about a specific scenario"""
-#     scenarios = sumo_service.get_available_scenarios()
-#     discovered = sumo_service.auto_discover_scenarios()
-#     all_scenarios = {**scenarios, **discovered}
+# Get all cameras and their current status
+@sumo_bp.route('/api/cameras', methods=['GET'])
+def get_cameras():
+    """Get all cameras and their current status"""
+    cameras = Camera.query.all()
+    current_data = camera_service.get_combined_camera_data()
     
-#     if scenario_name in all_scenarios:
-#         return jsonify(all_scenarios[scenario_name])
-#     else:
-#         return jsonify({"error": "Scenario not found"}), 404
- 
+    return jsonify({
+        'cameras': [cam.to_dict() for cam in cameras],
+        'current_data': current_data
+    })
 
-@sumo_bp.route('/api/traffic-lights/<tl_id>/update-config', methods=['POST'])
-def update_traffic_light_config(tl_id):
-    """Manually update traffic light configuration"""
-    if not sumo_service.is_running or not sumo_service.traci:
-        return jsonify({"success": False, "error": "Simulation not running"})
+# Add a new camera (real or virtual)
+@sumo_bp.route('/api/cameras/add', methods=['POST'])
+def add_camera():
+    """Add a new camera (real or virtual)"""
+    data = request.get_json()
     
-    try:
-        # Get current traffic light data
-        program_id = sumo_service.traci.trafficlight.getProgram(tl_id)
-        current_phase = sumo_service.traci.trafficlight.getPhase(tl_id)
+    if data['type'] == 'real':
+        camera_service.add_real_camera(
+            data['id'],
+            data['source'],
+            data['location']
+        )
+        # Start processing if requested
+        if data.get('start_processing', False):
+            camera_service.start_real_camera_processing(data['id'])
+    
+    elif data['type'] == 'virtual':
+        camera_service.add_virtual_camera(
+            data['id'],
+            data['detector_id'],
+            data['location']
+        )
+    
+    # Store in database
+    camera = Camera(
+        id=data['id'],
+        name=data['name'],
+        camera_type=data['type'],
+        source=data.get('source') or data.get('detector_id'),
+        location_lat=data['location']['lat'],
+        location_lng=data['location']['lng'],
+        intersection_id=data.get('intersection_id')
+    )
+    db.session.add(camera)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'camera': camera.to_dict()})
+
+# Get recent AI decisions
+@sumo_bp.route('/api/ai-decisions', methods=['GET'])
+def get_ai_decisions():
+    """Get recent AI decisions"""
+    decisions = ai_traffic_service.decision_history[-50:]  # Last 50 decisions
+    return jsonify(decisions)
+
+# Get current camera data for dashboard
+@sumo_bp.route('/api/camera-data', methods=['GET'])
+def get_camera_data():
+    """Get current camera data for dashboard"""
+    sumo_service = current_app.sumo_service
+    traci_conn = sumo_service.traci if sumo_service.is_running else None
+    
+    camera_data = camera_service.get_combined_camera_data(traci_conn)
+    return jsonify(camera_data)
+
+# @sumo_bp.route('/api/traffic-lights/<tl_id>/update-config', methods=['POST'])
+# def update_traffic_light_config(tl_id):
+#     """Manually update traffic light configuration"""
+#     if not sumo_service.is_running or not sumo_service.traci:
+#         return jsonify({"success": False, "error": "Simulation not running"})
+    
+#     try:
+#         # Get current traffic light data
+#         program_id = sumo_service.traci.trafficlight.getProgram(tl_id)
+#         current_phase = sumo_service.traci.trafficlight.getPhase(tl_id)
         
-        # Manually call the update method
-        sumo_service._update_traffic_light_config(tl_id, program_id, current_phase)
+#         # Manually call the update method
+#         sumo_service._update_traffic_light_config(tl_id, program_id, current_phase)
         
-        # Check if config was created
-        from app.models.traffic_light import TrafficLightConfig
-        config = TrafficLightConfig.query.filter_by(traffic_light_id=tl_id).first()
+#         # Check if config was created
+#         from app.models.traffic_light import TrafficLightConfig
+#         config = TrafficLightConfig.query.filter_by(traffic_light_id=tl_id).first()
         
-        if config:
-            return jsonify({
-                "success": True,
-                "message": f"Traffic light config updated for {tl_id}",
-                "config": config.to_dict()
-            })
-        else:
-            return jsonify({
-                "success": False,
-                "error": "Config still not created after update attempt"
-            })
+#         if config:
+#             return jsonify({
+#                 "success": True,
+#                 "message": f"Traffic light config updated for {tl_id}",
+#                 "config": config.to_dict()
+#             })
+#         else:
+#             return jsonify({
+#                 "success": False,
+#                 "error": "Config still not created after update attempt"
+#             })
             
-    except Exception as e:
-        return jsonify({"success": False, "error": f"Failed to update config: {str(e)}"})
+#     except Exception as e:
+#         return jsonify({"success": False, "error": f"Failed to update config: {str(e)}"})
  
 
 # @sumo_bp.route('/api/force-tl-update', methods=['POST'])
@@ -243,41 +288,41 @@ def update_traffic_light_config(tl_id):
 #     result = sumo_service.force_traffic_light_update()
 #     return jsonify(result)
 
-@sumo_bp.route('/api/debug/traci', methods=['GET'])
-def debug_traci():
-    """Debug TraCI connection and available traffic lights"""
-    if not sumo_service.is_running or not sumo_service.traci:
-        return jsonify({"error": "Simulation not running"})
+# @sumo_bp.route('/api/debug/traci', methods=['GET'])
+# def debug_traci():
+#     """Debug TraCI connection and available traffic lights"""
+#     if not sumo_service.is_running or not sumo_service.traci:
+#         return jsonify({"error": "Simulation not running"})
     
-    try:
-        import traci
-        tl_ids = sumo_service.traci.trafficlight.getIDList()
+#     try:
+#         import traci
+#         tl_ids = sumo_service.traci.trafficlight.getIDList()
         
-        # Test individual traffic light access
-        tl_details = []
-        for tl_id in tl_ids[:3]:  # Test first 3 to avoid overload
-            try:
-                state = sumo_service.traci.trafficlight.getRedYellowGreenState(tl_id)
-                phase = sumo_service.traci.trafficlight.getPhase(tl_id)
-                tl_details.append({
-                    'id': tl_id,
-                    'state': state,
-                    'phase': phase,
-                    'accessible': True
-                })
-            except Exception as e:
-                tl_details.append({
-                    'id': tl_id,
-                    'accessible': False,
-                    'error': str(e)
-                })
+#         # Test individual traffic light access
+#         tl_details = []
+#         for tl_id in tl_ids[:3]:  # Test first 3 to avoid overload
+#             try:
+#                 state = sumo_service.traci.trafficlight.getRedYellowGreenState(tl_id)
+#                 phase = sumo_service.traci.trafficlight.getPhase(tl_id)
+#                 tl_details.append({
+#                     'id': tl_id,
+#                     'state': state,
+#                     'phase': phase,
+#                     'accessible': True
+#                 })
+#             except Exception as e:
+#                 tl_details.append({
+#                     'id': tl_id,
+#                     'accessible': False,
+#                     'error': str(e)
+#                 })
         
-        return jsonify({
-            "traci_connected": True,
-            "traffic_light_count": len(tl_ids),
-            "traffic_light_ids": tl_ids,
-            "test_results": tl_details
-        })
+#         return jsonify({
+#             "traci_connected": True,
+#             "traffic_light_count": len(tl_ids),
+#             "traffic_light_ids": tl_ids,
+#             "test_results": tl_details
+#         })
         
-    except Exception as e:
-        return jsonify({"error": f"TraCI debug failed: {str(e)}"})
+#     except Exception as e:
+#         return jsonify({"error": f"TraCI debug failed: {str(e)}"})

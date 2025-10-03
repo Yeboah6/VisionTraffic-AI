@@ -7,10 +7,17 @@ from datetime import datetime, timezone
 from logging.handlers import RotatingFileHandler
 import logging
 import os
-from app.routes.auth import auth_bp
-from app.routes.main import main_bp
-from app.routes.sumo import sumo_bp
+
+# Services
 from app.services.sumo_service import sumo_service
+from app.services.camera_service import camera_service
+from app.services.ai_traffic_service import ai_traffic_service
+
+# Models
+from app.models.incident import Incident
+from app.models.location import Location
+from app.models.camera import Camera, CameraMetrics
+from app.models.user import User
 # from app.routes.api import api_bp  # Uncomment if API routes are needed
 
 migrate = Migrate()
@@ -33,15 +40,26 @@ def create_app():
     # Initialize the SumoService with app context
     sumo_service.init_app(app)
     
-    # Register blueprints
+    # Register services with app
+    app.sumo_service = sumo_service
+    app.camera_service = camera_service
+    app.ai_traffic_service = ai_traffic_service
+    
+    # Register blueprints / Routes
     from app.routes.auth import auth_bp
     from app.routes.main import main_bp
     from app.routes.sumo import sumo_bp
+    from app.routes.incident import incident_bp
+    from app.routes.location import location_bp
+    from app.routes.settings import settings_bp
     # from app.routes.api import api_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(sumo_bp)
+    app.register_blueprint(incident_bp)
+    app.register_blueprint(location_bp)
+    app.register_blueprint(settings_bp)
     # app.register_blueprint(api_bp, url_prefix='/api')
     
     # Custom Jinja2 filter for humanizing time

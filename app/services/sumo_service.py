@@ -9,6 +9,8 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 from app.extensions import db
 from app.models.traffic_light import TrafficLightLog, TrafficLightConfig
+from app.services.camera_service import camera_service
+from app.services.ai_traffic_service import ai_traffic_service
 
 class SumoService:
     def __init__(self, app=None):
@@ -23,6 +25,8 @@ class SumoService:
         self.last_tl_update = 0
         self.tl_update_interval = 1  # seconds
         self.app = app
+        self.camera_data = {}
+        self.ai_decisions = []
         
         # Initialize monitoring data with default values
         self.monitoring_data = {
@@ -1054,5 +1058,53 @@ class SumoService:
         except Exception as e:
             return {"success": False, "error": f"Failed to update traffic lights: {str(e)}"}
 
+    def add_virtual_cameras_to_simulation(self):
+        """Add virtual cameras to SUMO network"""
+        virtual_cameras = {
+            'cam_north': {'detector': 'detector_north', 'lane': 'edge1_0'},
+            'cam_south': {'detector': 'detector_south', 'lane': 'edge2_0'},
+            'cam_east': {'detector': 'detector_east', 'lane': 'edge3_0'},
+            'cam_west': {'detector': 'detector_west', 'lane': 'edge4_0'}
+        }
+        
+        for cam_id, config in virtual_cameras.items():
+            camera_service.add_virtual_camera(
+                cam_id, 
+                config['detector'],
+                {'lane': config['lane']}
+            )
+            
+    def _update_simulation_with_ai(self):
+        """Update simulation based on AI decisions"""
+        if not self.traci or not self.is_running:
+            return
+        
+        # Get camera data from both sources
+        camera_data = camera_service.get_combined_camera_data(self.traci)
+        self.camera_data = camera_data
+        
+        # Get current SUMO state
+        sumo_state = self._get_current_sumo_state()
+        
+        # Get AI decision
+        ai_decision = ai_traffic_service.make_traffic_decision(camera_data, sumo_state)
+        self.ai_decisions.append(ai_decision)
+        
+        # Apply AI decision to SUMO
+        self._apply_ai_decision(ai_decision)
+    
+    def _apply_ai_decision(self, decision: Dict):
+        """Apply AI decision to SUMO simulation"""
+        if decision['action'] == 'extend_green':
+            # Extend current green phase
+            current_phase = self.traci.trafficlight.getPhase('tl_id')
+            new_duration = self.traci.trafficlight.getPhaseDuration('tl_id') + decision['duration_increase']
+            self.traci.trafficlight.setPhaseDuration('tl_id', new_duration)
+            
+        elif decision['action'] == 'reduce_cycle':
+            # Reduce cycle time
+            current_duration = self.traci.trafficlight.getPhaseDuration('tl_id')
+            new_duration = max(10, current_duration - decision['duration_decrease'])
+            self.traci.trafficlight.setPhaseDuration('tl_id', new_duration)
 # Global instance
 sumo_service = SumoService()

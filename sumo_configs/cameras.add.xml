@@ -1,0 +1,14 @@
+<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
+    
+    <!-- Camera at the traffic light junction -->
+    <camera id="cam1" x="-21.83" y="23.40" z="30" range="100" 
+            hz="10" output="camera1_output.xml"/>
+    
+    <!-- Camera on edge E1 -->
+    <camera id="cam2" lane="E1_0" pos="25" z="20" range="50" 
+            hz="10" output="camera2_output.xml"/>
+    
+    <!-- Camera focused on traffic light -->
+    <camera id="tl_cam" lane=":clusterJ5_clusterJ3_J4_0_0" pos="5" z="15" 
+            hz="10" output="traffic_light_cam.xml"/>
+</additional>

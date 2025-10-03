@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Main Content -->
+<main class="main-content min-h-screen pb-8">
+    <!-- Header -->
+    {% include 'includes/header.html' %}
+
+    <nav class="px-6 py-4 bg-white border-b">
+        <div class="flex items-center space-x-2 text-sm text-slate-500">
+            <a href="{{ url_for('location.location') }}" class="hover:text-primary">Locations</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <span>View Location</span> 
+        </div>
+    </nav>
+
+    <!-- View Location Content -->
+    <div class="px-6 py-6">
+        <div class="location-view-container">
+            <!-- Location Details Card -->
+            <div class="card location-card">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center">
+                        <div class="location-type-icon intersection-icon mr-4">
+                            <i class="ri-traffic-light-line"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold">{{ location.name }}</h2> 
+                    </div>
+
+                    <div class="detail-item">
+                        <h3 class="font-bold">Created By</h3>
+                        <span class="detail-value">{{ location.creator.username|capitalize}}</span>
+                    </div>
+                    
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Basic Information -->
+                    <div class="details-section">
+                        <h3 class="section-title">Basic Information</h3>
+                        <!-- <br> -->
+                        <div class="detail-item">
+                            <span class="detail-label">Description</span>
+                            <span class="detail-value">{{ location.description or 'N/A' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Geographic Information -->
+                    <div class="details-section col-span-1 md:col-span-2">
+                        <h3 class="section-title">Geographic Information</h3>
+                        <!-- <br> -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="detail-item">
+                                <span class="detail-label">City</span>
+                                <span class="detail-value">{{ location.city }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Region/State</span>
+                                <span class="detail-value">{{ location.region }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Country</span>
+                                <span class="detail-value">{{ location.country }}</span>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="detail-item">
+                            <span class="detail-label">Coordinates</span>
+                            <span class="detail-value">
+                                {{ location.latitude }}, {{ location.longitude }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Map Preview -->
+                    <div id="map" class="map-container mb-6 map-preview col-span-1 md:col-span-2 h-54"></div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-4 mt-6">
+                <a href="{{ url_for('location.location') }}" class="px-4 py-2 border border-slate-200 bg-white rounded-button">
+                    Back to List
+                </a>
+                <a href="{{ url_for('location.edit_location', id=location.id) }}" class="px-4 py-2 bg-primary text-white rounded-button">
+                    Edit Location
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize map for view page (read-only)
+    const map = L.map('map').setView([{{ location.lat }}, {{ location.lng }}], 15);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    L.marker([{{ location.lat }}, {{ location.lng }}]).addTo(map)
+        .bindPopup('{{ location.name }}')
+        .openPopup();
+});
+</script>
+
+    <script>
+      async function toggleStatus(locationId) {
+        const response = await fetch(`/locations/${locationId}/toggle-status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const result = await response.json();
+
+        if (result.success) {
+          const btn = document.querySelector(`button[onclick="toggleStatus('${locationId}')"]`);
+          btn.classList.toggle('justify-end', result.status);
+          btn.classList.toggle('justify-start', !result.status);
+          btn.classList.toggle('bg-primary', result.status);
+          btn.classList.toggle('bg-slate-200', !result.status);
+        
+          // Update status text if needed
+          const statusText = btn.closest('tr').querySelector('.status-text');
+          if (statusText) {
+            statusText.textContent = result.status ? 'Active' : 'Pending';
+            statusText.className = result.status ? 
+              'px-2 py-1 rounded-full text-xs bg-green-100 text-green-800' : 
+              'px-2 py-1 rounded-full text-xs bg-red-100 text-red-800';
+          }
+        }
+      }
+    </script>
+
+{% endblock %}

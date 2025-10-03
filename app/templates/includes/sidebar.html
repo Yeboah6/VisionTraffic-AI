@@ -12,8 +12,27 @@
                     </div>
                     <span>Dashboard</span>
                 </a>
-                
-                
+                <a href="{{ url_for('location.location') }}"
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('location') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+                    <div class="w-5 h-5 flex items-center justify-center mr-3">
+                        <i class="ri-map-pin-line"></i>
+                    </div>
+                    <span>Location</span>
+                </a>
+                <a href="{{ url_for('incident.incidents') }}"
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('incident') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+                    <div class="w-5 h-5 flex items-center justify-center mr-3">
+                        <i class="ri-alert-line"></i>
+                    </div>
+                    <span>Incidents</span>
+                </a>
+                <a href="{{ url_for('settings.settings') }}"
+                   class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('settings') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+                    <div class="w-5 h-5 flex items-center justify-center mr-3">
+                        <i class="ri-alert-line"></i>
+                    </div>
+                    <span>Settings</span>
+                </a>
             </div>
         </nav>
         
