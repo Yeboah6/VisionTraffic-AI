@@ -1,9 +1,0 @@
-<viewsettings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/viewSettings.xsd">
-    <viewport zoom="100" x="-20" y="20"/>
-    <delay value="100"/>
-    
-    <!-- Camera definitions -->
-    <snapshot>
-        <viewer-perspective value="true"/>
-    </snapshot>
-</viewsettings>

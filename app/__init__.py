@@ -52,6 +52,7 @@ def create_app():
     from app.routes.incident import incident_bp
     from app.routes.location import location_bp
     from app.routes.settings import settings_bp
+    from app.routes.user import user_bp
     # from app.routes.api import api_bp
     
     app.register_blueprint(auth_bp)
@@ -60,6 +61,7 @@ def create_app():
     app.register_blueprint(incident_bp)
     app.register_blueprint(location_bp)
     app.register_blueprint(settings_bp)
+    app.register_blueprint(user_bp)
     # app.register_blueprint(api_bp, url_prefix='/api')
     
     # Custom Jinja2 filter for humanizing time

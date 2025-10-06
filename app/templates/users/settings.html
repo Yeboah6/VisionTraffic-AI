@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - VisionTraffic AI</title>
+    <!-- Remix Icon -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#64748B',
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                        info: '#8B5CF6',
+                        dark: '#1E293B'
+                    },
+                    borderRadius: {
+                        'button': '0.375rem'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F1F5F9;
+        }
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        .sidebar {
+            background-color: #0F172A;
+            color: white;
+            width: 280px;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+        }
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+        .nav-link {
+            transition: all 0.2s ease;
+        }
+        .nav-link:hover {
+            background-color: #1E293B;
+        }
+        .active {
+            background-color: #3B82F6;
+            color: white;
+        }
+        .settings-nav-item {
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .settings-nav-item:hover {
+            background-color: #EFF6FF;
+        }
+        .settings-nav-item.active {
+            background-color: #DBEAFE;
+            color: #3B82F6;
+            font-weight: 500;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #CBD5E1;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #3B82F6;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-100">
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="sidebar overflow-y-auto">
+            <div class="p-4 flex items-center border-b border-slate-700">
+                <span class="text-2xl font-['Delius'] text-white">VisionTraffic AI</span>
+            </div>
+            
+            <nav class="mt-6 px-4">
+                <div class="space-y-1">
+                    <a href="#"
+                       class="flex items-center px-4 py-3 rounded-button text-slate-300 hover:bg-slate-800 nav-link">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-dashboard-line"></i>
+                        </div>
+                        <span>Dashboard</span>
+                    </a>
+                    
+                    <a href="#"
+                        class="flex items-center px-4 py-3 rounded-button text-slate-300 hover:bg-slate-800 nav-link">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-map-pin-line"></i>
+                        </div>
+                        <span>Location</span>
+                    </a>
+
+                    <a href="#"
+                       class="flex items-center px-4 py-3 rounded-button text-slate-300 hover:bg-slate-800 nav-link">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-bar-chart-line"></i>
+                        </div>
+                        <span>Signal Control</span>
+                    </a>
+
+                    <a href="#"
+                       class="flex items-center px-4 py-3 rounded-button text-slate-300 hover:bg-slate-800 nav-link">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-camera-line"></i>
+                        </div>
+                        <span>Camera Network</span>
+                    </a>
+
+                    <a href="#"
+                       class="flex items-center px-4 py-3 rounded-button text-slate-300 hover:bg-slate-800 nav-link">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-sensor-line"></i>
+                        </div>
+                        <span>Sensors</span>
+                    </a>
+                    
+                    <a href="#"
+                       class="flex items-center px-4 py-3 rounded-button text-slate-300 hover:bg-slate-800 nav-link">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-alert-line"></i>
+                        </div>
+                        <span>Incidents</span>
+                    </a>
+                    
+                    <a href="#"
+                       class="flex items-center px-4 py-3 rounded-button text-slate-300 hover:bg-slate-800 nav-link">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-file-chart-line"></i>
+                        </div>
+                        <span>Reports</span>
+                    </a>
+                    
+                    <a href="#"
+                       class="flex items-center px-4 py-3 rounded-button active nav-link">
+                        <div class="w-5 h-5 flex items-center justify-center mr-3">
+                            <i class="ri-settings-line"></i>
+                        </div>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                        <div class="w-5 h-5 flex items-center justify-center text-white">
+                            <i class="ri-user-line"></i>
+                        </div>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-white">Admin User</p>
+                        <p class="text-xs text-slate-400">admin@visiontraffic.com</p>
+                        <span class="inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <i class="ri-shield-keyhole-line mr-1"></i> Admin
+                        </span>
+                    </div>
+                    <div class="ml-auto">
+                        <a href="#" class="text-slate-400 hover:text-white">
+                            <div class="w-5 h-5 flex items-center justify-center">
+                                <i class="ri-logout-box-line"></i>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content flex-1 p-6">
+            <div class="max-w-6xl mx-auto">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-800">Settings</h1>
+                        <p class="text-sm text-slate-600">Manage your application settings and preferences</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="px-4 py-2 bg-slate-200 text-slate-700 rounded-button text-sm flex items-center">
+                            <i class="ri-download-line mr-2"></i>
+                            <span>Export Config</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <!-- Settings Navigation -->
+                    <div class="lg:w-1/4">
+                        <div class="card p-4 sticky top-6">
+                            <div class="space-y-1">
+                                <div class="settings-nav-item active" data-tab="general">
+                                    <i class="ri-settings-3-line mr-2"></i> General Settings
+                                </div>
+                                <div class="settings-nav-item" data-tab="notifications">
+                                    <i class="ri-notification-3-line mr-2"></i> Notifications
+                                </div>
+                                <div class="settings-nav-item" data-tab="privacy">
+                                    <i class="ri-shield-keyhole-line mr-2"></i> Privacy & Security
+                                </div>
+                                <div class="settings-nav-item" data-tab="appearance">
+                                    <i class="ri-palette-line mr-2"></i> Appearance
+                                </div>
+                                <div class="settings-nav-item" data-tab="account">
+                                    <i class="ri-user-settings-line mr-2"></i> Account
+                                </div>
+                                <div class="settings-nav-item" data-tab="system">
+                                    <i class="ri-server-line mr-2"></i> System
+                                </div>
+                                <div class="settings-nav-item" data-tab="about">
+                                    <i class="ri-information-line mr-2"></i> About
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Content -->
+                    <div class="lg:w-3/4">
+                        <!-- General Settings -->
+                        <div class="card p-6 settings-content" id="general-tab">
+                            <h2 class="font-semibold text-lg text-slate-800 mb-6">General Settings</h2>
+                            
+                            <div class="space-y-6">
+                                <div>
+                                    <h3 class="font-medium text-slate-800 mb-4">Application Preferences</h3>
+                                    <div class="space-y-4">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">Language</p>
+                                                <p class="text-xs text-slate-600">Select your preferred language</p>
+                                            </div>
+                                            <select class="w-48 px-3 py-2 border border-slate-300 rounded-button text-sm">
+                                                <option selected>English</option>
+                                                <option>Spanish</option>
+                                                <option>French</option>
+                                                <option>German</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">Time Zone</p>
+                                                <p class="text-xs text-slate-600">Set your local time zone</p>
+                                            </div>
+                                            <select class="w-48 px-3 py-2 border border-slate-300 rounded-button text-sm">
+                                                <option selected>(UTC-05:00) Eastern Time</option>
+                                                <option>(UTC-08:00) Pacific Time</option>
+                                                <option>(UTC-07:00) Mountain Time</option>
+                                                <option>(UTC-06:00) Central Time</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">Date Format</p>
+                                                <p class="text-xs text-slate-600">Choose how dates are displayed</p>
+                                            </div>
+                                            <select class="w-48 px-3 py-2 border border-slate-300 rounded-button text-sm">
+                                                <option selected>MM/DD/YYYY</option>
+                                                <option>DD/MM/YYYY</option>
+                                                <option>YYYY-MM-DD</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h3 class="font-medium text-slate-800 mb-4">Data Management</h3>
+                                    <div class="space-y-4">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">Auto Backup</p>
+                                                <p class="text-xs text-slate-600">Automatically backup your data daily</p>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox" checked>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">Cache Data</p>
+                                                <p class="text-xs text-slate-600">Store data locally for faster access</p>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox" checked>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">Data Retention</p>
+                                                <p class="text-xs text-slate-600">How long to keep historical data</p>
+                                            </div>
+                                            <select class="w-48 px-3 py-2 border border-slate-300 rounded-button text-sm">
+                                                <option>30 days</option>
+                                                <option>90 days</option>
+                                                <option selected>1 year</option>
+                                                <option>Indefinitely</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="pt-4 border-t border-slate-200 flex justify-end">
+                                    <button class="px-4 py-2 bg-slate-200 text-slate-700 rounded-button text-sm mr-2">
+                                        Cancel
+                                    </button>
+                                    <button class="px-4 py-2 bg-primary text-white rounded-button text-sm">
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notifications Settings (Hidden by default) -->
+                        <div class="card p-6 settings-content hidden" id="notifications-tab">
+                            <h2 class="font-semibold text-lg text-slate-800 mb-6">Notification Settings</h2>
+                            
+                            <div class="space-y-6">
+                                <div>
+                                    <h3 class="font-medium text-slate-800 mb-4">Notification Channels</h3>
+                                    <div class="space-y-4">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">Email Notifications</p>
+                                                <p class="text-xs text-slate-600">Receive notifications via email</p>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox" checked>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">Push Notifications</p>
+                                                <p class="text-xs text-slate-600">Receive browser notifications</p>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox" checked>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">SMS Alerts</p>
+                                                <p class="text-xs text-slate-600">Receive critical alerts via SMS</p>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h3 class="font-medium text-slate-800 mb-4">Notification Types</h3>
+                                    <div class="space-y-4">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">Incident Alerts</p>
+                                                <p class="text-xs text-slate-600">Get notified about new incidents</p>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox" checked>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">System Updates</p>
+                                                <p class="text-xs text-slate-600">Notify me about system updates</p>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox" checked>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">Security Alerts</p>
+                                                <p class="text-xs text-slate-600">Critical security notifications</p>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox" checked>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-800">Traffic Reports</p>
+                                                <p class="text-xs text-slate-600">Daily and weekly traffic reports</p>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="pt-4 border-t border-slate-200 flex justify-end">
+                                    <button class="px-4 py-2 bg-slate-200 text-slate-700 rounded-button text-sm mr-2">
+                                        Cancel
+                                    </button>
+                                    <button class="px-4 py-2 bg-primary text-white rounded-button text-sm">
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add more settings tabs as needed -->
+                        
+                        <!-- About Tab (Hidden by default) -->
+                        <div class="card p-6 settings-content hidden" id="about-tab">
+                            <h2 class="font-semibold text-lg text-slate-800 mb-6">About VisionTraffic AI</h2>
+                            
+                            <div class="space-y-6">
+                                <div class="flex items-center">
+                                    <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                                        VT
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="font-bold text-xl">VisionTraffic AI</h3>
+                                        <p class="text-sm text-slate-600">Version 2.1.0</p>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <p class="text-sm text-slate-700 mb-4">
+                                        VisionTraffic AI is an intelligent traffic management system that uses artificial intelligence 
+                                        to monitor, analyze, and optimize traffic flow in urban environments. Our system helps 
+                                        reduce congestion, improve safety, and provide real-time insights to traffic authorities.
+                                    </p>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <p class="font-medium text-slate-800">License</p>
+                                            <p class="text-slate-600">Enterprise Edition</p>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-slate-800">Last Updated</p>
+                                            <p class="text-slate-600">October 15, 2023</p>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-slate-800">Support</p>
+                                            <p class="text-slate-600">support@visiontraffic.com</p>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-slate-800">Website</p>
+                                            <p class="text-slate-600">www.visiontraffic.com</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="pt-4 border-t border-slate-200">
+                                    <h3 class="font-medium text-slate-800 mb-4">System Information</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <p class="font-medium text-slate-800">Server Status</p>
+                                            <p class="text-slate-600"><span class="w-2 h-2 bg-green-500 rounded-full inline-block mr-2"></span> Operational</p>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-slate-800">Uptime</p>
+                                            <p class="text-slate-600">99.98%</p>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-slate-800">Active Cameras</p>
+                                            <p class="text-slate-600">24 of 24</p>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-slate-800">Storage Usage</p>
+                                            <p class="text-slate-600">1.2TB of 2TB</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="pt-4 border-t border-slate-200 flex justify-end">
+                                    <button class="px-4 py-2 bg-slate-200 text-slate-700 rounded-button text-sm mr-2">
+                                        Check for Updates
+                                    </button>
+                                    <button class="px-4 py-2 bg-primary text-white rounded-button text-sm">
+                        <i class="ri-restart-line mr-2"></i> Restart System
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching functionality
+            const navItems = document.querySelectorAll('.settings-nav-item');
+            const contentTabs = document.querySelectorAll('.settings-content');
+            
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Update active nav item
+                    navItems.forEach(navItem => {
+                        navItem.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Show corresponding content
+                    contentTabs.forEach(tab => {
+                        tab.classList.add('hidden');
+                    });
+                    document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+                });
+            });
+            
+            // Toggle switches functionality
+            const toggleSwitches = document.querySelectorAll('.toggle-switch input');
+            
+            toggleSwitches.forEach(switchEl => {
+                switchEl.addEventListener('change', function() {
+                    // You can add any additional logic here for toggles
+                    console.log(`Toggle switched: ${this.checked}`);
+                });
+            });
+            
+            // Save button functionality
+            const saveButtons = document.querySelectorAll('.settings-content button.bg-primary');
+            
+            saveButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const originalText = this.textContent;
+                    
+                    // Show saving state
+                    this.innerHTML = '<i class="ri-loader-4-line animate-spin mr-2"></i> Saving...';
+                    this.disabled = true;
+                    
+                    // Simulate save operation
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="ri-check-line mr-2"></i> Saved';
+                        this.classList.remove('bg-primary');
+                        this.classList.add('bg-success');
+                        
+                        // Revert after 2 seconds
+                        setTimeout(() => {
+                            this.innerHTML = originalText;
+                            this.classList.remove('bg-success');
+                            this.classList.add('bg-primary');
+                            this.disabled = false;
+                        }, 2000);
+                    }, 1500);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

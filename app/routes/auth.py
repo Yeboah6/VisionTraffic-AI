@@ -34,16 +34,19 @@ def login():
         
         if user and user.check_password(password):
             if user.is_active:
-                # if user.is_admin == False:
-                    login_user(user, remember=remember)
-                    user.last_login = datetime.utcnow()
-                    db.session.commit()
-                
-                    flash(f'Welcome back, {user.username}!', 'success')
-                
-                    # Redirect to next page if provided
-                    next_page = request.args.get('next')
-                    return redirect(next_page) if next_page else redirect(url_for('main.dashboard'))
+                login_user(user, remember=remember)
+                user.last_login = datetime.utcnow()
+                db.session.commit()
+
+                flash(f'Welcome back, {user.username}!', 'success')
+
+                next_page = request.args.get('next')
+                if next_page:
+                    return redirect(next_page)
+                if user.is_admin == True:
+                    return redirect(url_for('main.dashboard'))
+                else:
+                    return redirect(url_for('user.user_dashboard'))
             else:
                 flash('Your account has been deactivated.', 'danger')
         else:

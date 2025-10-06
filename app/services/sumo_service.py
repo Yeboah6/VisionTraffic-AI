@@ -60,8 +60,8 @@ class SumoService:
         
         # Available scenarios - EXPANDED LIST
         self.available_scenarios = {
-            'complex': {
-                'config': 'complex.sumocfg',
+            'intersection': {
+                'config': 'intersection.sumocfg',
                 'name': 'Complex Intersection',
                 'description': 'A basic 4-way intersection scenario',
                 'complexity': 'Beginner'
@@ -237,8 +237,9 @@ class SumoService:
                     sumo_binary,
                     '-c', config_path,
                     '--step-length', '0.1',
-                    '--delay', '300',
-                    '--start',
+                    # '--lateral-resolution', '0.1',
+                    # '--delay', '500',
+                    # '--start',
                 ]
             else:
                 sumo_binary = 'sumo'
@@ -275,16 +276,16 @@ class SumoService:
                     # if self.simulation_step % 10 == 0:
                     self._update_simulation_data()
 
-                    # Print progress every 100 steps
-                    if self.simulation_step % 100 == 0:
+                    # Print progress every 10 steps
+                    if self.simulation_step % 10 == 0:
                         vehicle_count = len(self.traci.vehicle.getIDList())
                         print(f"Step {self.simulation_step}: {vehicle_count} vehicles")
                     
                     # Small delay for GUI responsiveness
                     if gui:
-                        time.sleep(0.1)
+                        time.sleep(0.02)
                     else:
-                        time.sleep(0.05)
+                        time.sleep(0.001)
 
                 except Exception as e:
                     break

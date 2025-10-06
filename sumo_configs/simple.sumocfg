@@ -8,7 +8,6 @@
     <input>
         <net-file value="simple.net.xml"/>
         <route-files value="simple.rou.xml"/>
-        <additional-files value="cameras.add.xml"/>
     </input>
 
 </sumoConfiguration>
