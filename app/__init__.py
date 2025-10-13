@@ -9,16 +9,17 @@ import logging
 import os
 
 # Services
-from app.services.sumo_service import sumo_service
-from app.services.camera_service import camera_service
-from app.services.ai_traffic_service import ai_traffic_service
+# from app.services.camera_service import camera_service
+# from app.services.ai_traffic_service import ai_traffic_service
+from app.services.db_queue import init_db_queue
 
 # Models
 from app.models.incident import Incident
 from app.models.location import Location
 from app.models.camera import Camera, CameraMetrics
 from app.models.user import User
-# from app.routes.api import api_bp  # Uncomment if API routes are needed
+from app.models.traffic_light import TrafficLightLog, TrafficLightConfig
+from app.models.ai import AIDecisionLog, AIQTable, AIPerformance, TrafficPattern
 
 migrate = Migrate()
 
@@ -36,33 +37,57 @@ def create_app():
     migrate.init_app(app, db)
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
+    init_db_queue(app)
     
     # Initialize the SumoService with app context
-    sumo_service.init_app(app)
+    # 
     
     # Register services with app
-    app.sumo_service = sumo_service
-    app.camera_service = camera_service
-    app.ai_traffic_service = ai_traffic_service
+    # app.camera_service = camera_service
+    # app.ai_traffic_service = ai_traffic_service
+    
+    # Services
+    from app.services.sumo_service import sumo_service
+    sumo_service.init_app(app)
+    
+    from app.services.tls_data_service import init_tls_data_service
+    init_tls_data_service(app)
+    
+    from app.services.optimized_sumo_service import init_optimized_sumo_service
+    init_optimized_sumo_service(app)
+    
+    from app.services.tls_config_service import init_tls_config_service
+    init_tls_config_service(app)
+    
+    from app.services.ai_traffic_service import init_ai_traffic_service
+    init_ai_traffic_service(app)
+    
+    from app.services.performance_monitor import performance_monitor
+    
     
     # Register blueprints / Routes
     from app.routes.auth import auth_bp
     from app.routes.main import main_bp
-    from app.routes.sumo import sumo_bp
     from app.routes.incident import incident_bp
     from app.routes.location import location_bp
     from app.routes.settings import settings_bp
     from app.routes.user import user_bp
-    # from app.routes.api import api_bp
+    
+    # Api
+    from app.routes.api.tls_routes import tls_bp
+    from app.routes.api.sumo import sumo_bp
+    from app.routes.api.ai_routes import ai_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
-    app.register_blueprint(sumo_bp)
     app.register_blueprint(incident_bp)
     app.register_blueprint(location_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(user_bp)
-    # app.register_blueprint(api_bp, url_prefix='/api')
+    
+    app.register_blueprint(sumo_bp)
+    app.register_blueprint(tls_bp)
+    app.register_blueprint(ai_bp)
     
     # Custom Jinja2 filter for humanizing time
     @app.template_filter('time_ago')
