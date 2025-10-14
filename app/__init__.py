@@ -47,8 +47,8 @@ def create_app():
     # app.ai_traffic_service = ai_traffic_service
     
     # Services
-    from app.services.sumo_service import sumo_service
-    sumo_service.init_app(app)
+    # from app.services.sumo_service import sumo_service
+    # sumo_service.init_app(app)
     
     from app.services.tls_data_service import init_tls_data_service
     init_tls_data_service(app)

@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block content %}
@@ -172,7 +171,7 @@
                         <div class="p-4 grid grid-cols-2 gap-4">
                             <div>
                                 <div class="camera-feed rounded-lg bg-slate-800 relative">
-                                    <!-- <img src="https://readdy.ai/api/search-image?query=traffic%20camera%20view%20of%20busy%20intersection%20with%20cars%20and%20traffic%20lights%2C%20realistic%20security%20camera%20footage%20style%2C%20grainy%20texture%2C%20timestamp%20in%20corner&width=400&height=225&seq=1&orientation=landscape" alt="Traffic Camera Feed" class="w-full h-full object-cover object-top"> -->
+                                    <img src="https://readdy.ai/api/search-image?query=traffic%20camera%20view%20of%20busy%20intersection%20with%20cars%20and%20traffic%20lights%2C%20realistic%20security%20camera%20footage%20style%2C%20grainy%20texture%2C%20timestamp%20in%20corner&width=400&height=225&seq=1&orientation=landscape" alt="Traffic Camera Feed" class="w-full h-full object-cover object-top">
                                     <div class="absolute bottom-3 left-3 z-10 flex items-center">
                                         <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-2"></div>
                                         <span class="text-white text-xs font-medium">Main St & 5th Ave</span>
@@ -196,7 +195,7 @@
                             
                             <div>
                                 <div class="camera-feed rounded-lg bg-slate-800 relative">
-                                    <!-- <img src="https://readdy.ai/api/search-image?query=highway%20traffic%20camera%20view%20with%20multiple%20lanes%20and%20cars%2C%20realistic%20security%20camera%20footage%20style%2C%20grainy%20texture%2C%20timestamp%20in%20corner&width=400&height=225&seq=2&orientation=landscape" alt="Traffic Camera Feed" class="w-full h-full object-cover object-top"> -->
+                                    <img src="https://readdy.ai/api/search-image?query=highway%20traffic%20camera%20view%20with%20multiple%20lanes%20and%20cars%2C%20realistic%20security%20camera%20footage%20style%2C%20grainy%20texture%2C%20timestamp%20in%20corner&width=400&height=225&seq=2&orientation=landscape" alt="Traffic Camera Feed" class="w-full h-full object-cover object-top">
                                     <div class="absolute bottom-3 left-3 z-10 flex items-center">
                                         <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-2"></div>
                                         <span class="text-white text-xs font-medium">Highway 101 North</span>
@@ -269,7 +268,7 @@
                                     </div>
                                     <div class="ml-3">
                                         <h4 class="text-sm font-medium">{{incident.title}}</h4>
-                                        <p class="text-xs text-slate-500 mt-0.5">{{incident.location_rel.name}}</p>
+                                        <p class="text-xs text-slate-500 mt-0.5">{{incident.location.name}}</p>
                                         <div class="flex items-center mt-1">
                                             <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{{incident.severity}}</span>
                                             <span class="text-xs text-slate-400 ml-2">{{incident.created_at|time_ago}}</span>
@@ -279,7 +278,7 @@
                             </div>
                             {% endfor %}
                             <div class="p-3 text-center">
-                                <a href="{{ url_for('incident.incidents') }}" class="text-primary text-sm">View All Incidents</a>
+                                <a href="{{ url_for('incident.incident') }}" class="text-primary text-sm">View All Incidents</a>
                             </div>
                         </div>
                     </div>

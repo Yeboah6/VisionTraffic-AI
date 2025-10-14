@@ -205,3 +205,44 @@ def get_ai_performance():
             "success": False,
             "error": str(e)
         }), 
+        
+@ai_bp.route('/api/ai/debug/storage-status', methods=['GET'])
+def debug_ai_storage_status():
+    """Check AI decision storage status"""
+    try:
+        from app.services.ai_traffic_service import ai_traffic_service
+        from app.services.db_queue import get_db_queue
+        from app.models.ai import AIDecisionLog
+        
+        queue = get_db_queue()
+        db_count = AIDecisionLog.query.count() if hasattr(AIDecisionLog, 'query') else 0
+        emergency_count = len(ai_traffic_service.emergency_storage)
+        
+        return jsonify({
+            "success": True,
+            "storage_status": {
+                "db_queue_available": queue is not None,
+                "decisions_in_database": db_count,
+                "decisions_in_emergency_storage": emergency_count,
+                "total_ai_decisions_made": len(ai_traffic_service.optimization_decisions),
+                "last_decision": list(ai_traffic_service.optimization_decisions)[-1] if ai_traffic_service.optimization_decisions else None
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@ai_bp.route('/api/ai/debug/flush-emergency', methods=['POST'])
+def flush_emergency_storage():
+    """Flush emergency storage to database"""
+    try:
+        from app.services.ai_traffic_service import ai_traffic_service
+        ai_traffic_service.flush_emergency_storage()
+        
+        return jsonify({
+            "success": True,
+            "message": "Emergency storage flush attempted"
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500

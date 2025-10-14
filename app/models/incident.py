@@ -100,9 +100,9 @@ class Incident(db.Model):
                 next_number = 1
         else:
             next_number = 1
-        
-        # Format the number with leading zeros (5 digits)
-        formatted_number = f"{next_number:05d}"
+
+        # Format the number with leading zeros (3 digits)
+        formatted_number = f"{next_number:03d}"
         
         return f"INC-{current_year}-{formatted_number}"
     

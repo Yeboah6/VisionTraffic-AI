@@ -138,8 +138,8 @@ class OptimizedSumoService:
             
             # Start simulation in separate thread
             self.simulation_thread = threading.Thread(
-                target=self._run_optimized_simulation,
-                args=(config_path, scenario, gui),
+                target=self._run_simulation_with_context,
+                args=(config_path, scenario, gui, self.app),  # Pass app context
                 name=f"SUMO-Simulation-{scenario}"
             )
             self.simulation_thread.daemon = True
@@ -162,6 +162,26 @@ class OptimizedSumoService:
             
         except Exception as e:
             return {"success": False, "error": f"Failed to start simulation: {str(e)}"}
+        
+    def _run_simulation_with_context(self, config_path: str, scenario: str, gui: bool, app):
+        """Run simulation with proper app context"""
+        # Set app context for this thread
+        self.app = app
+
+        # Initialize services with app context
+        from app.services.tls_data_service import tls_data_service
+        from app.services.ai_traffic_service import ai_traffic_service
+        from app.services.db_queue import db_queue_service
+
+        if db_queue_service:
+            db_queue_service.app = app
+        if tls_data_service:
+            tls_data_service.app = app  
+        if ai_traffic_service:
+            ai_traffic_service.app = app
+
+        # Now run the simulation
+        self._run_optimized_simulation(config_path, scenario, gui)    
     
     def _run_optimized_simulation(self, config_path: str, scenario: str, gui: bool):
         """Optimized simulation loop with TLS data and config collection"""
@@ -304,43 +324,138 @@ class OptimizedSumoService:
     
     # AI FUNCTIONS - START
     # Apply AI optimization decisions to SUMO simulation
+    # def _apply_ai_decisions(self, traci, ai_decision: Dict):
+    #     """Apply AI optimization decisions to SUMO - SAFE VERSION"""
+    #     try:
+    #         applied_count = 0
+            
+    #         # STORE THE DECISION FIRST (this was missing!)
+    #         from app.services.ai_traffic_service import ai_traffic_service
+    #         if hasattr(ai_traffic_service, '_store_ai_decision'):
+    #             ai_traffic_service._store_ai_decision(ai_decision, self.current_config)
+
+    #         for decision in ai_decision.get('decisions', []):
+    #             tl_id = decision['traffic_light_id']
+    #             action = decision['action']
+
+    #             try:
+    #                 if action == 'EXTEND_GREEN':
+    #                     # Safe: Extend current green phase
+    #                     current_duration = traci.trafficlight.getPhaseDuration(tl_id)
+    #                     new_duration = current_duration + 5  # Fixed 5-second extension
+    #                     traci.trafficlight.setPhaseDuration(tl_id, new_duration)
+    #                     applied_count += 1
+    #                     print(f"🟢 Extended {tl_id} green phase to {new_duration}s")
+
+    #                 elif action == 'REDUCE_GREEN':
+    #                     # Safe: Reduce current green phase
+    #                     current_duration = traci.trafficlight.getPhaseDuration(tl_id)
+    #                     new_duration = max(10, current_duration - 5)  # Minimum 10 seconds
+    #                     traci.trafficlight.setPhaseDuration(tl_id, new_duration)
+    #                     applied_count += 1
+    #                     print(f"🟡 Reduced {tl_id} green phase to {new_duration}s")
+
+    #                 elif action == 'SKIP_PHASE':
+    #                     # ⚠️ DANGEROUS - Disable for now
+    #                     print(f"⏭️ SKIP_PHASE disabled for {tl_id} (unsafe)")
+    #                     continue
+
+    #                 elif action == 'ADJUST_CYCLE':
+    #                     # ⚠️ COMPLEX - Disable for now  
+    #                     print(f"🔄 ADJUST_CYCLE disabled for {tl_id} (complex)")
+    #                     continue
+
+    #                 elif action == 'MAINTAIN':
+    #                     # Do nothing - this is safe
+    #                     print(f"⏸️  Maintaining {tl_id} current state")
+    #                     applied_count += 1
+
+    #             except Exception as tl_error:
+    #                 print(f"❌ Failed to apply {action} to {tl_id}: {tl_error}")
+    #                 continue
+                
+    #         print(f"✅ Applied {applied_count}/{len(ai_decision.get('decisions', []))} AI decisions")
+        
+    #     except Exception as e:
+    #         print(f"❌ Error applying AI decisions: {e}")
+    
     def _apply_ai_decisions(self, traci, ai_decision: Dict):
-        """Apply AI optimization decisions to SUMO simulation"""
+        """Apply AI decisions and ensure they're stored"""
         try:
+            applied_count = 0
+            
+            # STORE THE DECISION FIRST - WITH PROPER ERROR HANDLING
+            decision_stored = False
+            try:
+                from app.services.ai_traffic_service import ai_traffic_service
+                if hasattr(ai_traffic_service, '_store_ai_decision'):
+                    ai_traffic_service._store_ai_decision(ai_decision, self.current_config)
+                    decision_stored = True
+                    print("💾 AI decision stored successfully")
+            except Exception as store_error:
+                print(f"⚠️ Could not store AI decision: {store_error}")
+            
+            if not decision_stored:
+                print("📝 Fallback: Logging AI decision locally")
+                # Fallback storage - log to file or local variable
+                self._fallback_store_decision(ai_decision)
+            
+            # Then apply safe actions
             for decision in ai_decision.get('decisions', []):
                 tl_id = decision['traffic_light_id']
                 action = decision['action']
-                parameters = decision['parameters']
                 
-                if action == 'EXTEND_GREEN':
-                    # Extend current green phase
-                    current_duration = traci.trafficlight.getPhaseDuration(tl_id)
-                    new_duration = current_duration + parameters.get('duration_increase', 5)
-                    traci.trafficlight.setPhaseDuration(tl_id, new_duration)
-                    
-                elif action == 'REDUCE_GREEN':
-                    # Reduce current green phase
-                    current_duration = traci.trafficlight.getPhaseDuration(tl_id)
-                    new_duration = max(10, current_duration - parameters.get('duration_decrease', 5))
-                    traci.trafficlight.setPhaseDuration(tl_id, new_duration)
-                    
-                elif action == 'SKIP_PHASE':
-                    # Skip to next phase
-                    current_phase = traci.trafficlight.getPhase(tl_id)
-                    phases_to_skip = parameters.get('phases_to_skip', 1)
-                    new_phase = (current_phase + phases_to_skip) % traci.trafficlight.getPhaseNumber(tl_id)
-                    traci.trafficlight.setPhase(tl_id, new_phase)
-                    
-                elif action == 'ADJUST_CYCLE':
-                    # Adjust cycle time (simplified implementation)
-                    cycle_adjustment = parameters.get('cycle_adjustment', 0)
-                    # This would need more sophisticated implementation
-                    pass
+                try:
+                    if action == 'EXTEND_GREEN':
+                        current_duration = traci.trafficlight.getPhaseDuration(tl_id)
+                        new_duration = current_duration + 5
+                        traci.trafficlight.setPhaseDuration(tl_id, new_duration)
+                        applied_count += 1
+                        print(f"🟢 Extended {tl_id} green phase to {new_duration}s")
+                        
+                    elif action == 'REDUCE_GREEN':
+                        current_duration = traci.trafficlight.getPhaseDuration(tl_id)
+                        new_duration = max(10, current_duration - 5)
+                        traci.trafficlight.setPhaseDuration(tl_id, new_duration)
+                        applied_count += 1
+                        print(f"🟡 Reduced {tl_id} green phase to {new_duration}s")
+                        
+                    elif action == 'MAINTAIN':
+                        # Do nothing - this is safe
+                        print(f"⏸️  Maintaining {tl_id} current state")
+                        applied_count += 1
+                        
+                    else:
+                        print(f"⏭️ Skipped {action} on {tl_id} (unsafe)")
+                        
+                except Exception as tl_error:
+                    print(f"❌ Failed to apply {action} to {tl_id}: {tl_error}")
+                    continue
                 
-                # For 'MAINTAIN' action, do nothing
-                
+            print(f"✅ Applied {applied_count}/{len(ai_decision.get('decisions', []))} AI decisions")
+            
         except Exception as e:
-            print(f"❌ Error applying AI decision: {e}")
+            print(f"❌ Error in AI decision application: {e}")
+
+    def _fallback_store_decision(self, ai_decision: Dict):
+        """Fallback method to store decisions when primary storage fails"""
+        # Store in instance variable
+        if not hasattr(self, '_fallback_decisions'):
+            self._fallback_decisions = []
+        self._fallback_decisions.append(ai_decision)
+
+        # Also log to file for persistence
+        try:
+            with open('ai_decisions_fallback.log', 'a') as f:
+                import json
+                from datetime import datetime
+                log_entry = {
+                    'timestamp': datetime.now().isoformat(),
+                    'decision': ai_decision
+                }
+                f.write(json.dumps(log_entry) + '\n')
+        except Exception as e:
+            print(f"⚠️ Could not write to fallback log: {e}")
     
     def enable_ai_optimization(self):
         """Enable AI optimization"""
@@ -398,56 +513,6 @@ class OptimizedSumoService:
             # Silent error for data collection
             pass
     
-    # def _update_traffic_lights_optimized(self, traci, current_time: float, scenario: str):
-    #     """Optimized traffic light data collection with async DB storage"""
-    #     try:
-    #         tl_ids = traci.trafficlight.getIDList()
-    #         traffic_lights_data = []
-            
-    #         # Process traffic lights efficiently
-    #         for tl_id in tl_ids[:4]:  # Limit to first 4 for performance
-    #             try:
-    #                 # Minimal TraCI calls
-    #                 state = traci.trafficlight.getRedYellowGreenState(tl_id)
-    #                 phase = traci.trafficlight.getPhase(tl_id)
-    #                 phase_duration = traci.trafficlight.getPhaseDuration(tl_id)
-                    
-    #                 # Add to monitoring data
-    #                 traffic_lights_data.append({
-    #                     'id': tl_id,
-    #                     'state': state,
-    #                     'phase': phase,
-    #                     'phase_name': self._get_phase_name(state),
-    #                     'duration': phase_duration
-    #                 })
-                    
-    #                 # Queue for async database storage
-    #                 if db_queue_service and self.app:
-    #                     log_data = {
-    #                         'traffic_light_id': tl_id,
-    #                         'scenario': scenario,
-    #                         'simulation_time': current_time,
-    #                         'state': state,
-    #                         'phase': phase,
-    #                         'phase_name': self._get_phase_name(state),
-    #                         'duration': phase_duration,
-    #                         'next_switch': traci.trafficlight.getNextSwitch(tl_id) - current_time,
-    #                         'vehicle_count': 0,  # Skip expensive counting
-    #                         'waiting_vehicles': 0,
-    #                         'created_at': datetime.utcnow()
-    #                     }
-    #                     db_queue_service.add_traffic_light_log(log_data)
-                        
-    #             except Exception as tl_error:
-    #                 continue  # Skip individual TL errors
-            
-    #         # Update monitoring data in one operation
-    #         self.monitoring_data['traffic_lights'] = traffic_lights_data
-                    
-    #     except Exception as e:
-    #         # Silent error - don't break simulation for TL updates
-    #         pass
-    
     def _calculate_adaptive_sleep(self, step_duration: float, gui: bool) -> float:
         """Calculate optimal sleep time for target performance"""
         if gui:
@@ -457,22 +522,6 @@ class OptimizedSumoService:
         else:
             # Headless - minimal sleep, focus on max performance
             return self.performance_config['min_sleep_time']
-    
-    # def _get_phase_name(self, state: str) -> str:
-    #     """Get phase name from state - optimized version"""
-    #     if not state:
-    #         return 'UNKNOWN'
-        
-    #     if 'G' in state and 'r' in state:
-    #         return 'MAIN_GREEN'
-    #     elif 'y' in state and 'r' in state:
-    #         return 'YELLOW'
-    #     elif 'r' in state and 'G' in state:
-    #         return 'SIDE_GREEN'
-    #     elif 'r' in state and 'y' in state:
-    #         return 'SIDE_YELLOW'
-    #     else:
-    #         return 'UNKNOWN'
     
     def _cleanup_simulation(self):
         """Cleanup simulation resources"""

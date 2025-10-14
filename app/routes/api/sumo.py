@@ -3,7 +3,7 @@ from app.extensions import db
 
 # Services
 from app.services.optimized_sumo_service import optimized_sumo_service as sumo_service
-from app.services.camera_service import camera_service
+# from app.services.camera_service import camera_service
 from app.services.ai_traffic_service import ai_traffic_service
 
 # Models

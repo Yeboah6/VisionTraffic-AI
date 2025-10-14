@@ -152,10 +152,10 @@ class TLSConfigService:
             print(f"⚠️ Error getting phase {phase_index} for {tl_id}: {e}")
             return None
     
+    # WORK HERE
+    
     def _parse_tls_logic(self, logic) -> List[Dict[str, Any]]:
-        """
-        Parse TLS logic definition into phase information
-        """
+        """Parse TLS logic definition into phase information"""
         phases = []
         
         try:

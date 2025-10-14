@@ -292,7 +292,7 @@ class DatabaseQueueService:
         }
         
     def add_ai_decision_log(self, decision_data):
-        """Queue AI decision log for async writing"""
+        """Queue AI decision log for async writing - CORRECTED"""
         operation = {
             'type': 'ai_decision_log',
             'data': decision_data,
@@ -300,9 +300,11 @@ class DatabaseQueueService:
         }
         self.queue.append(operation)
         self.stats['operations_queued'] += 1
-        
+
+        print(f"📝 Added AI decision to queue: {decision_data.get('system_action', 'Unknown')}")
+
         # Auto-flush if queue is large
-        if len(self.queue) >= 500:
+        if len(self.queue) >= 100:
             self.flush_queue()
             
     def add_q_table_update(self, q_table_data):
@@ -333,6 +335,35 @@ class DatabaseQueueService:
         if len(self.queue) >= 100:
             print("🔄 Auto-flushing queue...")
             self.flush_queue()
+            
+    def get_db_queue():
+        """Get DB queue with thread-safe app context"""
+        global db_queue_service
+        if db_queue_service and db_queue_service.app:
+            return db_queue_service
+        
+        # Try to get app from current context or create new context
+        try:
+            from flask import current_app
+            if current_app:
+                init_db_queue(current_app._get_current_object())
+                return db_queue_service
+        except:
+            pass
+        
+        return None
+    
+    def add_ai_decision_safe(decision_data):
+        """Thread-safe method to add AI decisions - STANDALONE FUNCTION"""
+        queue = get_db_queue()
+        if queue:
+            queue.add_ai_decision_log(decision_data)  # Call instance method
+            return True
+        else:
+            # Fallback: Print decision for debugging
+            action = decision_data.get('system_action', 'Unknown')
+            print(f"🤖 AI DECISION (QUEUE UNAVAILABLE): {action}")
+            return False
 
 # Global instance
 db_queue_service = None
