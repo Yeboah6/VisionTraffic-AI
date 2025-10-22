@@ -130,21 +130,21 @@ def disable_ai_learning():
             "error": str(e)
         }), 500
 
-@ai_bp.route('/api/ai/train/historical', methods=['POST'])
-def train_ai_historical():
-    """Train AI on historical data"""
-    try:
-        days = request.json.get('days', 7)
+# @ai_bp.route('/api/ai/train/historical', methods=['POST'])
+# def train_ai_historical():
+#     """Train AI on historical data"""
+#     try:
+#         days = request.json.get('days', 7)
         
-        result = ai_traffic_service.train_on_historical_data(days)
+#         result = ai_traffic_service.train_on_historical_data(days)
         
-        return jsonify(result)
+#         return jsonify(result)
         
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+#     except Exception as e:
+#         return jsonify({
+#             "success": False,
+#             "error": str(e)
+#         }), 500
 
 @ai_bp.route('/api/ai/decisions/recent', methods=['GET'])
 def get_recent_ai_decisions():

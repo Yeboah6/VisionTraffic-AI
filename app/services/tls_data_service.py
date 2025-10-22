@@ -3,6 +3,8 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 from collections import defaultdict, deque
+import statistics
+import uuid
 
 from app.extensions import db
 from app.models.traffic_light import TrafficLightLog
@@ -18,6 +20,15 @@ class TLSDataService:
         self.real_time_data = {}
         self.historical_stats = {}
         self.performance_metrics = defaultdict(lambda: deque(maxlen=1000))
+        
+        # Track last logged data for change detection
+        self.last_logged_data = {}  # {tl_id: {state, phase, vehicle_count, efficiency_score, last_log_time}}
+        self.MIN_LOG_INTERVAL = 30  # Minimum 30 simulation seconds between logs
+        self.CHANGE_THRESHOLDS = {
+            'vehicle_count': 3,      # ±3 vehicles
+            'efficiency_score': 5,   # ±5 points
+            'waiting_vehicles': 2    # ±2 waiting vehicles
+        }
         
     def init_app(self, app):
         """Initialize with Flask app"""
@@ -45,6 +56,7 @@ class TLSDataService:
             }
             
             successful_collections = 0
+            logged_count = 0
             
             for tl_id in tl_ids:
                 try:
@@ -56,8 +68,10 @@ class TLSDataService:
                         # Update real-time data store
                         self.real_time_data[tl_id] = tl_data
                         
-                        # Queue for database storage
-                        self._queue_tls_log(tl_data, scenario)
+                        # Queue for database storage - USING COMBINED APPROACH
+                        if self._should_log_tls_data(tl_id, tl_data, current_time):
+                            self._queue_tls_log(tl_data, scenario)
+                            logged_count += 1
                     
                 except Exception as e:
                     print(f"⚠️ Error collecting data for TLS {tl_id}: {e}")
@@ -66,49 +80,98 @@ class TLSDataService:
             # Update summary with successful count
             snapshot['summary']['successful_collections'] = successful_collections
             snapshot['summary']['collection_errors'] = len(tl_ids) - successful_collections
+            snapshot['summary']['logged_instances'] = logged_count
             
             # Calculate summary statistics only if we have data
             if successful_collections > 0:
                 snapshot['summary'].update(self._calculate_summary_stats(snapshot['traffic_lights']))
             
-            print(f"📊 TLS Data: Collected {successful_collections} traffic lights successfully")
+            print(f"📊 TLS Data: Collected {successful_collections} traffic lights, Logged {logged_count} instances")
             return snapshot
             
         except Exception as e:
             print(f"❌ Error in TLS data collection: {e}")
             return {}
-        
-    def _queue_tls_log(self, tl_data: Dict, scenario: str):
-        """Queue TLS data for database storage - FIXED CONTEXT"""
-        db_queue = db_queue_service
-        if not db_queue:
-            print("❌ DB Queue Service not available - skipping log storage")
-            return
-        
-        try:
-            log_data = {
-                'traffic_light_id': tl_data['id'],
-                'scenario': scenario,
-                'simulation_time': tl_data['timestamp'],
-                'state': tl_data['state'],
-                'phase': tl_data['phase'],
-                'phase_name': tl_data['phase_name'],
-                'duration': tl_data.get('phase_duration', 0),
-                'next_switch': tl_data.get('next_switch', 0),
-                'vehicle_count': tl_data.get('performance', {}).get('total_vehicles', 0),
-                'waiting_vehicles': tl_data.get('performance', {}).get('waiting_vehicles', 0),
-                'efficiency_score': tl_data.get('performance', {}).get('efficiency_score', 0),
-                'performance_grade': tl_data.get('performance', {}).get('performance_grade', 'D'),
-                'created_at': datetime.utcnow()
+    
+    def _should_log_tls_data(self, tl_id: str, current_data: Dict, current_time: float) -> bool:
+        """
+        Determine if TLS data should be logged based on combined time-based + change-based approach
+        """
+        # Initialize if first time seeing this TLS
+        if tl_id not in self.last_logged_data:
+            self.last_logged_data[tl_id] = {
+                'state': current_data['state'],
+                'phase': current_data['phase'],
+                'vehicle_count': current_data.get('performance', {}).get('total_vehicles', 0),
+                'waiting_vehicles': current_data.get('performance', {}).get('waiting_vehicles', 0),
+                'efficiency_score': current_data.get('performance', {}).get('efficiency_score', 0),
+                'last_log_time': current_time
             }
-            
-            print(f"📤 Queueing TLS log for {tl_data['id']}")
-            db_queue.add_traffic_light_log(log_data)
-            
-        except Exception as e:
-            print(f"❌ Error queuing TLS log: {e}")
-            import traceback
-            traceback.print_exc()
+            return True  # Always log first occurrence
+        
+        last_data = self.last_logged_data[tl_id]
+        
+        # Check time-based condition (minimum interval)
+        time_since_last_log = current_time - last_data['last_log_time']
+        if time_since_last_log < self.MIN_LOG_INTERVAL:
+            return False
+        
+        # Check change-based conditions
+        # significant_changes = self._detect_significant_changes(last_data, current_data)
+        
+        # Always log on state or phase changes (critical events)
+        if current_data['state'] != last_data['state'] or current_data['phase'] != last_data['phase']:
+            return True
+        
+        # Log if significant performance changes detected
+        # if significant_changes:
+        #     return True
+        
+        # Log if minimum time interval reached (even without significant changes)
+        # This ensures we capture baseline data periodically
+        if time_since_last_log >= self.MIN_LOG_INTERVAL * 2:  # Double the minimum interval
+            return True
+        
+        return False
+    
+    def _detect_significant_changes(self, last_data: Dict, current_data: Dict) -> bool:
+        """
+        Detect significant changes in performance metrics
+        """
+        current_perf = current_data.get('performance', {})
+        last_perf = last_data
+        
+        changes_detected = False
+        
+        # Check vehicle count change
+        vehicle_diff = abs(current_perf.get('total_vehicles', 0) - last_perf.get('vehicle_count', 0))
+        if vehicle_diff >= self.CHANGE_THRESHOLDS['vehicle_count']:
+            changes_detected = True
+        
+        # Check efficiency score change
+        efficiency_diff = abs(current_perf.get('efficiency_score', 0) - last_perf.get('efficiency_score', 0))
+        if efficiency_diff >= self.CHANGE_THRESHOLDS['efficiency_score']:
+            changes_detected = True
+        
+        # Check waiting vehicles change
+        waiting_diff = abs(current_perf.get('waiting_vehicles', 0) - last_perf.get('waiting_vehicles', 0))
+        if waiting_diff >= self.CHANGE_THRESHOLDS['waiting_vehicles']:
+            changes_detected = True
+        
+        return changes_detected
+    
+    def _update_last_logged_data(self, tl_id: str, current_data: Dict, current_time: float):
+        """
+        Update the last logged data for a traffic light
+        """
+        self.last_logged_data[tl_id] = {
+            'state': current_data['state'],
+            'phase': current_data['phase'],
+            'vehicle_count': current_data.get('performance', {}).get('total_vehicles', 0),
+            'waiting_vehicles': current_data.get('performance', {}).get('waiting_vehicles', 0),
+            'efficiency_score': current_data.get('performance', {}).get('efficiency_score', 0),
+            'last_log_time': current_time
+        }
     
     def _estimate_phase_count(self, state: str) -> int:
         """Estimate phase count based on state pattern"""
@@ -455,13 +518,14 @@ class TLSDataService:
             return 'D'
     
     def _queue_tls_log(self, tl_data: Dict, scenario: str):
-        """Queue TLS data for database storage - FIXED VERSION"""
+        """Queue TLS data for database storage using queue service"""
         if not db_queue_service:
             print("❌ DB Queue Service not available")
             return
-        
+
         try:
             log_data = {
+                'id': str(uuid.uuid4()),
                 'traffic_light_id': tl_data['id'],
                 'scenario': scenario,
                 'simulation_time': tl_data['timestamp'],
@@ -476,15 +540,39 @@ class TLSDataService:
                 'performance_grade': tl_data.get('performance', {}).get('performance_grade', 'D'),
                 'created_at': datetime.utcnow()
             }
-            
-            print(f"📤 Queueing TLS log for {tl_data['id']}: {log_data['state']} at time {log_data['simulation_time']}")
-            
-            db_queue_service.add_traffic_light_log(log_data)
-            
+
+            print(f"📤 Queueing TLS log for {tl_data['id']}")
+
+            if self.app:
+                with self.app.app_context():
+                    db_queue_service.add_traffic_light_log(log_data)
+                    # MANUALLY TRIGGER FLUSH TO SEE WHAT HAPPENS
+                    print(f"🔍 Queue size: {len(db_queue_service.queue)}")
+                    if len(db_queue_service.queue) >= 1:  # Flush even with 1 item for testing
+                        print("🔍 Manually triggering flush...")
+                        db_queue_service.flush_queue()
+            else:
+                print("❌ No app context available")
+                return
+
+            self._update_last_logged_data(tl_data['id'], tl_data, tl_data['timestamp'])
+
         except Exception as e:
             print(f"❌ Error queuing TLS log: {e}")
             import traceback
             traceback.print_exc()
+    
+    def store_traffic_pattern(self, pattern_data: Dict):
+        """Store traffic pattern using queue service"""
+        if not db_queue_service:
+            print("❌ DB Queue Service not available for pattern storage")
+            return
+        
+        try:
+            db_queue_service.add_traffic_pattern(pattern_data)
+            print(f"📊 Queued traffic pattern for {pattern_data.get('traffic_light_id', 'unknown')}")
+        except Exception as e:
+            print(f"❌ Error queuing traffic pattern: {e}")
     
     # Analysis Methods
     def get_tls_analysis(self, tl_id: str, hours: int = 24) -> Dict[str, Any]:

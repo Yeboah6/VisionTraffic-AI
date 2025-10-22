@@ -18,8 +18,8 @@ from app.models.incident import Incident
 from app.models.location import Location
 from app.models.camera import Camera, CameraMetrics
 from app.models.user import User
-from app.models.traffic_light import TrafficLightLog, TrafficLightConfig
-from app.models.ai import AIDecisionLog, AIQTable, AIPerformance, TrafficPattern
+from app.models.traffic_light import TrafficLightLog, TrafficLightConfig, TrafficPattern
+from app.models.ai import AIDecisionLog, AIQTable, AIPerformance
 
 migrate = Migrate()
 

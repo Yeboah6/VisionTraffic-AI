@@ -86,3 +86,34 @@ class TrafficLightConfig(db.Model):
     def get_phases(self):
         """Helper method to get phases as list"""
         return json.loads(self.phases) if self.phases else []
+    
+    
+class TrafficPattern(db.Model):
+    __tablename__ = 'traffic_patterns'
+    
+    id = db.Column(db.String, primary_key=True)
+    traffic_light_id = db.Column(db.String(100), nullable=False, index=True)
+    scenario = db.Column(db.String(100), nullable=False)
+    interval_start = db.Column(db.DateTime, nullable=False, index=True)
+    interval_end = db.Column(db.DateTime, nullable=False)
+    pattern_type = db.Column(db.String(100), nullable=False)
+    confidence_score = db.Column(db.Float, default=0.0)
+    
+    # JSON fields for complex data
+    # time_metadata = db.Column(db.JSON, default=dict)
+    pattern_metrics = db.Column(db.JSON, default=dict)
+    phase_patterns = db.Column(db.JSON, default=dict)
+    recommendations = db.Column(db.JSON, default=list)
+    
+    created_at = db.Column(db.DateTime, default=db.func.now())
+    updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+    
+    # Unique constraint to prevent duplicate patterns for same interval and TL
+    __table_args__ = (
+        db.UniqueConstraint('traffic_light_id', 'interval_start', 
+                          name='unique_tl_interval'),
+    )
+    
+    def __repr__(self):
+        return f'<TrafficPattern {self.traffic_light_id} {self.interval_start} {self.pattern_type}>'
+    
