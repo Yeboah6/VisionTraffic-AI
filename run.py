@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.models.traffic_light import TrafficLightLog
+from app.services.traffic_pattern_analyzer import traffic_pattern_analyzer
 
 app = create_app()
 
@@ -9,15 +9,22 @@ with app.app_context():
     seed_admin_user()
     print("Database tables created successfully")
     
-    # Test basic database operations
-    test_log = TrafficLightLog(
-        traffic_light_id='test_tls',
-        scenario='test',
-        simulation_time=100.0,
-        state='GGGrrr',
-        phase=0,
-        phase_name='TEST'
-    )
+    # print("🧪 Testing direct pattern storage...")
+    
+    # Create a simple test pattern
+    # test_pattern = {
+    #     'traffic_light_id': 'test_tls_01',
+    #     'pattern_type': 'TEST_PATTERN'
+    # }
+    
+    # # Test direct storage
+    # test_result = traffic_pattern_analyzer.store_patterns_directly([test_pattern])
+    # print(f"Test storage result: {test_result}")
+    
+    # # Now run the full analysis
+    # print("🔍 Running full pattern analysis...")
+    # result = traffic_pattern_analyzer.analyze_traffic_patterns()
+    # print("Analysis result:", result)
 
 if __name__ == '__main__':
     app.run(debug = True)

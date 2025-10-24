@@ -15,8 +15,8 @@ class DatabaseQueueService:
     High-performance async database operations for traffic logs and patterns
     """
     
-    def __init__(self, app, max_queue_size=1000, flush_interval=5):
-        self.app = app
+    def __init__(self, max_queue_size=1000, flush_interval=5):
+        self.app = None
         self.queue = deque(maxlen=max_queue_size)
         self.flush_interval = flush_interval  # seconds
         self.last_flush = time.time()
@@ -30,6 +30,10 @@ class DatabaseQueueService:
         
         # Start background flusher
         self._start_background_flusher()
+    
+    def init_app(self, app):
+        self.app = app
+        print("✅ DB Queue Service initialized")
     
     def _start_background_flusher(self):
         """Start background thread for periodic flushing"""
@@ -235,11 +239,12 @@ class DatabaseQueueService:
         }
 
 # Global instance
-db_queue_service = None
 
 def init_db_queue(app):
-    global db_queue_service
-    db_queue_service = DatabaseQueueService(app)
+    """Initialize the DB queue service"""
+    db_queue_service.init_app(app)
     
-def get_db_queue():
-    return db_queue_service
+# def get_db_queue():
+#     return db_queue_service
+
+db_queue_service = DatabaseQueueService()

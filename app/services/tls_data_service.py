@@ -562,17 +562,17 @@ class TLSDataService:
             import traceback
             traceback.print_exc()
     
-    def store_traffic_pattern(self, pattern_data: Dict):
-        """Store traffic pattern using queue service"""
-        if not db_queue_service:
-            print("❌ DB Queue Service not available for pattern storage")
-            return
+    # def store_traffic_pattern(self, pattern_data: Dict):
+    #     """Store traffic pattern using queue service"""
+    #     if not db_queue_service:
+    #         print("❌ DB Queue Service not available for pattern storage")
+    #         return
         
-        try:
-            db_queue_service.add_traffic_pattern(pattern_data)
-            print(f"📊 Queued traffic pattern for {pattern_data.get('traffic_light_id', 'unknown')}")
-        except Exception as e:
-            print(f"❌ Error queuing traffic pattern: {e}")
+    #     try:
+    #         db_queue_service.add_traffic_pattern(pattern_data)
+    #         print(f"📊 Queued traffic pattern for {pattern_data.get('traffic_light_id', 'unknown')}")
+    #     except Exception as e:
+    #         print(f"❌ Error queuing traffic pattern: {e}")
     
     # Analysis Methods
     def get_tls_analysis(self, tl_id: str, hours: int = 24) -> Dict[str, Any]:

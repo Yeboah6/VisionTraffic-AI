@@ -43,13 +43,9 @@ def create_app():
     # 
     
     # Register services with app
-    # app.camera_service = camera_service
     # app.ai_traffic_service = ai_traffic_service
     
     # Services
-    # from app.services.sumo_service import sumo_service
-    # sumo_service.init_app(app)
-    
     from app.services.tls_data_service import init_tls_data_service
     init_tls_data_service(app)
     
@@ -61,6 +57,9 @@ def create_app():
     
     from app.services.ai_traffic_service import init_ai_traffic_service
     init_ai_traffic_service(app)
+    
+    from app.services.traffic_pattern_analyzer import init_traffic_pattern_analyzer
+    init_traffic_pattern_analyzer(app)
     
     from app.services.performance_monitor import performance_monitor
     
