@@ -66,8 +66,8 @@ class OptimizedSumoService:
                 'description': 'A basic 4-way intersection scenario',
                 'complexity': 'Beginner'
             },
-            'simple': {
-                'config': 'simple.sumocfg',
+            'accra': {
+                'config': 'accra_37.sumocfg',
                 'name': 'Highway Simulation',
                 'description': 'Multi-lane highway with merging',
                 'complexity': 'Advanced'

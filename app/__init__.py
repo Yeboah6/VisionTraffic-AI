@@ -55,9 +55,9 @@ def create_app():
     from app.services.tls_config_service import init_tls_config_service
     init_tls_config_service(app)
     
-    from app.services.ai_traffic_service import init_ai_traffic_service
-    init_ai_traffic_service(app)
-    
+    from app.services.ai_traffic_service import ai_traffic_service
+    ai_traffic_service.init_app(app)
+
     from app.services.traffic_pattern_analyzer import init_traffic_pattern_analyzer
     init_traffic_pattern_analyzer(app)
     

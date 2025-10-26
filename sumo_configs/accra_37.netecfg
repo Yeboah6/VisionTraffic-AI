@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2025-09-23 22:39:57 by Eclipse SUMO netedit Version 1.24.0
+<!-- generated on 2025-10-25 11:53:29 by Eclipse SUMO netedit Version 1.24.0
 -->
 
 <neteditConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/neteditConfiguration.xsd">
 
     <input>
-        <sumocfg-file value="please.sumocfg"/>
-        <route-files value="please.rou.xml"/>
-        <sumo-net-file value="please.net.xml"/>
+        <sumocfg-file value="accra_37.sumocfg"/>
+        <route-files value="accra_37.rou.xml"/>
+        <sumo-net-file value="accra_37.net.xml"/>
     </input>
 
     <processing>
@@ -16,24 +16,14 @@
         <geometry.avoid-overlap value="false"/>
         <geometry.max-grade.fix value="false"/>
         <offset.disable-normalization value="true"/>
-        <lefthand value="0"/>
     </processing>
 
     <junctions>
         <no-turnarounds value="true"/>
-        <junctions.corner-detail value="5"/>
-        <junctions.limit-turn-speed value="5.50"/>
-        <rectangular-lane-cut value="0"/>
     </junctions>
-
-    <pedestrian>
-        <walkingareas value="0"/>
-    </pedestrian>
 
     <netedit>
         <new-network value="false"/>
-        <ignore.additionalelements value="0"/>
-        <ignore.routeelements value="0"/>
     </netedit>
 
 </neteditConfiguration>

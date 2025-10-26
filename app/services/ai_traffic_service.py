@@ -20,7 +20,7 @@ from app.services.tls_data_service import tls_data_service
 
 class AITrafficService:
     """
-    AI-powered traffic light optimization service
+    AI-powered traffic light optimization service for SUMO
     Uses reinforcement learning and predictive analytics to optimize TLS controls
     """
     
@@ -58,7 +58,7 @@ class AITrafficService:
     
     def make_traffic_decision(self, tls_snapshot: Dict, current_time: float) -> Dict[str, Any]:
         """
-        Make AI-driven optimization decision for traffic lights
+        Make AI-driven optimization decision for SUMO traffic lights
         """
         if not tls_snapshot or not tls_snapshot.get('traffic_lights'):
             return self._get_default_decision()
@@ -109,23 +109,24 @@ class AITrafficService:
         print(f"📦 AI Decision in EMERGENCY storage: {decision_log['system_action']}")
         print(f"   Emergency count: {len(self.emergency_storage)}")
     
-    ################# AI Decison Storage #################
+    ################# AI Decision Storage #################
     def _store_ai_decision(self, decision_data: Dict, scenario: str):
-        """Store AI decision - GUARANTEED WORKING VERSION"""
+        """Store AI decision - UPDATED TO USE SCENARIO TIMESTAMP"""
         try:
             action = decision_data['system_decision']['system_action']
             optimized = decision_data['total_tls_optimized']
+            scenario_timestamp = decision_data['timestamp']  # SUMO scenario time
 
             # 1. Always print the decision
-            print(f"🎯 AI DECISION MADE: {action} (Optimized: {optimized} TLS)")
+            print(f"🎯 AI DECISION MADE: {action} (Optimized: {optimized} TLS) at scenario time: {scenario_timestamp}")
             
-            # 2. Generate UNIQUE ID with timestamp + random component
-            decision_id = f"decision_{int(time.time())}_{random.randint(1000, 9999)}"
+            # 2. Generate UNIQUE ID with scenario timestamp + random component
+            decision_id = f"decision_{int(scenario_timestamp)}_{random.randint(1000, 9999)}"
 
             # 3. Simple in-memory storage (always works)
             simple_record = {
                 'id': decision_id,
-                'timestamp': decision_data['timestamp'],
+                'timestamp': scenario_timestamp,  # Use scenario timestamp
                 'action': action,
                 'optimized': optimized,
                 'scenario': scenario,
@@ -137,50 +138,42 @@ class AITrafficService:
                 self.emergency_storage.pop(0)
 
             print(f"💾 DECISION STORED IN MEMORY: {len(self.emergency_storage)} total")
-            # 3. Try database storage (optional)
-            try:
-                from app.services.db_queue import get_db_queue
-                queue = get_db_queue()
-                if queue:
-                    # Prepare minimal data for DB
-                    db_data = {
-                        'decision_id': decision_id,
-                        'scenario': scenario,
-                        'timestamp': decision_data['timestamp'],
-                        'ai_mode': decision_data['ai_mode'],
-                        'system_action': decision_data['system_decision']['system_action'],
-                        'system_recommendation': decision_data['system_decision']['recommendation'],
-                        'optimization_ratio': decision_data['system_decision']['optimization_ratio'],
-                        'overall_congestion': decision_data['overall_congestion'],
-                        'system_health': decision_data['system_health'],
-                        'system_action': action,
-                        'total_decisions': len(decision_data['decisions']),
-                        'total_tls_optimized': optimized,
-                        'tls_decisions': json.dumps(decision_data['decisions']),
-                        'created_at': datetime.utcnow()
-                    }
-                    # Check if decision_id already exists before inserting
-                    if not self._decision_exists_in_db(decision_id):
-                        queue.add_ai_decision_log(db_data)
-                        print(f"💾 ALSO STORED IN DATABASE")
-                    else:
-                        print(f"⚠️ Decision {decision_id} already exists in DB, skipping duplicate")
-            except Exception as db_error:
-                print(f"⚠️ Database storage failed: {db_error}")
+            
+            # 4. Try database storage using db_queue_service - WITH APP CONTEXT
+            if self.app:
+                try:
+                    with self.app.app_context():
+                        # Prepare data for AIDecisionLog model - USING SCENARIO TIMESTAMP
+                        db_data = {
+                            'decision_id': decision_id,
+                            'scenario': scenario,
+                            'timestamp': scenario_timestamp,  # SUMO scenario timestamp (float)
+                            'ai_mode': decision_data['ai_mode'],
+                            'system_action': decision_data['system_decision']['system_action'],
+                            'system_recommendation': decision_data['system_decision']['recommendation'],
+                            'optimization_ratio': decision_data['system_decision']['optimization_ratio'],
+                            'overall_congestion': decision_data['overall_congestion'],
+                            'system_health': decision_data['system_health'],
+                            'total_decisions': len(decision_data['decisions']),
+                            'total_tls_optimized': optimized,
+                            'tls_decisions': json.dumps(decision_data['decisions']),
+                            'created_at': datetime.utcnow()  # Real-world time for audit
+                        }
+                        
+                        # Use the db_queue_service directly
+                        if hasattr(db_queue_service, 'add_ai_decision_log'):
+                            db_queue_service.add_ai_decision_log(db_data)
+                            print(f"💾 ALSO STORED IN DATABASE via db_queue_service at scenario time: {scenario_timestamp}")
+                        else:
+                            print(f"⚠️ db_queue_service.add_ai_decision_log not available")
+                            
+                except Exception as db_error:
+                    print(f"⚠️ Database storage failed: {db_error}")
+            else:
+                print(f"⚠️ No app context available for database storage")
 
         except Exception as e:
             print(f"❌ Storage completely failed: {e}")
-    
-    def _decision_exists_in_db(self, decision_id: str) -> bool:
-        """Check if a decision_id already exists in the database"""
-        try:
-            from app.services.db_queue import get_db_queue
-            queue = get_db_queue()
-            if queue and hasattr(queue, 'check_decision_exists'):
-                return queue.check_decision_exists(decision_id)
-            return False
-        except:
-            return False
     
     def get_emergency_decisions(self):
         """Get decisions from emergency storage"""
@@ -192,23 +185,45 @@ class AITrafficService:
             return
             
         print(f"🔄 Flushing {len(self.emergency_storage)} emergency decisions to DB...")
-        from app.services.db_queue import get_db_queue
-        queue = get_db_queue()
         
-        if queue:
-            for decision in self.emergency_storage:
-                queue.add_ai_decision_log(decision)
-            self.emergency_storage.clear()
-            print("✅ Emergency storage flushed to DB")
+        if self.app:
+            with self.app.app_context():
+                for decision in self.emergency_storage:
+                    try:
+                        db_data = {
+                            'id': decision['id'],
+                            'scenario': decision['scenario'],
+                            'timestamp': decision['timestamp'],  # Keep original scenario timestamp
+                            'ai_mode': 'EMERGENCY_FLUSH',
+                            'system_action': decision['action'],
+                            'system_recommendation': 'Emergency storage flush',
+                            'optimization_ratio': 0,
+                            'overall_congestion': 0,
+                            'system_health': 0,
+                            'total_decisions': 0,
+                            'total_tls_optimized': decision['optimized'],
+                            'tls_decisions': json.dumps([]),
+                            'created_at': datetime.utcnow()
+                        }
+                        
+                        if hasattr(db_queue_service, 'add_ai_decision_log'):
+                            db_queue_service.add_ai_decision_log(db_data)
+                            
+                    except Exception as e:
+                        print(f"⚠️ Failed to flush decision {decision['id']}: {e}")
+                        
+                self.emergency_storage.clear()
+                print("✅ Emergency storage flushed to DB")
+        else:
+            print("⚠️ No app context available for emergency flush")
     
     ############ Single TLS Optimization ############
     def _optimize_single_tls(self, tl_data: Dict, current_time: float) -> Dict[str, Any]:
-        """Optimize a single traffic light using AI"""
+        """Optimize a single SUMO traffic light using AI"""
         tl_id = tl_data['id']
         performance = tl_data.get('performance', {})
-        # lane_data = tl_data.get('lane_data', {})
         
-        # Extract key metrics
+        # Extract key metrics for SUMO
         waiting_vehicles = performance.get('waiting_vehicles', 0)
         efficiency = performance.get('efficiency_score', 0)
         current_phase = tl_data.get('phase', 0)
@@ -216,7 +231,6 @@ class AITrafficService:
         
         # Get traffic patterns for this TLS
         pattern_key = f"{tl_id}_{self._get_time_period(current_time)}"
-        current_pattern = self._analyze_current_pattern(tl_data, current_time)
         
         # Q-learning state
         state = self._get_state_representation(tl_data)
@@ -227,16 +241,16 @@ class AITrafficService:
         else:
             action = self._get_best_action(tl_id, state)
         
-        # Apply business rules and constraints
-        action = self._apply_business_rules(action, tl_data, current_time)
+        # Apply SUMO-specific business rules and constraints
+        action = self._apply_sumo_business_rules(action, tl_data, current_time)
         
         # Calculate expected reward
         expected_reward = self._calculate_reward(tl_data, action)
         
-        # Update Q-table if learning
+        # Update Q-table if learning - WITH UNIQUE CONSTRAINT HANDLING
         if self.is_learning:
-            scenario = tl_data.get('scenario', 'current')
-            self._update_q_table(tl_id, scenario, state, action, expected_reward)
+            scenario = tl_data.get('scenario', self.get_current_scenario())
+            self._update_q_table(tl_id, state, scenario, action, expected_reward, current_time)
 
         decision = {
             'traffic_light_id': tl_id,
@@ -246,22 +260,21 @@ class AITrafficService:
             'congestion_level': self._calculate_congestion_level(waiting_vehicles),
             'confidence': self._calculate_confidence(tl_id, state, action),
             'reasoning': self._generate_reasoning(tl_data, action, expected_reward),
-            'timestamp': current_time
+            'timestamp': current_time  # Use scenario timestamp
         }
         
         return decision
     
     ################ Helper Methods #################
     def _get_state_representation(self, tl_data: Dict) -> str:
-        """Convert TLS data to state representation for Q-learning"""
+        """Convert SUMO TLS data to state representation for Q-learning"""
         performance = tl_data.get('performance', {})
-        lane_data = tl_data.get('lane_data', {})
         
         waiting = performance.get('waiting_vehicles', 0)
         efficiency = performance.get('efficiency_score', 0)
         current_phase = tl_data.get('phase', 0)
         
-        # Discretize state
+        # Discretize state for SUMO
         waiting_level = 'LOW' if waiting < 3 else 'MEDIUM' if waiting < 8 else 'HIGH'
         efficiency_level = 'LOW' if efficiency < 60 else 'MEDIUM' if efficiency < 80 else 'HIGH'
         phase_type = tl_data.get('phase_name', 'UNKNOWN')
@@ -293,32 +306,32 @@ class AITrafficService:
     
     ################## Action Definitions #################
     def _get_available_actions(self) -> List[Dict[str, Any]]:
-        """Get available optimization actions"""
+        """Get available optimization actions for SUMO"""
         return [
             {
                 'type': 'EXTEND_GREEN',
                 'parameters': {'duration_increase': random.randint(5, 15)},
-                'description': 'Extend current green phase'
+                'description': 'Extend current green phase in SUMO'
             },
             {
                 'type': 'REDUCE_GREEN', 
                 'parameters': {'duration_decrease': random.randint(5, 10)},
-                'description': 'Reduce current green phase'
+                'description': 'Reduce current green phase in SUMO'
             },
             {
                 'type': 'SKIP_PHASE',
                 'parameters': {'phases_to_skip': 1},
-                'description': 'Skip to next phase'
+                'description': 'Skip to next phase in SUMO'
             },
             {
                 'type': 'ADJUST_CYCLE',
                 'parameters': {'cycle_adjustment': random.randint(-10, 10)},
-                'description': 'Adjust cycle time'
+                'description': 'Adjust cycle time in SUMO'
             },
             {
                 'type': 'MAINTAIN',
                 'parameters': {},
-                'description': 'Maintain current configuration'
+                'description': 'Maintain current SUMO configuration'
             }
         ]
 
@@ -333,19 +346,19 @@ class AITrafficService:
         return {
             'type': 'MAINTAIN',
             'parameters': {},
-            'description': 'Maintain current configuration'
+            'description': 'Maintain current SUMO configuration'
         }
     
     ######## Reward Calculation ########
     def _calculate_reward(self, tl_data: Dict, action: Dict) -> float:
-        """Calculate reward for action"""
+        """Calculate reward for action in SUMO context"""
         performance = tl_data.get('performance', {})
         waiting = performance.get('waiting_vehicles', 0)
         efficiency = performance.get('efficiency_score', 0)
         
         base_reward = 0
         
-        # Reward for reducing waiting vehicles
+        # Reward for reducing waiting vehicles in SUMO
         if waiting < 3:
             base_reward += 10
         elif waiting < 6:
@@ -353,7 +366,7 @@ class AITrafficService:
         elif waiting > 10:
             base_reward -= 10
         
-        # Reward for high efficiency
+        # Reward for high efficiency in SUMO
         if efficiency > 80:
             base_reward += 8
         elif efficiency > 60:
@@ -361,7 +374,7 @@ class AITrafficService:
         elif efficiency < 40:
             base_reward -= 8
         
-        # Action-specific rewards/penalties
+        # Action-specific rewards/penalties for SUMO
         if action['type'] == 'EXTEND_GREEN' and waiting > 5:
             base_reward += 5
         elif action['type'] == 'REDUCE_GREEN' and waiting < 2:
@@ -369,15 +382,15 @@ class AITrafficService:
         elif action['type'] == 'SKIP_PHASE' and efficiency < 50:
             base_reward += 4
         
-        # Penalize frequent changes
+        # Penalize frequent changes in SUMO
         if action['type'] != 'MAINTAIN':
             base_reward -= 1
         
         return base_reward
 
     ######## Q-Table Management ########
-    def _update_q_table(self, tl_id: str, state: str, scenario: str, action: Dict, reward: float):
-        """Update Q-table and store in database - PROPERLY PERSISTED"""
+    def _update_q_table(self, tl_id: str, state: str, scenario: str, action: Dict, reward: float, current_time: float):
+        """Update Q-table and store in database - UPDATED WITH UNIQUE CONSTRAINT HANDLING"""
         action_key = f"{state}_{action['type']}"
 
         # Q-learning update
@@ -389,36 +402,40 @@ class AITrafficService:
         visit_count = self.q_tables[tl_id].get(f"{action_key}_count", 0) + 1
         self.q_tables[tl_id][f"{action_key}_count"] = visit_count
 
-        # ✅ ALWAYS try to store in database with proper error handling
-        self._persist_q_table_to_db(tl_id, state, scenario, action, new_q, reward, visit_count)
+        # ✅ Store in database using db_queue_service with scenario timestamp
+        # Only store if there's a significant change to avoid duplicates
+        if abs(new_q - current_q) > 0.01:  # Only store if meaningful change
+            self._persist_q_table_to_db(tl_id, state, scenario, action, new_q, reward, visit_count, current_time)
         
-    def _persist_q_table_to_db(self, tl_id: str, scenario: str, state: str, action: Dict, q_value: float, reward: float, visit_count: int):
-        """Persist Q-table entry to database"""
+    def _persist_q_table_to_db(self, tl_id: str, state: str, scenario: str, action: Dict, q_value: float, reward: float, visit_count: int, current_time: float):
+        """Persist Q-table entry to database using db_queue_service with scenario timestamp"""
         try:
-            from app.services.db_queue import get_db_queue
-            db_queue = get_db_queue()
+            # Prepare data for AIQTable model
+            q_table_data = {
+                'traffic_light_id': tl_id,
+                'scenario': scenario,
+                'state': state,
+                'action': action['type'],
+                'q_value': q_value,
+                'visit_count': visit_count,
+                'last_reward': reward,
+            }
 
-            if db_queue and hasattr(db_queue, 'add_q_table_update'):
-                q_table_data = {
-                    'traffic_light_id': tl_id,
-                    'scenario': scenario,  # Fallback scenario
-                    'state': state,
-                    'action': action['type'],
-                    'q_value': q_value,
-                    'visit_count': visit_count,
-                    'last_reward': reward,
-                    'last_updated': datetime.utcnow()
-                }
-
-                db_queue.add_q_table_update(q_table_data)
-                print(f"💾 Q-table updated for {tl_id}: {state} -> {action['type']} (Q: {q_value:.2f})")
+            # Use db_queue_service directly WITH APP CONTEXT
+            if self.app and hasattr(db_queue_service, 'add_q_table_entry'):
+                with self.app.app_context():
+                    db_queue_service.add_q_table_entry(q_table_data)
+                    print(f"💾 Q-table updated for {tl_id}: {state} -> {action['type']} (Q: {q_value:.2f}) at scenario time: {current_time}")
+            else:
+                # Fallback to emergency storage
+                self._store_q_table_fallback(tl_id, scenario, state, action, q_value, reward, visit_count, current_time)
 
         except Exception as e:
             print(f"⚠️ Failed to persist Q-table to DB: {e}")
             # Fallback: Store in memory for later batch persistence
-            self._store_q_table_fallback(tl_id, scenario, state, action, q_value, reward, visit_count)
+            self._store_q_table_fallback(tl_id, scenario, state, action, q_value, reward, visit_count, current_time)
 
-    def _store_q_table_fallback(self, tl_id: str, scenario: str, state: str, action: Dict, q_value: float, reward: float, visit_count: int):
+    def _store_q_table_fallback(self, tl_id: str, scenario: str, state: str, action: Dict, q_value: float, reward: float, visit_count: int, current_time: float):
         """Fallback storage for Q-table when DB fails"""
         if not hasattr(self, '_q_table_pending_updates'):
             self._q_table_pending_updates = []
@@ -431,6 +448,7 @@ class AITrafficService:
             'q_value': q_value,
             'reward': reward,
             'visit_count': visit_count,
+            'scenario_timestamp': current_time,  # SUMO scenario timestamp
             'timestamp': datetime.utcnow().isoformat()
         }
 
@@ -440,89 +458,52 @@ class AITrafficService:
         if len(self._q_table_pending_updates) > 1000:
             self._q_table_pending_updates = self._q_table_pending_updates[-500:]
 
-    def _store_q_in_decision_log(self, tl_id: str, scenario: str, state: str, action: Dict, q_value: float, reward: float):
-        """Fallback: Store Q-table data in AI decision logs"""
-        try:
-            from app.services.db_queue import get_db_queue
-            db_queue = get_db_queue()
-
-            if db_queue and hasattr(db_queue, 'add_ai_decision_log'):
-                q_decision_data = {
-                    'decision_id': f"qtable_{int(time.time())}_{random.randint(1000,9999)}",
-                    'scenario': scenario,
-                    'timestamp': datetime.utcnow().timestamp(),
-                    'ai_mode': 'Q_LEARNING',
-                    'system_action': f"Q_UPDATE_{tl_id}",
-                    'system_recommendation': f"State: {state}, Action: {action['type']}, Q: {q_value:.2f}",
-                    'overall_congestion': 0,
-                    'system_health': 0,
-                    'total_tls_optimized': 0,
-                    'tls_decisions': json.dumps([{
-                        'traffic_light_id': tl_id,
-                        'state': state,
-                        'action': action['type'],
-                        'q_value': q_value,
-                        'reward': reward
-                    }]),
-                    'created_at': datetime.utcnow()
-                }
-                db_queue.add_ai_decision_log(q_decision_data)
-
-        except Exception as e:
-            print(f"⚠️ Failed to store Q-data in decision log: {e}")
-    
     def flush_pending_q_updates(self):
-        """Flush pending Q-table updates using individual inserts"""
+        """Flush pending Q-table updates using db_queue_service"""
         if not hasattr(self, '_q_table_pending_updates') or not self._q_table_pending_updates:
             return
 
         print(f"🔄 Flushing {len(self._q_table_pending_updates)} pending Q-table updates...")
 
         success_count = 0
-        from app.services.db_queue import get_db_queue
-        db_queue = get_db_queue()
-
-        if not db_queue:
-            print("⚠️ No database queue available")
+        
+        if not db_queue_service:
+            print("⚠️ No database queue service available")
             return
 
-        for update in self._q_table_pending_updates[:]:  # Iterate over copy
+        for update in self._q_table_pending_updates[:]:
             try:
-                # Try to insert each update individually
+                # Prepare data for AIQTable model
                 q_data = {
                     'traffic_light_id': update['traffic_light_id'],
-                    'scenario': update['scenario'],  # Fallback scenario
+                    'scenario': update['scenario'],
                     'state': update['state'],
                     'action': update['action'],
                     'q_value': update['q_value'],
                     'visit_count': update['visit_count'],
                     'last_reward': update['reward'],
-                    'last_updated': datetime.utcnow()
+                    # 'last_updated': datetime.utcnow()
                 }
 
-                # Try different method names
-                if hasattr(db_queue, 'add_q_table_entry'):
-                    db_queue.add_q_table_entry(q_data)
-                    success_count += 1
-                    self._q_table_pending_updates.remove(update)
-                elif hasattr(db_queue, 'add_ai_q_table'):
-                    db_queue.add_ai_q_table(q_data)
+                # Use db_queue_service method
+                if hasattr(db_queue_service, 'add_q_table_entry'):
+                    db_queue_service.add_q_table_entry(q_data)
                     success_count += 1
                     self._q_table_pending_updates.remove(update)
 
             except Exception as e:
                 print(f"⚠️ Failed to flush Q-update for {update['traffic_light_id']}: {e}")
-
+        
         print(f"✅ Flushed {success_count} Q-table updates to database")
         print(f"📊 Remaining in queue: {len(self._q_table_pending_updates)}")
     
-    ###### Business Rules and Constraints ######
-    def _apply_business_rules(self, action: Dict, tl_data: Dict, current_time: float) -> Dict:
-        """Apply business rules and constraints to actions"""
+    ###### SUMO Business Rules and Constraints ######
+    def _apply_sumo_business_rules(self, action: Dict, tl_data: Dict, current_time: float) -> Dict:
+        """Apply SUMO-specific business rules and constraints to actions"""
         phase_duration = tl_data.get('phase_duration', 0)
         current_phase = tl_data.get('phase_name', '')
         
-        # Rule: Don't extend green beyond 60 seconds
+        # Rule: Don't extend green beyond 60 seconds in SUMO
         if action['type'] == 'EXTEND_GREEN':
             max_extension = 60 - phase_duration
             if max_extension <= 0:
@@ -532,22 +513,22 @@ class AITrafficService:
                 max_extension
             )
         
-        # Rule: Don't reduce green below minimum duration
+        # Rule: Don't reduce green below minimum duration in SUMO
         elif action['type'] == 'REDUCE_GREEN':
             min_duration = 10
             if phase_duration - action['parameters']['duration_decrease'] < min_duration:
                 return self._get_default_action()
         
-        # Rule: Don't skip pedestrian phases during peak hours
+        # Rule: Don't skip pedestrian phases during peak hours in SUMO
         elif action['type'] == 'SKIP_PHASE' and 'PEDESTRIAN' in current_phase:
             if self._is_peak_hour(current_time):
                 return self._get_default_action()
         
         return action
     
-    #####Congestion and Confidence Calculation #####
+    ##### Congestion and Confidence Calculation #####
     def _calculate_congestion_level(self, waiting_vehicles: int) -> int:
-        """Calculate congestion level (0-10 scale)"""
+        """Calculate congestion level (0-10 scale) for SUMO"""
         if waiting_vehicles < 3:
             return 2
         elif waiting_vehicles < 6:
@@ -568,7 +549,7 @@ class AITrafficService:
     
     ############## Human Reasoning Generation ##############
     def _generate_reasoning(self, tl_data: Dict, action: Dict, reward: float) -> str:
-        """Generate human-readable reasoning for decision"""
+        """Generate human-readable reasoning for SUMO decision"""
         performance = tl_data.get('performance', {})
         waiting = performance.get('waiting_vehicles', 0)
         efficiency = performance.get('efficiency_score', 0)
@@ -580,25 +561,25 @@ class AITrafficService:
                 reasons.append(f"High congestion ({waiting} waiting vehicles)")
             if efficiency < 60:
                 reasons.append("Low efficiency score")
-            reasons.append("Extending green to clear backlog")
+            reasons.append("Extending green to clear backlog in SUMO")
         
         elif action['type'] == 'REDUCE_GREEN':
             if waiting < 3:
-                reasons.append("Low congestion - optimizing cycle time")
+                reasons.append("Low congestion - optimizing SUMO cycle time")
             if efficiency > 80:
-                reasons.append("High efficiency - minor adjustment")
+                reasons.append("High efficiency - minor SUMO adjustment")
         
         elif action['type'] == 'SKIP_PHASE':
-            reasons.append("Inefficient phase detected - skipping to improve flow")
+            reasons.append("Inefficient phase detected - skipping to improve SUMO flow")
         
         elif action['type'] == 'MAINTAIN':
-            reasons.append("Current configuration performing optimally")
+            reasons.append("Current SUMO configuration performing optimally")
         
         return "; ".join(reasons) if reasons else "No specific reasoning available"
     
     ################ System-Level Decision Making ################
     def _make_system_decision(self, decisions: List[Dict], avg_congestion: float, system_health: float) -> Dict[str, Any]:
-        """Make system-level optimization decision"""
+        """Make system-level optimization decision for SUMO"""
         # Count optimization actions
         optimization_actions = len([d for d in decisions if d['action'] != 'MAINTAIN'])
         total_decisions = len(decisions)
@@ -608,13 +589,13 @@ class AITrafficService:
         # Determine system action based on metrics
         if avg_congestion > 7 and system_health < 0.6:
             system_action = 'AGGRESSIVE_OPTIMIZATION'
-            recommendation = 'Apply aggressive optimization to reduce congestion'
+            recommendation = 'Apply aggressive optimization to reduce SUMO congestion'
         elif avg_congestion > 5 or optimization_ratio > 0.3:
             system_action = 'BALANCED_OPTIMIZATION'
-            recommendation = 'Continue balanced optimization approach'
+            recommendation = 'Continue balanced SUMO optimization approach'
         else:
             system_action = 'MINIMAL_INTERVENTION'
-            recommendation = 'System performing well - minimal intervention needed'
+            recommendation = 'SUMO system performing well - minimal intervention needed'
         
         return {
             'system_action': system_action,
@@ -626,7 +607,7 @@ class AITrafficService:
     
     ################ System Health Calculation ################
     def _calculate_system_health(self, decisions: List[Dict]) -> float:
-        """Calculate overall system health (0-1 scale)"""
+        """Calculate overall SUMO system health (0-1 scale)"""
         if not decisions:
             return 1.0
         
@@ -642,7 +623,7 @@ class AITrafficService:
 
     ##### Get Time Period #####
     def _get_time_period(self, current_time: float) -> str:
-        """Convert simulation time to time period - ENHANCED"""
+        """Convert SUMO simulation time to time period"""
         hour = (current_time // 3600) % 24
         minute = (current_time // 60) % 60
 
@@ -672,381 +653,146 @@ class AITrafficService:
             return self.current_scenario
     
     def set_current_scenario(self, scenario: str):
-        """Set the current scenario for all operations"""
+        """Set the current scenario for all SUMO operations"""
         self.current_scenario = scenario
-        print(f"🎯 Scenario set to: {scenario}")
-    
-    ############################# Traffic Pattern Analysis ########################
-    def _analyze_current_pattern(self, tl_data: Dict, current_time: float) -> Dict[str, Any]:
-        """Enhanced traffic pattern analysis with proper numeric values"""
-        performance = tl_data.get('performance', {})
-        waiting = performance.get('avg_waiting_vehicles', 0)
-        efficiency = performance.get('efficiency_score', 0)  # This should be a number
-        tl_id = tl_data['id']
-
-        # Enhanced pattern analysis
-        time_period = self._get_time_period(current_time)
-        pattern_key = f"{tl_id}_{time_period}"
-
-        # Detect trends from recent patterns
-        trend_analysis = self._detect_pattern_trends(pattern_key, waiting, efficiency)
-
-        pattern_data = {
-            'traffic_light_id': tl_id,
-            'waiting_trend': trend_analysis['waiting_trend'],
-            'avg_efficiency': trend_analysis['avg_efficiency'],  # String trend
-            'avg_efficiency': float(efficiency),  # ← NUMERIC VALUE, not string
-            'time_period': time_period,
-            'congestion_probability': self._calculate_congestion_level(waiting),
-            'avg_waiting_vehicles': waiting,
-            'efficiency_score': float(efficiency),  # ← NUMERIC VALUE
-            'created_at': datetime.utcnow(),
-            'pattern_strength': trend_analysis['pattern_strength']
-        }
-
-        # Store in memory patterns
-        scenario = self.get_current_scenario()
-        self.traffic_patterns[pattern_key].append(pattern_data)
-
-        # Store in database using existing methods
-        self._store_traffic_pattern(tl_id, scenario, pattern_data)
-
-        return pattern_data
-    
-    def _store_traffic_pattern(self, tl_id: str, scenario: str, pattern_data: Dict):
-        """Store traffic pattern in database"""
-        try:
-            from app.services.db_queue import get_db_queue
-            db_queue = get_db_queue()
-            
-            current_time = datetime.utcnow()
-
-            if db_queue and hasattr(db_queue, 'add_traffic_pattern'):
-                pattern_db_data = {
-                    'traffic_light_id': tl_id,
-                    'scenario': scenario,
-                    'pattern_type': pattern_data.get('pattern_type', 'UNKNOWN'),
-                    'time_period': pattern_data['time_period'],
-                    'day_of_week': current_time.weekday(),
-                    'hour_of_day': current_time.hour,
-                    'avg_vehicle_count': pattern_data.get('avg_vehicle_count', 0),
-                    'avg_waiting_vehicles': pattern_data.get('avg_waiting_vehicles', 0),
-                    'avg_efficiency': pattern_data['avg_efficiency'],
-                    'congestion_probability': pattern_data['congestion_probability'],
-                    'recommended_phase_duration': pattern_data.get('recommended_phase_duration', 0),
-                    'recommended_cycle_time': pattern_data.get('recommended_cycle_time'),
-                    "optimal_actions": pattern_data.get("optimal_actions"),
-                    'confidence_score': pattern_data.get('confidence_score'),
-                    'pattern_strength': pattern_data.get('pattern_strength'),
-                    'sample_size': pattern_data.get('sample_size'),
-                    'last_observed': pattern_data.get('last_observed', current_time),
-                    'waiting_trend': pattern_data['waiting_trend'],
-                    'created_at': current_time
-                }
-                db_queue.add_traffic_pattern(pattern_db_data)
-                print(f"📊 Traffic pattern stored: {tl_id} - {pattern_data['time_period']}")
-
-        except Exception as e:
-            print(f"⚠️ Failed to store traffic pattern: {e}")
-            # Fallback: Store in memory
-            self._store_pattern_fallback(tl_id, scenario, pattern_data)
-
-    def _store_pattern_fallback(self, tl_id: str, scenario: str, pattern_data: Dict):
-        """Fallback storage for traffic patterns"""
-        if not hasattr(self, '_pending_patterns'):
-            self._pending_patterns = []
-
-        pending_pattern = {
-            'traffic_light_id': tl_id,
-            'scenario': scenario,
-            **pattern_data,
-            'stored_at': datetime.utcnow().isoformat()
-        }
-
-        self._pending_patterns.append(pending_pattern)
-
-        # Keep only recent patterns
-        if len(self._pending_patterns) > 500:
-            self._pending_patterns = self._pending_patterns[-250:]
-
-    def flush_pending_patterns(self):
-        """Flush pending traffic patterns to database"""
-        if not hasattr(self, '_pending_patterns') or not self._pending_patterns:
-            return
-        
-        print(f"🔄 Flushing {len(self._pending_patterns)} pending traffic patterns...")
-        
-        success_count = 0
-        from app.services.db_queue import get_db_queue
-        db_queue = get_db_queue()
-        
-        if not db_queue:
-            print("⚠️ No database queue available for patterns")
-            return
-            
-        for pattern in self._pending_patterns[:]:
-            try:
-                # Extract the separate parameters
-                tl_id = pattern['traffic_light_id']
-                scenario = pattern['scenario']
-                pattern_data = {k: v for k, v in pattern.items() if k not in ['traffic_light_id', 'scenario', 'stored_at']}
-
-                # Use the updated _store_traffic_pattern method
-                self._store_traffic_pattern(tl_id, scenario, pattern_data)
-                success_count += 1
-                self._pending_patterns.remove(pattern)
-
-            except Exception as e:
-                print(f"⚠️ Failed to flush pattern for {pattern['traffic_light_id']}: {e}")
-        
-        print(f"✅ Flushed {success_count} traffic patterns to database")
-    
-    def get_pattern_analysis(self, tl_id: str = None) -> Dict[str, Any]:
-        """Get traffic pattern analysis summary"""
-        patterns_to_analyze = {}
-
-        if tl_id:
-            # Analyze specific TLS
-            for pattern_key, pattern_list in self.traffic_patterns.items():
-                if pattern_key.startswith(tl_id):
-                    patterns_to_analyze[pattern_key] = pattern_list
-        else:
-            # Analyze all patterns
-            patterns_to_analyze = dict(self.traffic_patterns)
-
-        analysis = {}
-        for pattern_key, patterns in patterns_to_analyze.items():
-            if not patterns:
-                continue
-
-            recent_patterns = list(patterns)[-50:]  # Last 50 patterns
-
-            analysis[pattern_key] = {
-                'total_patterns': len(recent_patterns),
-                'avg_congestion': sum(p['congestion_probability'] for p in recent_patterns) / len(recent_patterns),
-                'common_waiting_trend': max(set(p['waiting_trend'] for p in recent_patterns), 
-                                          key=lambda x: list(p['waiting_trend'] for p in recent_patterns).count(x)),
-                'common_avg_efficiency': max(set(p['avg_efficiency'] for p in recent_patterns), 
-                                             key=lambda x: list(p['avg_efficiency'] for p in recent_patterns).count(x)),
-                'last_updated': recent_patterns[-1]['created_at'] if recent_patterns else None
-            }
-
-        return analysis
-    
-    def _detect_pattern_trends(self, pattern_key: str, current_waiting: int, current_efficiency: float) -> Dict[str, Any]:
-        """Detect trends from recent pattern history"""
-        recent_patterns = list(self.traffic_patterns[pattern_key])[-5:]  # Last 5 patterns
-
-        if len(recent_patterns) < 3:
-            # Not enough data, use current state
-            waiting_trend = 'INCREASING' if current_waiting > 5 else 'STABLE' if current_waiting > 2 else 'DECREASING'
-
-            # Convert numeric efficiency to string trend
-            if current_efficiency > 80:
-                avg_efficiency = 'HIGH'
-            elif current_efficiency > 60:
-                avg_efficiency = 'MEDIUM'
-            else:
-                avg_efficiency = 'LOW'
-
-            pattern_strength = 'WEAK'
-        else:
-            # Analyze trends from history
-            waiting_values = [p.get('waiting_vehicles', 0) for p in recent_patterns]
-            efficiency_values = [p.get('efficiency_score', 0) for p in recent_patterns]
-
-            # Calculate trends
-            waiting_change = waiting_values[-1] - waiting_values[0]
-            efficiency_change = efficiency_values[-1] - efficiency_values[0]
-
-            # Determine waiting trends
-            if waiting_change > 2:
-                waiting_trend = 'INCREASING'
-            elif waiting_change < -2:
-                waiting_trend = 'DECREASING'
-            else:
-                waiting_trend = 'STABLE'
-
-            # Determine efficiency trends
-            if efficiency_change > 10:
-                avg_efficiency = 'IMPROVING'
-            elif efficiency_change < -10:
-                avg_efficiency = 'DECLINING'
-            else:
-                # Convert current efficiency to trend category
-                current_eff = efficiency_values[-1] if efficiency_values else current_efficiency
-                if current_eff > 80:
-                    avg_efficiency = 'HIGH'
-                elif current_eff > 60:
-                    avg_efficiency = 'MEDIUM'
-                else:
-                    avg_efficiency = 'LOW'
-
-            pattern_strength = 'STRONG' if abs(waiting_change) > 3 or abs(efficiency_change) > 15 else 'MODERATE'
-
-        return {
-            'waiting_trend': waiting_trend,
-            'avg_efficiency': avg_efficiency,
-            'pattern_strength': pattern_strength
-        }
+        print(f"🎯 SUMO Scenario set to: {scenario}")
     
     def _is_peak_hour(self, current_time: float) -> bool:
-        """Check if current time is peak hour"""
+        """Check if current time is peak hour in SUMO"""
         hour = (current_time // 3600) % 24
         return (7 <= hour < 10) or (16 <= hour < 19)
     
     def _get_default_decision(self) -> Dict[str, Any]:
-        """Get default decision when optimization fails"""
+        """Return default decision when optimization fails"""
         return {
-            'timestamp': datetime.utcnow().timestamp(),
+            'timestamp': time.time(),
             'decisions': [],
             'system_decision': {
                 'system_action': 'MAINTAIN',
-                'recommendation': 'No optimization - system in maintenance mode',
+                'recommendation': 'No optimization - default behavior',
                 'optimization_ratio': 0,
                 'avg_congestion': 0,
                 'system_health': 1.0
             },
             'overall_congestion': 0,
             'system_health': 1.0,
-            'ai_mode': self.current_mode,
+            'ai_mode': 'DEFAULT',
             'total_tls_optimized': 0
         }
     
-    # AI Management Methods
-    def set_optimization_mode(self, mode: str):
-        """Set AI optimization mode"""
-        if mode.upper() in self.optimization_modes:
-            self.current_mode = mode.upper()
-            print(f"✅ AI mode set to: {self.current_mode}")
-        else:
-            print(f"⚠️ Invalid AI mode: {mode}")
-    
-    def enable_learning(self):
-        """Enable Q-learning"""
-        self.is_learning = True
-        print("✅ AI learning enabled")
-    
-    def disable_learning(self):
-        """Disable Q-learning (deployment mode)"""
-        self.is_learning = False
-        print("✅ AI learning disabled - deployment mode")
-    
-    def get_ai_status(self) -> Dict[str, Any]:
-        """Get AI system status"""
-        total_states = sum(len(q_table) for q_table in self.q_tables.values())
-        total_decisions = len(self.optimization_decisions)
+    ############################# Performance Tracking ########################
+    def track_performance(self, decision_data: Dict, actual_outcome: Dict):
+        """Track performance of AI decisions for SUMO"""
+        expected_health = decision_data['system_health']
+        actual_health = actual_outcome.get('system_health', 0)
         
-        recent_decisions = list(self.optimization_decisions)[-10:]
-        optimization_rate = sum(1 for d in recent_decisions if d['total_tls_optimized'] > 0) / 10 if recent_decisions else 0
+        performance_diff = actual_health - expected_health
+        
+        performance_record = {
+            'timestamp': time.time(),
+            'expected_health': expected_health,
+            'actual_health': actual_health,
+            'performance_diff': performance_diff,
+            'total_decisions': len(decision_data['decisions']),
+            'optimized_tls': decision_data['total_tls_optimized'],
+            'ai_mode': decision_data['ai_mode']
+        }
+        
+        self.performance_history.append(performance_record)
+        
+        # Store performance in database using db_queue_service
+        self._store_performance_metric(performance_record)
+    
+    def _store_performance_metric(self, performance_record: Dict):
+        """Store performance metric using db_queue_service"""
+        try:
+            # Prepare data for performance tracking
+            metric_data = {
+                'timestamp': datetime.utcnow(),
+                'expected_health': performance_record['expected_health'],
+                'actual_health': performance_record['actual_health'],
+                'performance_diff': performance_record['performance_diff'],
+                'total_decisions': performance_record['total_decisions'],
+                'optimized_tls': performance_record['optimized_tls'],
+                'ai_mode': performance_record['ai_mode'],
+                'scenario': self.get_current_scenario()
+            }
+            
+            # Use db_queue_service if available
+            if hasattr(db_queue_service, 'add_performance_metric'):
+                db_queue_service.add_performance_metric(metric_data)
+            else:
+                print(f"⚠️ db_queue_service.add_performance_metric not available")
+                
+        except Exception as e:
+            print(f"⚠️ Failed to store SUMO performance metric: {e}")
+    
+    def get_performance_stats(self) -> Dict[str, Any]:
+        """Get performance statistics for SUMO AI optimization"""
+        if not self.performance_history:
+            return {
+                'avg_performance_diff': 0,
+                'success_rate': 0,
+                'total_decisions_tracked': 0,
+                'avg_optimization_ratio': 0
+            }
+        
+        performance_diffs = [p['performance_diff'] for p in self.performance_history]
+        successful_decisions = len([p for p in performance_diffs if p >= 0])
         
         return {
-            'learning_enabled': self.is_learning,
-            'current_mode': self.current_mode,
-            'exploration_rate': self.exploration_rate,
-            'total_tls_tracked': len(self.q_tables),
-            'total_states_learned': total_states,
-            'total_decisions_made': total_decisions,
-            'recent_optimization_rate': round(optimization_rate, 2),
-            'performance_history_size': len(self.performance_history)
+            'avg_performance_diff': sum(performance_diffs) / len(performance_diffs),
+            'success_rate': successful_decisions / len(performance_diffs),
+            'total_decisions_tracked': len(self.performance_history),
+            'avg_optimization_ratio': sum(p['optimized_tls'] for p in self.performance_history) / len(self.performance_history)
         }
     
-    # def train_on_historical_data(self, days: int = 7):
-    #     """Train AI on historical data"""
-    #     if not self.app:
-    #         return {"success": False, "error": "No app context"}
-        
-    #     try:
-    #         with self.app.app_context():
-    #             # Get historical data
-    #             since_time = datetime.utcnow() - timedelta(days=days)
-    #             historical_logs = TrafficLightLog.query.filter(
-    #                 TrafficLightLog.created_at >= since_time
-    #             ).order_by(TrafficLightLog.created_at).all()
-                
-    #             print(f"🤖 Training AI on {len(historical_logs)} historical records...")
-                
-    #             # Group logs by TLS and time
-    #             tls_groups = defaultdict(list)
-    #             for log in historical_logs:
-    #                 tls_groups[log.traffic_light_id].append(log)
-                
-    #             # Train on each TLS
-    #             trained_count = 0
-    #             for tl_id, logs in tls_groups.items():
-    #                 if self._train_on_tls_history(tl_id, logs):
-    #                     trained_count += 1
-                
-    #             return {
-    #                 "success": True,
-    #                 "trained_tls_count": trained_count,
-    #                 "total_logs_processed": len(historical_logs),
-    #                 "message": f"AI trained on {trained_count} traffic lights"
-    #             }
-                
-    #     except Exception as e:
-    #         return {"success": False, "error": str(e)}
+    ############################# Configuration Management ########################
+    def set_learning_mode(self, enabled: bool):
+        """Enable or disable AI learning mode for SUMO"""
+        self.is_learning = enabled
+        mode = "ENABLED" if enabled else "DISABLED"
+        print(f"🎛️ SUMO AI Learning mode: {mode}")
     
-    # def _train_on_tls_history(self, tl_id: str, logs: List[TrafficLightLog]) -> bool:
-    #     """Train Q-learning on historical data for a TLS"""
-    #     try:
-    #         # Sort logs by time
-    #         logs.sort(key=lambda x: x.created_at)
-            
-    #         # Process in sequences
-    #         for i in range(len(logs) - 1):
-    #             current_log = logs[i]
-    #             next_log = logs[i + 1]
-                
-    #             # Create state representation
-    #             state = self._get_state_from_log(current_log)
-                
-    #             # Infer action (simplified - in reality would need action history)
-    #             action = self._infer_action_from_logs(current_log, next_log)
-                
-    #             # Calculate reward
-    #             reward = self._calculate_reward_from_logs(current_log, next_log)
-                
-    #             # Update Q-table
-    #             if state and action:
-    #                 action_key = f"{state}_{action['type']}"
-    #                 current_q = self.q_tables[tl_id].get(action_key, 0)
-    #                 new_q = current_q + self.learning_rate * (reward - current_q)
-    #                 self.q_tables[tl_id][action_key] = new_q
-            
-    #         return True
-            
-    #     except Exception as e:
-    #         print(f"❌ Training error for {tl_id}: {e}")
-    #         return False
+    def set_optimization_mode(self, mode: str):
+        """Set optimization mode for SUMO"""
+        if mode in self.optimization_modes:
+            self.current_mode = mode
+            print(f"🎛️ SUMO Optimization mode set to: {mode}")
+        else:
+            print(f"⚠️ Invalid SUMO optimization mode: {mode}")
     
-    # def _get_state_from_log(self, log: TrafficLightLog) -> str:
-    #     """Get state representation from log"""
-    #     waiting_level = 'LOW' if log.waiting_vehicles < 3 else 'MEDIUM' if log.waiting_vehicles < 8 else 'HIGH'
-    #     efficiency_level = 'LOW' if (log.efficiency_score or 0) < 60 else 'MEDIUM' if (log.efficiency_score or 0) < 80 else 'HIGH'
+    def update_parameters(self, learning_rate: float = None, discount_factor: float = None, 
+                         exploration_rate: float = None):
+        """Update AI learning parameters for SUMO"""
+        if learning_rate is not None:
+            self.learning_rate = max(0.01, min(1.0, learning_rate))
+        if discount_factor is not None:
+            self.discount_factor = max(0.1, min(0.99, discount_factor))
+        if exploration_rate is not None:
+            self.exploration_rate = max(0.05, min(0.5, exploration_rate))
         
-    #     return f"{waiting_level}_{efficiency_level}_{log.phase_name}"
+        print(f"🔄 SUMO AI Parameters updated - LR: {self.learning_rate}, DF: {self.discount_factor}, ER: {self.exploration_rate}")
     
-    # def _infer_action_from_logs(self, current_log: TrafficLightLog, next_log: TrafficLightLog) -> Optional[Dict]:
-    #     """Infer action from consecutive logs (simplified)"""
-    #     # This is a simplified inference - real implementation would need action logs
-    #     phase_change = next_log.phase - current_log.phase
+    ############################# System Maintenance ########################
+    def flush_all_pending_data(self):
+        """Flush all pending data to database using db_queue_service"""
+        print("🔄 Flushing ALL pending SUMO AI data to database...")
         
-    #     if phase_change != 0:
-    #         return {'type': 'SKIP_PHASE', 'parameters': {'phases_to_skip': phase_change}}
-    #     else:
-    #         return self._get_default_action()
+        self.flush_emergency_storage()
+        self.flush_pending_q_updates()
+        # self.flush_pending_patterns()
+        
+        print("✅ All pending SUMO AI data flushed to database")
     
-    # def _calculate_reward_from_logs(self, current_log: TrafficLightLog, next_log: TrafficLightLog) -> float:
-    #     """Calculate reward from consecutive logs"""
-    #     waiting_improvement = (current_log.waiting_vehicles or 0) - (next_log.waiting_vehicles or 0)
-    #     efficiency_improvement = (next_log.efficiency_score or 0) - (current_log.efficiency_score or 0)
+    def reset_learning(self):
+        """Reset AI learning for SUMO (clear Q-tables)"""
+        self.q_tables.clear()
+        self.performance_history.clear()
+        self.optimization_decisions.clear()
+        self.traffic_patterns.clear()
         
-    #     return waiting_improvement * 2 + efficiency_improvement * 0.5
+        print("🔄 SUMO AI Learning reset - all Q-tables and history cleared")
 
 # Global instance
 ai_traffic_service = AITrafficService()
-
-def init_ai_traffic_service(app):
-    """Initialize AI traffic service"""
-    ai_traffic_service.init_app(app)

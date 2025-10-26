@@ -1,14 +1,16 @@
+from random import random
 import threading
 import time
 from collections import deque
 from datetime import datetime
 from app.extensions import db
-from app.models.traffic_light import TrafficLightLog, TrafficPattern
-from app.models.ai import AIQTable, AIDecisionLog
 import json
 from sqlalchemy import and_
 from typing import Dict
 import uuid
+
+from app.models.traffic_light import TrafficLightLog, TrafficPattern
+from app.models.ai import AIQTable, AIDecisionLog
 
 class DatabaseQueueService:
     """
@@ -28,6 +30,12 @@ class DatabaseQueueService:
             'average_flush_time': 0
         }
         
+        # AI-specific queues for better organization
+        self.ai_decision_queue = deque(maxlen=500)
+        self.q_table_queue = deque(maxlen=1000)
+        self.traffic_pattern_queue = deque(maxlen=500)
+        self.performance_metric_queue = deque(maxlen=300)
+        
         # Start background flusher
         self._start_background_flusher()
     
@@ -46,6 +54,7 @@ class DatabaseQueueService:
         thread = threading.Thread(target=flusher, daemon=True)
         thread.start()
     
+    # Traffic Log
     def add_traffic_light_log(self, log_data: Dict):
         """Queue traffic light log for async writing"""
         operation = {
@@ -60,6 +69,7 @@ class DatabaseQueueService:
         if len(self.queue) >= 50:
             self.flush_queue()
     
+    # Traffic Pattern
     def add_traffic_pattern(self, pattern_data: Dict):
         """Queue traffic pattern for async writing"""
         operation = {
@@ -74,6 +84,79 @@ class DatabaseQueueService:
         if len(self.queue) >= 50:
             self.flush_queue()
     
+    # AI Decision Log
+    def add_ai_decision_log(self, decision_data: Dict):
+        """Queue AI decision log for async writing"""
+        operation = {
+            'type': 'ai_decision_log',
+            'data': decision_data,
+            'timestamp': datetime.utcnow()
+        }
+        self.queue.append(operation)
+        self.stats['operations_queued'] += 1
+
+        # Auto-flush if queue is getting large
+        if len(self.queue) >= 50:
+            self.flush_queue()
+    
+    # Q-Table Entry
+    def add_q_table_entry(self, q_table_data: Dict):
+        """Queue Q-table entry for async writing"""
+        operation = {
+            'type': 'ai_q_table',
+            'data': q_table_data,
+            'timestamp': datetime.utcnow()
+        }
+        self.queue.append(operation)
+        self.stats['operations_queued'] += 1
+
+        # Auto-flush if queue is getting large
+        if len(self.queue) >= 50:
+            self.flush_queue()
+    
+    # Performance Metric
+    def add_performance_metric(self, performance_data: Dict):
+        """Queue AI performance metric for async writing"""
+        operation = {
+            'type': 'ai_performance_metric',
+            'data': performance_data,
+            'timestamp': datetime.utcnow()
+        }
+        self.queue.append(operation)
+        self.stats['operations_queued'] += 1
+
+        # Auto-flush if queue is getting large
+        if len(self.queue) >= 50:
+            self.flush_queue()
+            
+    def add_ai_training_log(self, training_data: Dict):
+        """Queue AI training log for async writing"""
+        operation = {
+            'type': 'ai_training_log',
+            'data': training_data,
+            'timestamp': datetime.utcnow()
+        }
+        self.queue.append(operation)
+        self.stats['operations_queued'] += 1
+
+        # Auto-flush if queue is getting large
+        if len(self.queue) >= 50:
+            self.flush_queue()
+    
+    # AI Decision Existence Check
+    # def check_decision_exists(self, decision_id: str) -> bool:
+    #     """Check if AI decision already exists in database - INTEGRATION POINT 5"""
+    #     if not self.app:
+    #         return False
+            
+    #     try:
+    #         with self.app.app_context():
+    #             existing_decision = AIDecisionLog.query.filter_by(id=decision_id).first()
+    #             return existing_decision is not None
+    #     except Exception as e:
+    #         print(f"⚠️ Error checking decision existence: {e}")
+    #         return False
+    
     def flush_queue(self):
         """Flush all queued operations to database"""
         if not self.queue or not self.app:
@@ -85,11 +168,19 @@ class DatabaseQueueService:
 
         try:
             with self.app.app_context():
+                
+                # Ensure we start with a clean session state
+                db.session.rollback()
+                
                 operations = list(self.queue)
                 print(f"🔍 flush_queue: Processing {len(operations)} operations")
 
                 traffic_light_logs = []
                 traffic_patterns = []
+                ai_decision_logs = []
+                ai_q_tables = []
+                ai_performance_metrics = []
+                ai_training_logs = []
 
                 processed_count = 0
                 error_count = 0
@@ -126,7 +217,7 @@ class DatabaseQueueService:
                             pattern_data = op['data']
 
                             pattern_entry = TrafficPattern(
-                                id=pattern_data.get('id', str(uuid.uuid4())),  # ← ADD ID HERE TOO
+                                id=pattern_data.get('id', str(uuid.uuid4())),
                                 traffic_light_id=pattern_data['traffic_light_id'],
                                 scenario=pattern_data.get('scenario'),
                                 interval_start=pattern_data.get('interval_start', datetime.utcnow()),
@@ -143,6 +234,81 @@ class DatabaseQueueService:
                             processed_count += 1
                             print(f"✅ Created pattern entry for {pattern_data['traffic_light_id']}")
 
+                        elif op['type'] == 'ai_decision_log':
+                            decision_data = op['data']
+                            
+                            # Convert timestamp to float if it's a datetime object
+                            timestamp = decision_data.get('timestamp')
+                            if isinstance(timestamp, datetime):
+                                timestamp = timestamp.timestamp()
+                            elif timestamp is None:
+                                timestamp = time.time()
+
+                            decision_entry = AIDecisionLog(
+                                id=decision_data.get('id', str(uuid.uuid4())),
+                                decision_id=decision_data['decision_id'],
+                                scenario=decision_data.get('scenario', 'default'),
+                                timestamp=timestamp,
+                                ai_mode=decision_data.get('ai_mode', 'BALANCED'),
+                                system_action=decision_data.get('system_action', 'MAINTAIN'),
+                                system_recommendation=decision_data.get('system_recommendation', ''),
+                                optimization_ratio=decision_data.get('optimization_ratio', 0),
+                                overall_congestion=decision_data.get('overall_congestion', 0),
+                                system_health=decision_data.get('system_health', 0),
+                                total_decisions=decision_data.get('total_decisions', 0),
+                                total_tls_optimized=decision_data.get('total_tls_optimized', 0),
+                                tls_decisions=decision_data.get('tls_decisions', '[]'),
+                                created_at=decision_data.get('created_at', datetime.utcnow())
+                            )
+
+                            ai_decision_logs.append(decision_entry)
+                            processed_count += 1
+                            print(f"✅ Created AI decision log for scenario {decision_data.get('scenario', 'default')}")
+
+                        elif op['type'] == 'ai_q_table':
+                            q_data = op['data']
+
+                            try:
+                                # Individual transaction for each Q-table update
+                                existing_entry = AIQTable.query.filter_by(
+                                    traffic_light_id=q_data['traffic_light_id'],
+                                    scenario=q_data.get('scenario', 'default'),
+                                    state=q_data['state'],
+                                    action=q_data['action']
+                                ).first()
+
+                                if existing_entry:
+                                    # UPDATE
+                                    existing_entry.q_value = float(q_data.get('q_value', existing_entry.q_value))
+                                    existing_entry.visit_count = int(q_data.get('visit_count', existing_entry.visit_count + 1))
+                                    existing_entry.last_reward = float(q_data.get('last_reward', existing_entry.last_reward))
+                                    # existing_entry.last_updated = q_data.get('last_updated', datetime.utcnow())
+                                    print(f"🔄 Updated Q-table: {q_data['traffic_light_id']}")
+                                else:
+                                    # INSERT
+                                    q_entry = AIQTable(
+                                        id=str(uuid.uuid4()),
+                                        traffic_light_id=q_data['traffic_light_id'],
+                                        scenario=q_data.get('scenario', 'default'),
+                                        state=q_data['state'],
+                                        action=q_data['action'],
+                                        q_value=float(q_data.get('q_value', 0)),
+                                        visit_count=int(q_data.get('visit_count', 0)),
+                                        last_reward=float(q_data.get('last_reward', 0)),
+                                        # last_updated=q_data.get('last_updated', datetime.utcnow())
+                                    )
+                                    db.session.add(q_entry)
+                                    print(f"✅ Created Q-table: {q_data['traffic_light_id']}")
+
+                                # COMMIT IMMEDIATELY for this operation
+                                db.session.commit()
+                                processed_count += 1
+
+                            except Exception as e:
+                                print(f"❌ Q-table operation failed: {e}")
+                                db.session.rollback()
+                                error_count += 1
+
                     except Exception as op_error:
                         print(f"❌ Error processing operation {i}: {op_error}")
                         import traceback
@@ -151,7 +317,7 @@ class DatabaseQueueService:
                         continue
                     
                 # Debug: Check what we're about to save
-                print(f"🔍 About to save: {len(traffic_light_logs)} TLS logs, {len(traffic_patterns)} patterns")
+                print(f"🔍 About to save: {len(traffic_light_logs)} TLS logs, {len(traffic_patterns)} patterns, {len(ai_decision_logs)} AI decisions, {len(ai_q_tables)} Q-table entries")
 
                 # Bulk insert traffic light logs
                 if traffic_light_logs:
@@ -180,30 +346,72 @@ class DatabaseQueueService:
                         import traceback
                         traceback.print_exc()
                         error_count += len(traffic_patterns)
+                        
+                # Bulk insert AI decision logs
+                if ai_decision_logs:
+                    try:
+                        print("🔍 Adding AI decision logs to session...")
+                        db.session.add_all(ai_decision_logs)
+                        print("🔍 Flushing AI decision logs...")
+                        db.session.flush()
+                        print("✅ Successfully flushed AI decision logs to session")
+                    except Exception as e:
+                        print(f"❌ Error during AI decision logs flush: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        error_count += len(ai_decision_logs)
+                        db.session.rollback()
+                        
+                # Bulk insert AI Q-table entries
+                if ai_q_tables:
+                    try:
+                        print("🔍 Adding AI Q-table entries to session...")
+                        db.session.add_all(ai_q_tables)
+                        print("🔍 Flushing AI Q-table entries...")
+                        db.session.flush()
+                        print("✅ Successfully flushed AI Q-table entries to session")
+                    except Exception as e:
+                        print(f"❌ Error during AI Q-table flush: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        error_count += len(ai_q_tables)
+                        db.session.rollback()
 
                 # Commit all changes
-                print("🔍 Committing transaction...")
-                db.session.commit()
-                print("✅ Transaction committed successfully")
+                if error_count == 0:
+                    print("🔍 Committing transaction...")
+                    db.session.commit()
+                    print("✅ Transaction committed successfully")
 
-                # Verify the data was actually saved
-                try:
-                    if traffic_light_logs:
-                        first_log = traffic_light_logs[0]
-                        saved_count = TrafficLightLog.query.filter_by(
-                            traffic_light_id=first_log.traffic_light_id
-                        ).count()
-                        print(f"🔍 Verification: Found {saved_count} logs for {first_log.traffic_light_id} in DB")
+                    # Verify the data was actually saved
+                    try:
+                        if traffic_light_logs:
+                            first_log = traffic_light_logs[0]
+                            saved_count = TrafficLightLog.query.filter_by(
+                                traffic_light_id=first_log.traffic_light_id
+                            ).count()
+                            print(f"🔍 Verification: Found {saved_count} logs for {first_log.traffic_light_id} in DB")
 
-                    if traffic_patterns:
-                        first_pattern = traffic_patterns[0]
-                        pattern_count = TrafficPattern.query.filter_by(
-                            traffic_light_id=first_pattern.traffic_light_id
-                        ).count()
-                        print(f"🔍 Verification: Found {pattern_count} patterns for {first_pattern.traffic_light_id} in DB")
+                        if traffic_patterns:
+                            first_pattern = traffic_patterns[0]
+                            pattern_count = TrafficPattern.query.filter_by(
+                                traffic_light_id=first_pattern.traffic_light_id
+                            ).count()
+                            print(f"🔍 Verification: Found {pattern_count} patterns for {first_pattern.traffic_light_id} in DB")
 
-                except Exception as verify_error:
-                    print(f"⚠️ Could not verify save: {verify_error}")
+                        if ai_decision_logs:
+                            decision_count = AIDecisionLog.query.count()
+                            print(f"🔍 Verification: Found {decision_count} AI decision logs in DB")
+
+                        if ai_q_tables:
+                            q_table_count = AIQTable.query.count()
+                            print(f"🔍 Verification: Found {q_table_count} Q-table entries in DB")
+
+                    except Exception as verify_error:
+                        print(f"⚠️ Could not verify save: {verify_error}")
+                else:
+                    print(f"⚠️ Skipping commit due to {error_count} errors")
+                    db.session.rollback()
 
                 # Update statistics
                 successful_operations = processed_count - error_count
@@ -211,12 +419,15 @@ class DatabaseQueueService:
                 self.stats['last_flush_size'] = successful_operations
                 self.stats['average_flush_time'] = time.time() - start_time
 
-                print(f"✅ DB Queue: Successfully committed {successful_operations} operations "
+                print(f"✅ DB Queue: Processed {successful_operations} successful operations "
                       f"({error_count} errors) in {time.time() - start_time:.2f}s")
 
-                # Clear processed operations
-                self.queue.clear()
-                print("🔍 Queue cleared")
+                # Clear processed operations only if successful
+                if error_count == 0:
+                    self.queue.clear()
+                    print("🔍 Queue cleared")
+                else:
+                    print(f"⚠️ Keeping {len(self.queue)} operations in queue due to errors")
 
         except Exception as e:
             print(f"❌ DB Queue Error: {e}")
@@ -238,13 +449,9 @@ class DatabaseQueueService:
             'is_processing': self.is_processing
         }
 
-# Global instance
-
 def init_db_queue(app):
     """Initialize the DB queue service"""
     db_queue_service.init_app(app)
     
-# def get_db_queue():
-#     return db_queue_service
-
+# Global instance
 db_queue_service = DatabaseQueueService()
