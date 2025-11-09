@@ -1,40 +1,348 @@
 <header class="bg-white shadow-sm">
     <div class="flex items-center justify-between px-6 py-4">
         <div class="flex items-center">
-            <h1 class="text-xl font-semibold text-slate-800">Traffic Control Dashboard</h1>
+            <h1 class="text-xl font-semibold text-slate-800">Traffic Control</h1>
             <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
                 {{ current_date }} • {{ current_time }}
             </div>
         </div>
-        
-        <!-- <div class="space-y-2">
-            <button id="start-simulation" class="primary-button ">
-                <i class="ri-play-line mr-2"></i>
-                Start
-            </button>
-            <button id="stop-simulation" class="danger-button">
-                <i class="ri-stop-line mr-2"></i>
-                Stop
-            </button>
-        </div>   -->
-
+        {% if user.is_admin == true %}
         <div class="flex items-center space-x-4">
-            <button id="start-simulation" class="rounded-full bg-green-500 text-white w-10 h-10 flex items-center justify-center">
-                <i class="ri-play-line mr-2"></i>
+            <!-- Scenario Selector -->
+            <select id="scenario-selector" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                <option value="">Select Scenario</option>
+            </select>
+            
+            <!-- Start Button -->
+            <button id="start-simulation" class="rounded-full bg-green-500 hover:bg-green-600 text-white w-10 h-10 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Start Simulation">
+                <i class="ri-play-line"></i>
             </button>
-            <button id="stop-simulation" class="rounded-full bg-red-500 text-white w-10 h-10 flex items-center justify-center">
-                <i class="ri-stop-line mr-2"></i>
+            
+            <!-- Stop Button -->
+            <button id="stop-simulation" class="rounded-full bg-red-500 hover:bg-red-600 text-white w-10 h-10 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Stop Simulation" disabled>
+                <i class="ri-stop-line"></i>
             </button>
+            
+            <!-- Status Badge -->
             <span id="simulation-status" class="status-badge status-idle">
                 <div class="w-2 h-2 bg-current rounded-full mr-2"></div>
                 Not Running
             </span>
-            <button class="relative w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-                <div class="w-5 h-5 flex items-center justify-center text-slate-600">
-                    <i class="ri-notification-3-line"></i>
-                </div>
-                <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-            </button>
         </div>
+        {% endif %}
     </div>
 </header>
+
+<script>
+(function() {
+    'use strict';
+    
+    let statusCheckInterval = null;
+    let currentScenario = null;
+    
+    // DOM Elements
+    const startBtn = document.getElementById('start-simulation');
+    const stopBtn = document.getElementById('stop-simulation');
+    const statusBadge = document.getElementById('simulation-status');
+    const scenarioSelector = document.getElementById('scenario-selector');
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        loadScenarios();
+        checkStatus();
+        
+        // Start status polling
+        statusCheckInterval = setInterval(checkStatus, 2000);
+        
+        // Event Listeners
+        startBtn.addEventListener('click', startSimulation);
+        stopBtn.addEventListener('click', stopSimulation);
+    });
+    
+    // Load available scenarios
+    async function loadScenarios() {
+        try {
+            const response = await fetch('/sumo/api/scenarios');
+            const data = await response.json();
+            
+            if (data.success && data.scenarios) {
+                scenarioSelector.innerHTML = '<option value="">Select Scenario</option>';
+                
+                // Convert scenarios object to array of entries
+                const scenarioEntries = Object.entries(data.scenarios);
+                
+                scenarioEntries.forEach(([key, scenario]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = `${scenario.name} (${scenario.complexity})`;
+                    option.title = scenario.description;
+                    scenarioSelector.appendChild(option);
+                });
+                
+                // Pre-select first scenario if available
+                if (scenarioEntries.length > 0) {
+                    const firstScenarioKey = scenarioEntries[0][0];
+                    scenarioSelector.value = firstScenarioKey;
+                    currentScenario = firstScenarioKey;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading scenarios:', error);
+            showNotification('Failed to load scenarios', 'error');
+        }
+    }
+    
+    // Check simulation status
+    async function checkStatus() {
+        try {
+            const response = await fetch('/sumo/api/status');
+            const data = await response.json();
+            
+            updateStatusUI(data);
+        } catch (error) {
+            console.error('Error checking status:', error);
+        }
+    }
+    
+    // Update status UI
+    function updateStatusUI(status) {
+        const isRunning = status.running || false;
+        
+        // Update badge
+        statusBadge.className = 'status-badge';
+        
+        if (isRunning) {
+            statusBadge.classList.add('status-active');
+            statusBadge.innerHTML = `
+                <div class="w-2 h-2 bg-current rounded-full mr-2"></div>
+                Running
+            `;
+            
+            // Enable stop, disable start
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            scenarioSelector.disabled = true;
+        } else {
+            statusBadge.classList.add('status-idle');
+            statusBadge.innerHTML = `
+                <div class="w-2 h-2 bg-current rounded-full mr-2"></div>
+                Not Running
+            `;
+            
+            // Enable start, disable stop
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            scenarioSelector.disabled = false;
+        }
+        
+        // Update current scenario info if available
+        if (status.current_scenario) {
+            currentScenario = status.current_scenario;
+        }
+    }
+    
+    // Start simulation
+    async function startSimulation() {
+        const scenario = scenarioSelector.value;
+        
+        if (!scenario) {
+            showNotification('Please select a scenario', 'warning');
+            return;
+        }
+        
+        // Disable button to prevent double-clicks
+        startBtn.disabled = true;
+        startBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i>';
+        
+        try {
+            const response = await fetch('/sumo/api/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    scenario: scenario,
+                    gui: true
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showNotification('Simulation started successfully', 'success');
+                currentScenario = scenario;
+                
+                // Update UI immediately
+                setTimeout(checkStatus, 500);
+            } else {
+                showNotification(data.message || 'Failed to start simulation', 'error');
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<i class="ri-play-line"></i>';
+            }
+        } catch (error) {
+            console.error('Error starting simulation:', error);
+            showNotification('Error starting simulation', 'error');
+            startBtn.disabled = false;
+            startBtn.innerHTML = '<i class="ri-play-line"></i>';
+        }
+    }
+    
+    // Stop simulation
+    async function stopSimulation() {
+        // Disable button to prevent double-clicks
+        stopBtn.disabled = true;
+        stopBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i>';
+        
+        try {
+            const response = await fetch('/sumo/api/stop', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showNotification('Simulation stopped successfully', 'success');
+                
+                // Update UI immediately
+                setTimeout(checkStatus, 500);
+            } else {
+                showNotification(data.message || 'Failed to stop simulation', 'error');
+                stopBtn.disabled = false;
+                stopBtn.innerHTML = '<i class="ri-stop-line"></i>';
+            }
+        } catch (error) {
+            console.error('Error stopping simulation:', error);
+            showNotification('Error stopping simulation', 'error');
+            stopBtn.disabled = false;
+            stopBtn.innerHTML = '<i class="ri-stop-line"></i>';
+        }
+    }
+    
+    // Show notification
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 animate-slideIn`;
+        
+        // Set color based on type
+        const colors = {
+            success: 'bg-green-500 text-white',
+            error: 'bg-red-500 text-white',
+            warning: 'bg-yellow-500 text-white',
+            info: 'bg-blue-500 text-white'
+        };
+        
+        notification.className += ` ${colors[type] || colors.info}`;
+        
+        // Set icon based on type
+        const icons = {
+            success: 'ri-checkbox-circle-line',
+            error: 'ri-error-warning-line',
+            warning: 'ri-alert-line',
+            info: 'ri-information-line'
+        };
+        
+        notification.innerHTML = `
+            <i class="${icons[type] || icons.info} text-xl"></i>
+            <span>${message}</span>
+        `;
+        
+        // Add to body
+        document.body.appendChild(notification);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+        if (statusCheckInterval) {
+            clearInterval(statusCheckInterval);
+        }
+    });
+})();
+</script>
+
+<style>
+/* Status badge styles */
+.status-badge {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.status-idle {
+    background-color: #f1f5f9;
+    color: #64748b;
+}
+
+.status-active {
+    background-color: #dcfce7;
+    color: #16a34a;
+}
+
+.status-active .w-2 {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Animation for notifications */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.animate-slideIn {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Spinner animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Disabled state improvements */
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+select:disabled {
+    cursor: not-allowed;
+    background-color: #f1f5f9;
+}
+</style>

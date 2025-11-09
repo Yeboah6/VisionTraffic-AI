@@ -13,11 +13,7 @@
                 <h1 class="text-xl font-semibold text-slate-800"></h1>
             </div>
             <div class="flex items-center space-x-4">
-                <button class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm flex items-center">
-                    <i class="ri-download-line mr-2"></i>
-                    <span>Export</span>
-                </button>
-                <a href="{{ url_for('location.add_location') }}" class="px-4 py-2 bg-primary text-white rounded-button text-sm flex items-center">
+                <a href="{{ url_for('location.add_location') }}" class="px-4 py-2 border border-slate-200 bg-white text-sm rounded-button text-sm flex items-center">
                     <i class="ri-add-line mr-2"></i>
                     <span>Add Location</span>
                 </a>
@@ -28,7 +24,7 @@
     <!-- Location Content -->
     <div class="px-6 py-6">
         <!-- Map View -->
-        <div class="card mb-6">
+        <!-- <div class="card mb-6">
             <div class="map-container" id="locationsMap">
                 <div class="map-overlay">
                     <div class="flex items-center mb-2">
@@ -45,7 +41,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <!-- Filters and Search -->
         <div class="card mb-6 p-4">
@@ -85,15 +81,8 @@
                         </div>
                         <h3 class="font-medium">{{ location.name }}</h3>
                     </div>
-                    <!-- <span class="location-status {{ 'bg-green-100 text-green-800' if location.status else 'bg-red-100 text-red-800' }}">
-                        <i class="ri-checkbox-circle-line mr-1"></i> {{ 'Active' if location.status else 'Inactive' }}
-                    </span> -->
                 </div>
                 <div class="location-details">
-                    <!-- <div class="detail-item">
-                        <span class="detail-label">Location ID</span>
-                        <span class="detail-value">{{ location.id }}</span>
-                    </div> -->
                     <div class="detail-item">
                         <span class="detail-label">Description</span>
                         <span class="detail-value">{{ location.description|capitalize }}</span>

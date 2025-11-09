@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Vehicle Scheduler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #c23616, #e84118);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: '🚨';
+            font-size: 4em;
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            opacity: 0.3;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 6px solid #e84118;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 25px;
+            background: #e84118;
+            border-radius: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #e84118;
+            box-shadow: 0 0 0 3px rgba(232, 65, 24, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .priority-badges {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .priority-badge {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .priority-badge:hover {
+            transform: translateY(-3px);
+        }
+
+        .priority-badge.selected {
+            border-color: #e84118;
+            background: linear-gradient(135deg, #e84118, #c23616);
+            color: white;
+            box-shadow: 0 5px 15px rgba(232, 65, 24, 0.3);
+        }
+
+        .emergency-type-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .emergency-type-card {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .emergency-type-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .emergency-type-card.selected {
+            border-color: #e84118;
+            background: linear-gradient(135deg, #e84118, #c23616);
+            color: white;
+            box-shadow: 0 5px 15px rgba(232, 65, 24, 0.3);
+        }
+
+        .route-visualization {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 10px;
+            min-height: 100px;
+        }
+
+        .route-path {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .route-edge {
+            background: #e84118;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin: 0 5px;
+        }
+
+        .route-arrow {
+            color: #e84118;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .scenario-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .scenario-card {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .scenario-card.selected {
+            border-color: #e84118;
+            background: linear-gradient(135deg, #e84118, #c23616);
+            color: white;
+            box-shadow: 0 5px 15px rgba(232, 65, 24, 0.3);
+        }
+
+        .scenario-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #e84118, #c23616);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(232, 65, 24, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #e84118;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .form-navigation {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e84118;
+            background: white;
+            color: #e84118;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .nav-btn:hover {
+            background: #e84118;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .time-input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .time-input-group input {
+            flex: 1;
+        }
+
+        .time-preset {
+            padding: 10px 15px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .time-preset:hover {
+            background: #e84118;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+            
+            .form-navigation {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 EMERGENCY VEHICLE SCHEDULER</h1>
+            <div class="subtitle">Coordinate emergency response with precision timing</div>
+        </div>
+
+        <div class="form-container">
+            <form id="emergencyForm">
+                <!-- Scenario Selection Section -->
+                <div class="form-section">
+                    <h2 class="section-title">Scenario Selection</h2>
+                    <div class="form-group">
+                        <label>Select Simulation Scenario:</label>
+                        <div class="scenario-selector">
+                            <div class="scenario-card" data-value="intersection" onclick="selectScenario(this)">
+                                <div class="scenario-icon">🚦</div>
+                                <div>Complex Intersection</div>
+                            </div>
+                            <div class="scenario-card" data-value="accra" onclick="selectScenario(this)">
+                                <div class="scenario-icon">🛣️</div>
+                                <div>Highway Simulation</div>
+                            </div>
+                            <div class="scenario-card" data-value="test" onclick="selectScenario(this)">
+                                <div class="scenario-icon">🧪</div>
+                                <div>Test Scenario</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="scenario" name="scenario" required>
+                    </div>
+                </div>
+
+                <!-- Emergency Details Section -->
+                <div class="form-section">
+                    <h2 class="section-title">Emergency Details</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="emergency_type">Emergency Type:</label>
+                            <div class="emergency-type-cards">
+                                <div class="emergency-type-card" data-value="AMBULANCE" onclick="selectEmergencyType(this)">
+                                    🚑 Ambulance
+                                </div>
+                                <div class="emergency-type-card" data-value="FIRE_TRUCK" onclick="selectEmergencyType(this)">
+                                    🚒 Fire Truck
+                                </div>
+                                <div class="emergency-type-card" data-value="POLICE" onclick="selectEmergencyType(this)">
+                                    🚓 Police
+                                </div>
+                            </div>
+                            <input type="hidden" id="emergency_type" name="emergency_type" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="priority">Priority Level:</label>
+                            <div class="priority-badges">
+                                <div class="priority-badge" data-value="CRITICAL" onclick="selectPriority(this)">
+                                    🔴 CRITICAL
+                                </div>
+                                <div class="priority-badge" data-value="HIGH" onclick="selectPriority(this)">
+                                    🟠 HIGH
+                                </div>
+                                <div class="priority-badge" data-value="MEDIUM" onclick="selectPriority(this)">
+                                    🟡 MEDIUM
+                                </div>
+                            </div>
+                            <input type="hidden" id="priority" name="priority" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="vehicle_id">Vehicle ID:</label>
+                            <input type="text" id="vehicle_id" name="vehicle_id" required 
+                                   placeholder="e.g., AMB_001, FIRETRUCK_01">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="departure_time">Departure Time (seconds from now):</label>
+                            <div class="time-input-group">
+                                <input type="number" id="departure_time" name="departure_time" 
+                                       value="30" min="0" step="5" required>
+                                <button type="button" class="time-preset" onclick="setDepartureTime(15)">15s</button>
+                                <button type="button" class="time-preset" onclick="setDepartureTime(30)">30s</button>
+                                <button type="button" class="time-preset" onclick="setDepartureTime(60)">60s</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Emergency Description:</label>
+                        <textarea id="description" name="description" rows="3" 
+                                  placeholder="Describe the emergency situation..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Route Planning Section -->
+                <div class="form-section">
+                    <h2 class="section-title">Route Planning</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="from_location">From Location:</label>
+                            <input type="text" id="from_location" name="from_location" 
+                                   placeholder="e.g., Main Hospital, Fire Station">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="to_location">To Location:</label>
+                            <input type="text" id="to_location" name="to_location" 
+                                   placeholder="e.g., Accident Site, Emergency Location">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="routeSelect">Predefined Route:</label>
+                        <select id="routeSelect" name="route_edges" onchange="updateRouteVisualization()" required>
+                            <option value="">Loading routes...</option>
+                        </select>
+                        
+                        <div class="route-visualization" id="routeVisualization" style="display: none;">
+                            <h4>🛣️ Route Preview</h4>
+                            <div class="route-path" id="routePath">
+                                <!-- Route edges will be displayed here -->
+                            </div>
+                            <div class="route-info" id="routeInfo">
+                                <!-- Route details will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">
+                    🚨 SCHEDULE EMERGENCY VEHICLE
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Scheduling emergency vehicle...</p>
+            </div>
+
+            <div id="scheduleResult"></div>
+
+            <div class="form-navigation">
+                <button type="button" class="nav-btn" onclick="showGreenWaveForm()">
+                    🟢 Schedule Green Wave Instead
+                </button>
+                <button type="button" class="nav-btn" onclick="viewActiveEmergencies()">
+                    📋 View Active Emergencies
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let availableRoutes = {};
+        let currentScenario = '';
+
+        // Initialize the form
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-select first scenario and load its routes
+            const firstScenario = document.querySelector('.scenario-card');
+            if (firstScenario) {
+                selectScenario(firstScenario);
+            }
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Form submission
+            document.getElementById('emergencyForm').addEventListener('submit', scheduleEmergency);
+        }
+
+        // Selection functions
+        function selectScenario(element) {
+            document.querySelectorAll('.scenario-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            element.classList.add('selected');
+
+            const scenario = element.getAttribute('data-value');
+            document.getElementById('scenario').value = scenario;
+            currentScenario = scenario;
+
+            // Load routes and traffic lights for the selected scenario
+            loadScenarioData(scenario);
+        }
+
+        function selectEmergencyType(element) {
+            document.querySelectorAll('.emergency-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            document.getElementById('emergency_type').value = element.getAttribute('data-value');
+        }
+
+        function selectPriority(element) {
+            document.querySelectorAll('.priority-badge').forEach(badge => {
+                badge.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            document.getElementById('priority').value = element.getAttribute('data-value');
+        }
+
+        function setDepartureTime(seconds) {
+            document.getElementById('departure_time').value = seconds;
+        }
+
+        // Scenario data loading
+        async function loadScenarioData(scenario) {
+            if (!scenario) return;
+
+            showLoadingState(true);
+
+            try {
+                // Load both routes and traffic lights in parallel
+                await Promise.all([
+                    loadAvailableRoutes(scenario),
+                    loadScenarioTrafficLights(scenario)
+                ]);
+            } catch (error) {
+                showError('Failed to load scenario data: ' + error.message);
+            } finally {
+                showLoadingState(false);
+            }
+        }
+
+        async function loadAvailableRoutes(scenario) {
+            try {
+                const response = await fetch(`/api/emergency/available-routes?scenario=${scenario}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    availableRoutes = result.routes;
+                    populateRouteDropdown();
+                    updateScenarioDescription(scenario);
+                } else {
+                    showError('Failed to load routes: ' + result.error);
+                    availableRoutes = {};
+                    populateRouteDropdown();
+                }
+            } catch (error) {
+                showError('Network error loading routes: ' + error.message);
+                availableRoutes = {};
+                populateRouteDropdown();
+            }
+        }
+
+        async function loadScenarioTrafficLights(scenario) {
+            try {
+                const response = await fetch(`/api/emergency/traffic-lights?scenario=${scenario}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    // Store traffic lights data for route details
+                    window.trafficLights = result.traffic_lights;
+                    console.log(`Loaded ${result.traffic_lights.length} traffic lights for ${scenario}`);
+                } else {
+                    console.warn('Failed to load traffic lights: ' + result.error);
+                }
+            } catch (error) {
+                console.warn('Network error loading traffic lights: ' + error.message);
+            }
+        }
+
+        function updateScenarioDescription(scenario) {
+            const scenarioDescriptions = {
+                'intersection': '4-way intersection with multiple traffic lights',
+                'accra': 'Highway network with merging lanes and complex intersections',
+                'test': 'Testing environment with simplified traffic flow'
+            };
+
+            const description = scenarioDescriptions[scenario] || 'Custom simulation scenario';
+            console.log(`Scenario loaded: ${scenario} - ${description}`);
+        }
+
+        function populateRouteDropdown() {
+            const routeSelect = document.getElementById('routeSelect');
+            const routeVisualization = document.getElementById('routeVisualization');
+
+            // Clear previous content
+            routeSelect.innerHTML = '';
+            routeVisualization.style.display = 'none';
+
+            if (Object.keys(availableRoutes).length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No routes available for this scenario';
+                routeSelect.appendChild(option);
+                return;
+            }
+
+            // Add default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select a route...';
+            routeSelect.appendChild(defaultOption);
+
+            // Add route options
+            Object.entries(availableRoutes).forEach(([routeKey, routeInfo]) => {
+                const option = document.createElement('option');
+                option.value = JSON.stringify(routeInfo.edges);
+                option.setAttribute('data-route-key', routeKey);
+                option.textContent = `${routeInfo.name} (${routeInfo.estimated_time}s)`;
+                routeSelect.appendChild(option);
+            });
+        }
+
+        function updateRouteVisualization() {
+            const routeSelect = document.getElementById('routeSelect');
+            const routeVisualization = document.getElementById('routeVisualization');
+            const routePath = document.getElementById('routePath');
+            const routeInfo = document.getElementById('routeInfo');
+            const selectedOption = routeSelect.options[routeSelect.selectedIndex];
+
+            if (!selectedOption.value) {
+                routeVisualization.style.display = 'none';
+                return;
+            }
+
+            const routeKey = selectedOption.getAttribute('data-route-key');
+            const edges = JSON.parse(selectedOption.value);
+            const routeData = availableRoutes[routeKey];
+
+            // Display route path
+            routePath.innerHTML = '';
+            edges.forEach((edge, index) => {
+                const edgeElement = document.createElement('span');
+                edgeElement.className = 'route-edge';
+                edgeElement.textContent = edge;
+                edgeElement.title = `Edge: ${edge}`;
+                routePath.appendChild(edgeElement);
+
+                if (index < edges.length - 1) {
+                    const arrow = document.createElement('span');
+                    arrow.className = 'route-arrow';
+                    arrow.textContent = ' → ';
+                    routePath.appendChild(arrow);
+                }
+            });
+
+            // Display detailed route information
+            routeInfo.innerHTML = `
+                <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em;">
+                        <div>
+                            <strong>🛣️ Route Details:</strong><br>
+                            • Edges: ${edges.length}<br>
+                            • Estimated Time: ${routeData.estimated_time}s<br>
+                            • Description: ${routeData.description}
+                        </div>
+                        <div>
+                            <strong>🚦 Traffic Lights:</strong><br>
+                            ${routeData.traffic_lights && routeData.traffic_lights.length > 0 
+                                ? routeData.traffic_lights.map(tl => `• ${tl}`).join('<br>')
+                                : '• No traffic lights on this route'
+                            }
+                        </div>
+                    </div>
+                    ${getRouteWarnings(routeData)}
+                </div>
+            `;
+            
+            routeVisualization.style.display = 'block';
+        }
+
+        function getRouteWarnings(routeData) {
+            const warnings = [];
+
+            if (!routeData.traffic_lights || routeData.traffic_lights.length === 0) {
+                warnings.push('⚠️ No traffic lights on this route - green waves cannot be scheduled');
+            }
+
+            if (routeData.estimated_time > 300) {
+                warnings.push('⚠️ Long route duration - consider alternative routes');
+            }
+
+            if (warnings.length > 0) {
+                return `<div style="margin-top: 10px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; font-size: 0.85em;">
+                    <strong>⚠️ Route Warnings:</strong><br>
+                    ${warnings.join('<br>')}
+                </div>`;
+            }
+
+            return '';
+        }
+
+        // Enhanced form submission with route validation
+        async function scheduleEmergency(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const routeEdges = formData.get('route_edges');
+
+            // Validate route selection
+            if (!routeEdges) {
+                showError('Please select a route for the emergency vehicle');
+                return;
+            }
+
+            const data = {
+                scenario: formData.get('scenario'),
+                emergency_type: formData.get('emergency_type'),
+                priority: formData.get('priority'),
+                vehicle_id: formData.get('vehicle_id'),
+                departure_time: parseFloat(formData.get('departure_time')) + Date.now()/1000,
+                from_location: formData.get('from_location'),
+                to_location: formData.get('to_location'),
+                route_edges: JSON.parse(routeEdges),
+                description: formData.get('description')
+            };
+
+            // Enhanced validation
+            const validationErrors = validateEmergencyData(data);
+            if (validationErrors.length > 0) {
+                showError(validationErrors.join('<br>'));
+                return;
+            }
+
+            // Show loading
+            showLoadingState(true, 'Scheduling emergency vehicle...');
+            document.getElementById('scheduleResult').innerHTML = '';
+
+            try {
+                const response = await fetch('/api/emergency/schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+            
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccess(`
+                        ✅ ${result.message}<br>
+                        <small>Emergency ID: ${result.emergency_id}</small><br>
+                        <small>Vehicle: ${data.vehicle_id} | Type: ${data.emergency_type}</small><br>
+                        <small>Remember to schedule green waves for optimal response time</small>
+                    `);
+                    resetForm(data.scenario);
+                } else {
+                    showError(`❌ ${result.error}`);
+                }
+            } catch (error) {
+                showError(`❌ Network error: ${error.message}`);
+            } finally {
+                showLoadingState(false);
+            }
+        }
+
+        function validateEmergencyData(data) {
+            const errors = [];
+
+            if (!data.scenario) errors.push('• Please select a scenario');
+            if (!data.emergency_type) errors.push('• Please select an emergency type');
+            if (!data.priority) errors.push('• Please select a priority level');
+            if (!data.vehicle_id) errors.push('• Please enter a vehicle ID');
+            if (!data.route_edges || data.route_edges.length === 0) errors.push('• Please select a valid route');
+
+            // Validate vehicle ID format
+            if (data.vehicle_id && !/^[A-Za-z0-9_]+$/.test(data.vehicle_id)) {
+                errors.push('• Vehicle ID can only contain letters, numbers, and underscores');
+            }
+
+            return errors;
+        }
+
+        function resetForm(scenario) {
+            const form = document.getElementById('emergencyForm');
+            form.reset();
+
+            // Re-select the scenario
+            document.getElementById('scenario').value = scenario;
+            const scenarioElement = document.querySelector(`.scenario-card[data-value="${scenario}"]`);
+            if (scenarioElement) {
+                scenarioElement.classList.add('selected');
+            }
+
+            // Clear visualizations
+            document.getElementById('routeVisualization').style.display = 'none';
+
+            // Clear selection highlights
+            document.querySelectorAll('.emergency-type-card, .priority-badge').forEach(el => {
+                el.classList.remove('selected');
+            });
+        }
+
+        function showLoadingState(show, message = 'Loading...') {
+            const loadingElement = document.getElementById('loading');
+            const submitButton = document.querySelector('.btn');
+
+            if (show) {
+                loadingElement.style.display = 'block';
+                submitButton.disabled = true;
+                submitButton.textContent = '⏳ Processing...';
+                if (message) {
+                    loadingElement.querySelector('p').textContent = message;
+                }
+            } else {
+                loadingElement.style.display = 'none';
+                submitButton.disabled = false;
+                submitButton.textContent = '🚨 SCHEDULE EMERGENCY VEHICLE';
+            }
+        }
+
+        function showSuccess(message) {
+            const resultDiv = document.getElementById('scheduleResult');
+            resultDiv.innerHTML = `<div class="result success">${message}</div>`;
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showError(message) {
+            const resultDiv = document.getElementById('scheduleResult');
+            resultDiv.innerHTML = `<div class="result error">${message}</div>`;
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showGreenWaveForm() {
+            if (!currentScenario) {
+                showError('Please select a scenario first');
+                return;
+            }
+            alert(`Redirecting to Green Wave Scheduling for ${currentScenario} scenario...`);
+            window.location.href = `/api/emergency/greenwave-schedule?scenario=${currentScenario}`;
+        }
+
+        function viewActiveEmergencies() {
+            alert('Opening Active Emergencies dashboard...');
+            window.location.href = '/api/emergency/active-emergency';
+        }
+
+        // Utility function to get route details for a specific route
+        async function getRouteDetails(edges) {
+            try {
+                const response = await fetch('/api/emergency/route-details', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ edges: edges, scenario: currentScenario })
+                });
+
+                const result = await response.json();
+                return result.success ? result.route_details : null;
+            } catch (error) {
+                console.error('Error getting route details:', error);
+                return null;
+            }
+        }
+
+        // Auto-refresh routes when scenario changes (if needed)
+        function refreshScenarioData() {
+            if (currentScenario) {
+                loadScenarioData(currentScenario);
+            }
+        }
+    </script>
+</body>
+</html>

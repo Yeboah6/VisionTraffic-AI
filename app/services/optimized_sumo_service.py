@@ -31,6 +31,7 @@ class OptimizedSumoService:
         self.ai_optimization_enabled = True
         self.last_ai_decision = None
         self.ai_optimization_interval = 30  # Apply AI every 30 steps
+        self._last_tls_update_step = 0  # Track last update
         
         # Performance optimization settings
         self.performance_config = {
@@ -70,6 +71,12 @@ class OptimizedSumoService:
                 'config': 'accra_37.sumocfg',
                 'name': 'Highway Simulation',
                 'description': 'Multi-lane highway with merging',
+                'complexity': 'Advanced'
+            },
+            'test': {
+                'config': 'test.sumocfg',
+                'name': 'Test Scenario',
+                'description': 'A scenario for testing purposes',
                 'complexity': 'Advanced'
             }
         }
@@ -143,24 +150,27 @@ class OptimizedSumoService:
                 name=f"SUMO-Simulation-{scenario}"
             )
             self.simulation_thread.daemon = True
+            self.is_running = True
             self.simulation_thread.start()
             
             # Wait for startup
-            for _ in range(20):  # 2 second timeout
-                if self.is_running:
-                    break
-                time.sleep(0.1)
-            else:
-                return {"success": False, "error": "Simulation failed to start"}
+            # for _ in range(20):  # 2 second timeout
+            #     if self.is_running:
+            #         break
+            #     time.sleep(0.1)
+            # else:
+            #     return {"success": False, "error": "Simulation failed to start"}
             
             return {
                 "success": True,
                 "message": f"High-performance simulation started with {scenario}",
                 "scenario": scenario,
-                "performance_config": self.performance_config
+                "performance_config": self.performance_config,
+                "starting": True
             }
             
         except Exception as e:
+            self.is_running = False
             return {"success": False, "error": f"Failed to start simulation: {str(e)}"}
         
     def _run_simulation_with_context(self, config_path: str, scenario: str, gui: bool, app):
@@ -184,7 +194,7 @@ class OptimizedSumoService:
         self._run_optimized_simulation(config_path, scenario, gui)    
     
     def _run_optimized_simulation(self, config_path: str, scenario: str, gui: bool):
-        """Optimized simulation loop with TLS data and config collection"""
+        """Optimized simulation loop with TLS data and config collection and emergency vehicle registry"""
         
         try:
             import traci
@@ -207,18 +217,30 @@ class OptimizedSumoService:
             print(f"🚀 SUMO command: {' '.join(sumo_cmd)}")
             
             # Start TraCI connection
-            traci.start(sumo_cmd)
-            self.traci = traci
+            try:
+                traci.start(sumo_cmd)
+                self.traci = traci
+                print("✅ TraCI connection established")
+            except Exception as traci_error:
+                print(f"❌ TraCI connection failed: {traci_error}")
+                self.is_running = False
+                return
+        
+            # Set running flag - simulation is now fully started
             self.is_running = True
             
+            # Initialize services
             from app.services.tls_data_service import tls_data_service
             from app.services.tls_config_service import tls_config_service
+            from app.services.emergency import emergency_service
 
             # Ensure services have app context
             if self.app:
-                tls_data_service.app = self.app
-                tls_config_service.app = self.app
-                ai_traffic_service.app = self.app
+                with self.app.app_context():
+                    tls_data_service.init_app(self.app)
+                    tls_config_service.init_app(self.app)
+                    ai_traffic_service.init_app(self.app)
+                    emergency_service.init_app(self.app)
 
             print("✅ Optimized simulation running...")
             
@@ -227,6 +249,10 @@ class OptimizedSumoService:
             from app.services.tls_config_service import tls_config_service
             config_results = tls_config_service.store_bulk_tls_configs(traci, scenario)
             print(f"✅ TLS Configs: {config_results['success_count']} stored successfully")
+            
+            # CREATE EMERGENCY VEHICLE REGISTRY AT STARTUP
+            print("🚨 Creating emergency vehicle registry...")
+            emergency_service._preload_emergency_schedule_to_db(traci)
             
             # Performance tracking
             last_data_update = 0
@@ -310,6 +336,9 @@ class OptimizedSumoService:
 
                         last_ai_optimization = self.simulation_step
                         
+                    # 8. Manage scheduled emergencies (ADD THIS)
+                    self._manage_scheduled_emergencies(traci, current_time)
+                        
                 except Exception as step_error:
                     print(f"⚠️ Step error: {step_error}")
                     continue
@@ -322,63 +351,22 @@ class OptimizedSumoService:
             # Cleanup
             self._cleanup_simulation()
     
+    def get_data_collection_status(self) -> Dict[str, Any]:
+        """Get status of data collection"""
+        return {
+            "is_running": self.is_running,
+            "simulation_step": self.simulation_step,
+            "tls_data_available": bool(self.monitoring_data.get('tls_snapshot', {})),
+            "last_tls_update_step": getattr(self, '_last_tls_update_step', 0),
+            "tls_update_interval": self.performance_config['tls_update_interval'],
+            "next_tls_update_in": max(0, self.performance_config['tls_update_interval'] - 
+                                     (self.simulation_step - getattr(self, '_last_tls_update_step', 0))),
+            "traffic_light_count": len(self.monitoring_data.get('tls_snapshot', {}).get('traffic_lights', {})),
+            "has_traci": self.traci is not None
+        }
+    
     # AI FUNCTIONS - START
     # Apply AI optimization decisions to SUMO simulation
-    # def _apply_ai_decisions(self, traci, ai_decision: Dict):
-    #     """Apply AI optimization decisions to SUMO - SAFE VERSION"""
-    #     try:
-    #         applied_count = 0
-            
-    #         # STORE THE DECISION FIRST (this was missing!)
-    #         from app.services.ai_traffic_service import ai_traffic_service
-    #         if hasattr(ai_traffic_service, '_store_ai_decision'):
-    #             ai_traffic_service._store_ai_decision(ai_decision, self.current_config)
-
-    #         for decision in ai_decision.get('decisions', []):
-    #             tl_id = decision['traffic_light_id']
-    #             action = decision['action']
-
-    #             try:
-    #                 if action == 'EXTEND_GREEN':
-    #                     # Safe: Extend current green phase
-    #                     current_duration = traci.trafficlight.getPhaseDuration(tl_id)
-    #                     new_duration = current_duration + 5  # Fixed 5-second extension
-    #                     traci.trafficlight.setPhaseDuration(tl_id, new_duration)
-    #                     applied_count += 1
-    #                     print(f"🟢 Extended {tl_id} green phase to {new_duration}s")
-
-    #                 elif action == 'REDUCE_GREEN':
-    #                     # Safe: Reduce current green phase
-    #                     current_duration = traci.trafficlight.getPhaseDuration(tl_id)
-    #                     new_duration = max(10, current_duration - 5)  # Minimum 10 seconds
-    #                     traci.trafficlight.setPhaseDuration(tl_id, new_duration)
-    #                     applied_count += 1
-    #                     print(f"🟡 Reduced {tl_id} green phase to {new_duration}s")
-
-    #                 elif action == 'SKIP_PHASE':
-    #                     # ⚠️ DANGEROUS - Disable for now
-    #                     print(f"⏭️ SKIP_PHASE disabled for {tl_id} (unsafe)")
-    #                     continue
-
-    #                 elif action == 'ADJUST_CYCLE':
-    #                     # ⚠️ COMPLEX - Disable for now  
-    #                     print(f"🔄 ADJUST_CYCLE disabled for {tl_id} (complex)")
-    #                     continue
-
-    #                 elif action == 'MAINTAIN':
-    #                     # Do nothing - this is safe
-    #                     print(f"⏸️  Maintaining {tl_id} current state")
-    #                     applied_count += 1
-
-    #             except Exception as tl_error:
-    #                 print(f"❌ Failed to apply {action} to {tl_id}: {tl_error}")
-    #                 continue
-                
-    #         print(f"✅ Applied {applied_count}/{len(ai_decision.get('decisions', []))} AI decisions")
-        
-    #     except Exception as e:
-    #         print(f"❌ Error applying AI decisions: {e}")
-    
     def _apply_ai_decisions(self, traci, ai_decision: Dict):
         """Apply AI decisions and ensure they're stored"""
         try:
@@ -485,7 +473,7 @@ class OptimizedSumoService:
     # AI FUNCTIONS - END
     
     def _collect_basic_data(self, traci, current_time: float):
-        """Collect only essential basic data"""
+        """Collect only essential basic data including emergency vehicles"""
         try:
             # Update basic simulation time
             self.monitoring_data['current_time'] = current_time
@@ -498,11 +486,14 @@ class OptimizedSumoService:
             # Calculate average speed
             if vehicle_count > 0:
                 try:
-                    speeds = [traci.vehicle.getSpeed(veh_id) for veh_id in vehicle_ids[:5]]  # Sample 5 vehicles
+                    speeds = [traci.vehicle.getSpeed(veh_id) for veh_id in vehicle_ids[:5]]
                     avg_speed = sum(speeds) / len(speeds) * 3.6 if speeds else 0
                     self.monitoring_data['average_speed'] = avg_speed
                 except:
                     self.monitoring_data['average_speed'] = 0
+            
+            # SIMPLE EMERGENCY VEHICLE DETECTION AND MANAGEMENT
+            self._manage_emergency_vehicles_simple(traci, current_time)
             
             # Update performance stats
             perf_stats = performance_monitor.get_current_performance()
@@ -512,6 +503,181 @@ class OptimizedSumoService:
         except Exception as e:
             # Silent error for data collection
             pass
+    
+    def _manage_scheduled_green_waves(self, traci, current_time: float):
+        """Manage manually scheduled green waves"""
+        try:
+            if not hasattr(self, 'emergency_scheduler'):
+                from app.services.emergency_scheduler import emergency_scheduler
+                self.emergency_scheduler = emergency_scheduler
+                self.emergency_scheduler.init_app(self.app)
+
+            # Get pending green waves
+            pending_waves = self.emergency_scheduler.get_pending_green_waves(current_time)
+
+            # Activate green waves
+            activated_count = 0
+            for wave in pending_waves:
+                if self._activate_manual_green_wave(traci, wave, current_time):
+                    activated_count += 1
+
+            if activated_count > 0:
+                print(f"🟢 Activated {activated_count} manual green waves")
+                
+            # Update monitoring data
+            active_emergencies = self.emergency_scheduler.get_active_emergencies()
+            active_green_waves = self.emergency_scheduler.get_active_green_waves()
+
+            self.monitoring_data['manual_scheduling'] = {
+                'active_emergencies': active_emergencies,
+                'active_green_waves': active_green_waves,
+                'pending_green_waves': pending_waves,
+                'activated_count': activated_count,
+                'timestamp': time.time()
+            }
+
+        except Exception as e:
+            print(f"⚠️ Manual green wave management error: {e}")
+    
+    def _manage_scheduled_emergencies(self, traci, current_time: float):
+        """Manage scheduled emergencies and green waves"""
+        try:
+            if not hasattr(self, 'emergency_scheduler'):
+                from app.services.emergency_scheduler import emergency_scheduler
+                self.emergency_scheduler = emergency_scheduler
+                self.emergency_scheduler.init_app(self.app)
+
+            # Get pending green waves
+            pending_waves = self.emergency_scheduler.get_pending_green_waves(current_time)
+
+            # Activate green waves
+            activated_count = 0
+            for wave in pending_waves:
+                if self._activate_scheduled_green_wave(traci, wave, current_time):
+                    activated_count += 1
+
+            if activated_count > 0:
+                print(f"🟢 Activated {activated_count} scheduled green waves")
+
+            # Update monitoring data
+            active_emergencies = self.emergency_scheduler.get_active_emergencies()
+            self.monitoring_data['scheduled_emergencies'] = {
+                'active_emergencies': active_emergencies,
+                'pending_green_waves': pending_waves,
+                'activated_count': activated_count,
+                'timestamp': time.time()
+            }
+
+        except Exception as e:
+            print(f"⚠️ Scheduled emergency management error: {e}")
+
+    def _activate_manual_green_wave(self, traci, green_wave: Dict, current_time: float) -> bool:
+        """Activate a manually scheduled green wave"""
+        try:
+            tl_id = green_wave['traffic_light_id']
+
+            # Get current phase and duration
+            current_phase = traci.trafficlight.getPhase(tl_id)
+            current_duration = traci.trafficlight.getPhaseDuration(tl_id)
+
+            # Set extended green phase
+            new_duration = max(current_duration, green_wave['duration'])
+            traci.trafficlight.setPhaseDuration(tl_id, new_duration)
+
+            print(f"🟢 MANUAL GREEN WAVE: {tl_id} extended to {new_duration}s (scheduled)")
+
+            # Update green wave status in database
+            self._update_green_wave_status(green_wave['id'], 'ACTIVE', current_time)
+
+            return True
+
+        except Exception as e:
+            print(f"❌ Failed to activate manual green wave: {e}")
+            return False
+
+    def _update_green_wave_status(self, wave_id: str, status: str, timestamp: float):
+        """Update green wave status in database"""
+        try:
+            if hasattr(self, 'emergency_scheduler') and self.app:
+                with self.app.app_context():
+                    from app.models.emergency_veh import GreenWaveSchedule
+                    wave = GreenWaveSchedule.query.get(wave_id)
+                    if wave:
+                        wave.status = status
+                        if status == 'ACTIVE':
+                            wave.activated_at = timestamp
+                        db.session.commit()
+        except Exception as e:
+            print(f"⚠️ Error updating green wave status: {e}")
+    
+    def _manage_emergency_vehicles_simple(self, traci, current_time: float):
+        """Simple emergency vehicle management"""
+        try:
+            # Initialize emergency service if not already done
+            if not hasattr(self, 'emergency_service_initialized'):
+                from app.services.emergency import emergency_service
+                self.emergency_service = emergency_service
+                self.emergency_service.init_app(self.app)
+
+                # SIMPLE INITIALIZATION - just scan current vehicles
+                self.emergency_service.initialize_emergency_registry(traci)
+                self.emergency_service_initialized = True
+                print("🚨 Emergency service initialized (simple approach)")
+
+            # 1. Detect emergency vehicles in real-time
+            detected_emergencies = self.emergency_service.detect_emergency_vehicles(traci)
+
+            # 2. Get vehicles that need green waves
+            green_wave_candidates = self.emergency_service.get_green_wave_candidates(traci, current_time)
+
+            # 3. Apply green waves for approaching emergencies
+            if green_wave_candidates:
+                self._apply_simple_green_waves(traci, green_wave_candidates)
+
+            # 4. Store emergency vehicle data
+            if detected_emergencies:
+                self.emergency_service.store_emergency_data(detected_emergencies, current_time, self.current_config)
+
+            # 5. Update monitoring data
+            self.monitoring_data['emergency_vehicles'] = {
+                'detected_emergencies': detected_emergencies,
+                'green_wave_candidates': green_wave_candidates,
+                'active_count': len(detected_emergencies),
+                'timestamp': time.time()
+            }
+
+        except Exception as e:
+            print(f"⚠️ Simple emergency management error: {e}")
+
+    def _apply_simple_green_waves(self, traci, candidates: List[Dict]):
+        """Apply simple green waves for emergency vehicles"""
+        applied_count = 0
+
+        for candidate in candidates:
+            vehicle_id = candidate['vehicle_id']
+            tl_id = candidate['traffic_light_id']
+            time_to_intersection = candidate['time_to_intersection']
+
+            # Only apply if vehicle is close enough
+            if time_to_intersection <= 10.0:  # 10 seconds or less
+                try:
+                    # Simple approach: extend current green phase
+                    current_phase = traci.trafficlight.getPhase(tl_id)
+                    current_duration = traci.trafficlight.getPhaseDuration(tl_id)
+
+                    # Extend green phase for emergency
+                    new_duration = max(current_duration, 15.0)  # At least 15 seconds
+                    traci.trafficlight.setPhaseDuration(tl_id, new_duration)
+
+                    applied_count += 1
+                    print(f"🟢 GREEN WAVE: Extended {tl_id} to {new_duration}s for {vehicle_id}")
+
+                except Exception as e:
+                    print(f"❌ Failed to apply green wave for {vehicle_id}: {e}")
+
+        if applied_count > 0:
+            self.emergency_service.stats['green_waves_activated'] += applied_count
+            print(f"✅ Applied {applied_count} green waves for emergencies")
     
     def _calculate_adaptive_sleep(self, step_duration: float, gui: bool) -> float:
         """Calculate optimal sleep time for target performance"""
@@ -600,8 +766,33 @@ class OptimizedSumoService:
         }
     
     def get_available_scenarios(self) -> Dict[str, Any]:
-        """Return available SUMO scenarios"""
-        return self.available_scenarios
+        """Return available SUMO scenarios with verification"""
+        try:
+            verified_scenarios = {}
+
+            for scenario_name, scenario_info in self.available_scenarios.items():
+                config_file = scenario_info['config']
+                config_path = os.path.join(self.sumo_configs_dir, config_file)
+
+                # Check if the scenario file actually exists
+                if os.path.exists(config_path):
+                    verified_scenarios[scenario_name] = scenario_info
+                    print(f"✅ Scenario verified: {scenario_name} -> {config_path}")
+                else:
+                    print(f"❌ Scenario file missing: {scenario_name} -> {config_path}")
+                    # You might want to include it anyway or handle differently
+                    verified_scenarios[scenario_name] = {
+                        **scenario_info,
+                        'file_exists': False,
+                        'error': f"Config file not found: {config_path}"
+                    }
+
+            print(f"📊 Returning {len(verified_scenarios)} verified scenarios")
+            return verified_scenarios
+
+        except Exception as e:
+            print(f"❌ Error in get_available_scenarios: {e}")
+            return {}
     
     def check_sumo_availability(self) -> Dict[str, Any]:
         """Check if SUMO is properly installed and available"""

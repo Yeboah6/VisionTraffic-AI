@@ -23,7 +23,7 @@ def validate_password(password):
 @auth_bp.route('/', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('main.dashboard'))
+        return redirect(url_for('signal.signals'))
     
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -44,7 +44,7 @@ def login():
                 if next_page:
                     return redirect(next_page)
                 if user.is_admin == True:
-                    return redirect(url_for('main.dashboard'))
+                    return redirect(url_for('signal.signals'))
                 else:
                     return redirect(url_for('user.user_dashboard'))
             else:

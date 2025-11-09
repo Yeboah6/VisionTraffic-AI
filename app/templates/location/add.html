@@ -5,6 +5,31 @@
 <!-- Add this at the top of your form -->
 
 <!-- Main Content -->
+
+<style>
+
+    .scenario-info {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .scenario-info .current-scenario {
+        font-size: 1.1em;
+        margin-bottom: 5px;
+    }
+
+    .scenario-info .scenario-description {
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+
+</style>
+
 <main class="main-content min-h-screen pb-8">
     <!-- Header -->
     {% include 'includes/header.html' %}
@@ -24,32 +49,6 @@
         <div class="location-form-container">
             <!-- Basic Information Section -->
             <div class="card form-section">
-                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">
-                                {{ message }}
-                                {% if request.args.get('expired') %}
-                                    <p>Your session has expired. Please login again.</p>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-
-                {% if form.errors %}
-                    <div class="bg-red-100 text-red-700 p-4 rounded mb-4">
-                        <strong>Form Errors:</strong>
-                        <ul>
-                            {% for field, errors in form.errors.items() %}
-                                {% for error in errors %}
-                                    <li>{{ field }}: {{ error }}</li>
-                                {% endfor %}
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
-
                 <div class="section-header">
                     <div class="section-icon">
                         <i class="ri-information-line"></i>
@@ -112,8 +111,8 @@
                 <div class="form-group">
                     <label class="form-label">Coordinates</label>
                     <div class="coordinates-input">
-                        {{ form.lat(class="form-control", placeholder="Latitude", id="location-lat") }}
-                        {{ form.lng(class="form-control", placeholder="Longtitude", id="location-lng") }}
+                        {{ form.latitude(class="form-control", placeholder="Latitude", id="location-lat") }}
+                        {{ form.longitude(class="form-control", placeholder="Longitude", id="location-lng") }}
                     </div>
                     <p class="text-xs text-slate-500 mt-1">Click on the map to set coordinates or enter manually</p>
                 </div>
@@ -180,8 +179,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const coordinatesPreview = document.getElementById('coordinatesPreview');
     
     // Set initial coordinates
-    const initialLat = {{ form.lat.data if form.lat.data else 0 }};
-    const initialLng = {{ form.lng.data if form.lng.data else 0 }};
+    const initialLat = {{ form.latitude.data if form.latitude.data else 0 }};
+    const initialLng = {{ form.longitude.data if form.longitude.data else 0 }};
     const hasInitialCoords = initialLat !== 0 && initialLng !== 0;
     
     // Initialize map

@@ -10,21 +10,16 @@ class TrafficLightLog(db.Model):
     traffic_light_id = db.Column(db.String(100), nullable=False)
     scenario = db.Column(db.String(100), nullable=False)
     simulation_time = db.Column(db.Float, nullable=False)
-    state = db.Column(db.String(20), nullable=False)  # RED, YELLOW, GREEN, etc.
+    state = db.Column(db.String(20), nullable=False)
     phase = db.Column(db.Integer, default=0)
     phase_name = db.Column(db.String(50))
-    duration = db.Column(db.Float)  # Current phase duration
-    next_switch = db.Column(db.Float)  # Time until next switch
+    duration = db.Column(db.Float)
+    next_switch = db.Column(db.Float)
     vehicle_count = db.Column(db.Integer, default=0)
     waiting_vehicles = db.Column(db.Integer, default=0)
     efficiency_score = db.Column(db.Integer, default=0)
     performance_grade = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationships
-    # config = db.relationship('TrafficLightConfig', 
-    #                        foreign_keys=[traffic_light_id],
-    #                        backref=db.backref('logs', lazy='dynamic'))
     
     def to_dict(self):
         return {
@@ -51,18 +46,14 @@ class TrafficLightConfig(db.Model):
     traffic_light_id = db.Column(db.String(100), nullable=False)
     scenario = db.Column(db.String(100), nullable=False)
     program_id = db.Column(db.String(100), nullable=False)
-    phases = db.Column(db.Text, nullable=False)  # JSON string of phases
+    phases = db.Column(db.JSON, default=dict)
     current_phase_index = db.Column(db.Integer, default=0)
     cycle_time = db.Column(db.Float, default=0.0)
     is_adaptive = db.Column(db.Boolean, default=False)
-    config_type = db.Column(db.String(50), default='STATIC')  # STATIC, ADAPTIVE, OPTIMIZED
+    config_type = db.Column(db.String(50), default='STATIC')
+    controlled_lanes = db.Column(db.JSON, default=dict)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Unique constraint to prevent duplicates
-    # __table_args__ = (
-    #     db.UniqueConstraint('traffic_light_id', 'scenario', name='uq_traffic_light_scenario'),
-    # )
     
     def to_dict(self):
         return {
@@ -70,22 +61,15 @@ class TrafficLightConfig(db.Model):
             'traffic_light_id': self.traffic_light_id,
             'scenario': self.scenario,
             'program_id': self.program_id,
-            'phases': json.loads(self.phases) if self.phases else [],
+            'phases': self.phases,
             'current_phase_index': self.current_phase_index,
             'cycle_time': self.cycle_time,
             'is_adaptive': self.is_adaptive,
             'config_type': self.config_type,
+            'controlled_lanes': self.controlled_lanes,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
-        
-    def set_phases(self, phases_list):
-        """Helper method to set phases as JSON string"""
-        self.phases = json.dumps(phases_list)
-    
-    def get_phases(self):
-        """Helper method to get phases as list"""
-        return json.loads(self.phases) if self.phases else []
     
     
 class TrafficPattern(db.Model):
@@ -100,7 +84,6 @@ class TrafficPattern(db.Model):
     confidence_score = db.Column(db.Float, default=0.0)
     
     # JSON fields for complex data
-    # time_metadata = db.Column(db.JSON, default=dict)
     pattern_metrics = db.Column(db.JSON, default=dict)
     phase_patterns = db.Column(db.JSON, default=dict)
     recommendations = db.Column(db.JSON, default=list)

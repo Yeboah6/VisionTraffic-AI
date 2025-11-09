@@ -12,7 +12,8 @@ def seed_admin_user():
         admin = User(
             username="admin",
             email=admin_email,
-            is_admin=True
+            is_admin=True,
+            role="admin"
         )
         # Set password (change this to a secure password)
         admin.set_password("admin123")  # Change this in production!

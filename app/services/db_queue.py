@@ -1,4 +1,4 @@
-from random import random
+import random
 import threading
 import time
 from collections import deque
@@ -9,8 +9,10 @@ from sqlalchemy import and_
 from typing import Dict
 import uuid
 
+# Import models
 from app.models.traffic_light import TrafficLightLog, TrafficPattern
 from app.models.ai import AIQTable, AIDecisionLog
+from app.models.emergency_veh import EmergencyVehicleLog
 
 class DatabaseQueueService:
     """
@@ -128,7 +130,8 @@ class DatabaseQueueService:
         # Auto-flush if queue is getting large
         if len(self.queue) >= 50:
             self.flush_queue()
-            
+    
+    # AI Training Log        
     def add_ai_training_log(self, training_data: Dict):
         """Queue AI training log for async writing"""
         operation = {
@@ -143,19 +146,35 @@ class DatabaseQueueService:
         if len(self.queue) >= 50:
             self.flush_queue()
     
-    # AI Decision Existence Check
-    # def check_decision_exists(self, decision_id: str) -> bool:
-    #     """Check if AI decision already exists in database - INTEGRATION POINT 5"""
-    #     if not self.app:
-    #         return False
-            
-    #     try:
-    #         with self.app.app_context():
-    #             existing_decision = AIDecisionLog.query.filter_by(id=decision_id).first()
-    #             return existing_decision is not None
-    #     except Exception as e:
-    #         print(f"⚠️ Error checking decision existence: {e}")
-    #         return False
+    # Emergency Vehicle Log
+    def add_emergency_log(self, emergency_data: Dict):
+        """Queue emergency vehicle log for async writing"""
+        operation = {
+            'type': 'emergency_log',
+            'data': emergency_data,
+            'timestamp': datetime.utcnow()
+        }
+        self.queue.append(operation)
+        self.stats['operations_queued'] += 1
+
+        # Auto-flush if queue is getting large
+        if len(self.queue) >= 50:
+            self.flush_queue()
+    
+    # Emergency Vehicls Schedule
+    # def add_emergency_schedule(self, emergency_schedule_data: Dict):
+    #     """Queue emergency vehicle schedule for async writing"""
+    #     operation = {
+    #         'type': 'emergency_schedule',
+    #         'data': emergency_schedule_data,
+    #         'timestamp': datetime.utcnow()
+    #     }
+    #     self.queue.append(operation)
+    #     self.stats['operations_queued'] += 1
+
+    #     # Auto-flush if queue is getting large
+    #     if len(self.queue) >= 50:
+    #         self.flush_queue()
     
     def flush_queue(self):
         """Flush all queued operations to database"""
@@ -179,6 +198,7 @@ class DatabaseQueueService:
                 traffic_patterns = []
                 ai_decision_logs = []
                 ai_q_tables = []
+                emergency_logs = []
                 ai_performance_metrics = []
                 ai_training_logs = []
 
@@ -243,6 +263,11 @@ class DatabaseQueueService:
                                 timestamp = timestamp.timestamp()
                             elif timestamp is None:
                                 timestamp = time.time()
+                                
+                            # Ensure tls_decisions is properly serialized
+                            tls_decisions = decision_data.get('tls_decisions', '[]')
+                            if isinstance(tls_decisions, (list, dict)):
+                                tls_decisions = json.dumps(tls_decisions, default=self._json_serializer)
 
                             decision_entry = AIDecisionLog(
                                 id=decision_data.get('id', str(uuid.uuid4())),
@@ -282,7 +307,6 @@ class DatabaseQueueService:
                                     existing_entry.q_value = float(q_data.get('q_value', existing_entry.q_value))
                                     existing_entry.visit_count = int(q_data.get('visit_count', existing_entry.visit_count + 1))
                                     existing_entry.last_reward = float(q_data.get('last_reward', existing_entry.last_reward))
-                                    # existing_entry.last_updated = q_data.get('last_updated', datetime.utcnow())
                                     print(f"🔄 Updated Q-table: {q_data['traffic_light_id']}")
                                 else:
                                     # INSERT
@@ -295,7 +319,6 @@ class DatabaseQueueService:
                                         q_value=float(q_data.get('q_value', 0)),
                                         visit_count=int(q_data.get('visit_count', 0)),
                                         last_reward=float(q_data.get('last_reward', 0)),
-                                        # last_updated=q_data.get('last_updated', datetime.utcnow())
                                     )
                                     db.session.add(q_entry)
                                     print(f"✅ Created Q-table: {q_data['traffic_light_id']}")
@@ -308,6 +331,109 @@ class DatabaseQueueService:
                                 print(f"❌ Q-table operation failed: {e}")
                                 db.session.rollback()
                                 error_count += 1
+
+                        elif op['type'] == 'emergency_log':
+                            emergency_data = op['data']
+                            
+                            # FIX: Ensure details field is properly serialized to JSON
+                            details = emergency_data.get('details', {})
+                            if isinstance(details, dict):
+                                # Convert any datetime objects in details to strings
+                                details = self._convert_datetime_to_string(details)
+                                details_json = json.dumps(details, default=self._json_serializer)
+                            else:
+                                details_json = '{}'
+                                
+                            # FIX: Convert detected_at to datetime if it's a string
+                            detected_at = emergency_data.get('detected_at')
+                            if isinstance(detected_at, str):
+                                try:
+                                    detected_at = datetime.fromisoformat(detected_at.replace('Z', '+00:00'))
+                                except:
+                                    detected_at = datetime.utcnow()
+                            elif not isinstance(detected_at, datetime):
+                                detected_at = datetime.utcnow()
+                                
+                            # FIX: Convert cleared_at to datetime if it's a string or None
+                            cleared_at = emergency_data.get('cleared_at')
+                            if isinstance(cleared_at, str):
+                                try:
+                                    cleared_at = datetime.fromisoformat(cleared_at.replace('Z', '+00:00'))
+                                except:
+                                    cleared_at = None
+                            elif cleared_at is not None and not isinstance(cleared_at, datetime):
+                                cleared_at = None
+
+                            # Create EmergencyVehicleLog entry
+                            emergency_entry = EmergencyVehicleLog(
+                                id=emergency_data.get('id', f"emergency_{int(time.time())}_{random.randint(1000, 9999)}"),
+                                scenario=emergency_data['scenario'],
+                                vehicle_id=emergency_data['vehicle_id'],
+                                vehicle_type=emergency_data['vehicle_type'],
+                                vehicle_class=emergency_data.get('vehicle_class'),
+                                original_type=emergency_data.get('original_type'),
+                                traffic_light_id=emergency_data['traffic_light_id'],
+                                lane_id=emergency_data['lane_id'],
+                                road_id=emergency_data.get('road_id'),
+                                speed=float(emergency_data.get('speed', 0)),
+                                position=float(emergency_data.get('position', 0)),
+                                distance_to_intersection=float(emergency_data.get('distance_to_intersection', 0)),
+                                time_to_intersection=float(emergency_data.get('time_to_intersection', 0)),
+                                priority=emergency_data['priority'],
+                                is_scheduled=emergency_data.get('is_scheduled', False),
+                                detected_at=emergency_data.get('detected_at', datetime.utcnow()),
+                                scenario_timestamp=emergency_data['scenario_timestamp'],
+                                details=details_json  
+                            )
+
+                            db.session.add(emergency_entry)
+                            processed_count += 1
+                            print(f"✅ Created emergency log for vehicle {emergency_data['vehicle_id']}")
+                        
+                        # elif op['type'] == 'emergency_schedule':
+                        #     emergency_schedule_data = op['data']
+                            
+                        #     # FIX: Ensure details field is properly serialized to JSON
+                        #     details = emergency_schedule_data.get('details', {})
+                        #     if isinstance(details, dict):
+                        #         details = self._convert_datetime_to_string(details)
+                        #         details_json = json.dumps(details, default=self._json_serializer)
+                        #     else:
+                        #         details_json = '{}'
+
+                        #     # FIX: Handle route_edges serialization
+                        #     route_edges = emergency_schedule_data.get('route_edges', [])
+                        #     if isinstance(route_edges, (list, dict)):
+                        #         route_edges_json = json.dumps(route_edges, default=self._json_serializer)
+                        #     else:
+                        #         route_edges_json = '[]'
+
+                        #     # FIX: Handle estimated_arrival_times serialization
+                        #     arrival_times = emergency_schedule_data.get('estimated_arrival_times', {})
+                        #     if isinstance(arrival_times, dict):
+                        #         arrival_times_json = json.dumps(arrival_times, default=self._json_serializer)
+                        #     else:
+                        #         arrival_times_json = '{}'
+
+                        #     # Create EmergencyVehicleRegistry entry
+                        #     emergency_schedule_entry = EmergencyVehicleRegistry(
+                        #         id=emergency_schedule_data.get('id', f"emergency_{int(time.time())}_{random.randint(1000, 9999)}"),
+                        #         scenario=emergency_schedule_data['scenario'],
+                        #         vehicle_id=emergency_schedule_data['vehicle_id'],
+                        #         vehicle_type=emergency_schedule_data['vehicle_type'],
+                        #         scheduled_departure=float(emergency_schedule_data.get('scheduled_departure', 0)),
+                        #         from_edge=emergency_schedule_data['from_edge'],
+                        #         to_edge=emergency_schedule_data['to_edge'],
+                        #         route_edges=emergency_schedule_data['route_edges'],
+                        #         status=emergency_schedule_data.get('status', 'SCHEDULED'),
+                        #         estimated_arrival_time=float(emergency_schedule_data.get('estimated_arrival_time', 0)),
+                        #         created_at=datetime.utcnow(),
+                        #         details=details_json
+                        #     )
+
+                        #     db.session.add(emergency_schedule_entry)
+                        #     processed_count += 1
+                        #     print(f"✅ Created emergency schedule for vehicle {emergency_schedule_data['vehicle_id']}")
 
                     except Exception as op_error:
                         print(f"❌ Error processing operation {i}: {op_error}")
@@ -376,6 +502,36 @@ class DatabaseQueueService:
                         traceback.print_exc()
                         error_count += len(ai_q_tables)
                         db.session.rollback()
+                        
+                # Bulk insert Emergency Vehicle Logs
+                if emergency_logs:
+                    try:
+                        print("🔍 Adding Emergency Vehicle Logs to session...")
+                        db.session.add_all(emergency_logs)
+                        print("🔍 Flushing Emergency Vehicle Logs...")
+                        db.session.flush()
+                        print("✅ Successfully flushed Emergency Vehicle Logs to session")
+                    except Exception as e:
+                        print(f"❌ Error during Emergency Vehicle Logs flush: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        error_count += len(emergency_logs)
+                        db.session.rollback()
+                        
+                # Bulk insert Emergency Vehicle Schedules
+                # if emergency_schedule_logs:
+                #     try:
+                #         print("🔍 Adding Emergency Vehicle Schedules to session...")
+                #         db.session.add_all(emergency_schedule_logs)
+                #         print("🔍 Flushing Emergency Vehicle Schedules...")
+                #         db.session.flush()
+                #         print("✅ Successfully flushed Emergency Vehicle Schedules to session")
+                #     except Exception as e:
+                #         print(f"❌ Error during Emergency Vehicle Schedules flush: {e}")
+                #         import traceback
+                #         traceback.print_exc()
+                #         error_count += len(emergency_schedule_logs)
+                #         db.session.rollback()
 
                 # Commit all changes
                 if error_count == 0:
@@ -406,6 +562,14 @@ class DatabaseQueueService:
                         if ai_q_tables:
                             q_table_count = AIQTable.query.count()
                             print(f"🔍 Verification: Found {q_table_count} Q-table entries in DB")
+                            
+                        if emergency_logs:
+                            emergency_count = EmergencyVehicleLog.query.count()
+                            print(f"🔍 Verification: Found {emergency_count} Emergency Vehicle Logs in DB")
+                            
+                        if emergency_schedule_logs:
+                            schedule_count = EmergencyVehicleRegistry.query.count()
+                            print(f"🔍 Verification: Found {schedule_count} Emergency Vehicle Schedules in DB")
 
                     except Exception as verify_error:
                         print(f"⚠️ Could not verify save: {verify_error}")
@@ -439,6 +603,26 @@ class DatabaseQueueService:
         finally:
             self.is_processing = False
             self.last_flush = time.time()
+    
+    def _json_serializer(self, obj):
+        """Custom JSON serializer for objects not serializable by default json code"""
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        elif hasattr(obj, '__dict__'):
+            return obj.__dict__
+        else:
+            return str(obj)
+    
+    def _convert_datetime_to_string(self, data):
+        """Recursively convert datetime objects to strings in a dictionary"""
+        if isinstance(data, dict):
+            return {k: self._convert_datetime_to_string(v) for k, v in data.items()}
+        elif isinstance(data, list):
+            return [self._convert_datetime_to_string(item) for item in data]
+        elif isinstance(data, datetime):
+            return data.isoformat()
+        else:
+            return data
     
     def get_stats(self):
         """Get queue performance statistics"""

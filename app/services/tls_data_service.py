@@ -116,16 +116,9 @@ class TLSDataService:
         if time_since_last_log < self.MIN_LOG_INTERVAL:
             return False
         
-        # Check change-based conditions
-        # significant_changes = self._detect_significant_changes(last_data, current_data)
-        
         # Always log on state or phase changes (critical events)
         if current_data['state'] != last_data['state'] or current_data['phase'] != last_data['phase']:
             return True
-        
-        # Log if significant performance changes detected
-        # if significant_changes:
-        #     return True
         
         # Log if minimum time interval reached (even without significant changes)
         # This ensures we capture baseline data periodically
@@ -561,18 +554,6 @@ class TLSDataService:
             print(f"❌ Error queuing TLS log: {e}")
             import traceback
             traceback.print_exc()
-    
-    # def store_traffic_pattern(self, pattern_data: Dict):
-    #     """Store traffic pattern using queue service"""
-    #     if not db_queue_service:
-    #         print("❌ DB Queue Service not available for pattern storage")
-    #         return
-        
-    #     try:
-    #         db_queue_service.add_traffic_pattern(pattern_data)
-    #         print(f"📊 Queued traffic pattern for {pattern_data.get('traffic_light_id', 'unknown')}")
-    #     except Exception as e:
-    #         print(f"❌ Error queuing traffic pattern: {e}")
     
     # Analysis Methods
     def get_tls_analysis(self, tl_id: str, hours: int = 24) -> Dict[str, Any]:

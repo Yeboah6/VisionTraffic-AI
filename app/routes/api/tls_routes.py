@@ -19,18 +19,29 @@ def get_tls_snapshot():
                 "is_running": False
             }), 400
         
+        # Get TLS data with fallback
         tls_data = optimized_sumo_service.get_tls_data()
         
+        # Check if we actually have TLS data
+        if not tls_data.get('tls_snapshot'):
+            return jsonify({
+                "success": False,
+                "error": "TLS data not yet available (may be collecting)",
+                "is_running": True,
+                "simulation_step": optimized_sumo_service.simulation_step
+            }), 425  # 425 Too Early
+            
         return jsonify({
             "success": True,
             "is_running": True,
+            "simulation_step": optimized_sumo_service.simulation_step,
             "data": tls_data
         })
         
     except Exception as e:
         return jsonify({
             "success": False,
-            "error": str(e)
+            "error": f"Failed to get TLS snapshot: {str(e)}"
         }), 500
 
 @tls_bp.route('/api/tls/analysis/<tl_id>', methods=['GET'])
@@ -262,3 +273,22 @@ def get_config_stats():
             "success": False,
             "error": str(e)
         }), 500
+
+# @tls_bp.route('/api/tls/collection-status', methods=['GET'])
+# def get_collection_status():
+#     """Get TLS data collection status"""
+#     try:
+#         from app.services.optimized_sumo_service import optimized_sumo_service
+        
+#         status = optimized_sumo_service.get_data_collection_status()
+        
+#         return jsonify({
+#             "success": True,
+#             "collection_status": status
+#         })
+        
+#     except Exception as e:
+#         return jsonify({
+#             "success": False,
+#             "error": str(e)
+#         }), 500

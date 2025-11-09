@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Emergencies Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-content h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-content .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #e84118;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9em;
+        }
+
+        .dashboard-content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+        }
+
+        .emergencies-section {
+            background: white;
+            border-radius: 15px;
+            padding: 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            padding: 25px 30px;
+            background: linear-gradient(135deg, #e84118, #c23616);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .section-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5em;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-weight: 600;
+        }
+
+        .filter-select option {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .refresh-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .emergencies-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .emergency-card {
+            padding: 25px 30px;
+            border-bottom: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .emergency-card:last-child {
+            border-bottom: none;
+        }
+
+        .emergency-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .vehicle-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .vehicle-icon {
+            font-size: 2em;
+        }
+
+        .vehicle-details h3 {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .vehicle-id {
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .emergency-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-scheduled {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .priority-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 0.8em;
+            text-transform: uppercase;
+        }
+
+        .priority-critical {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .priority-high {
+            background: #ffeaa7;
+            color: #856404;
+            border: 2px solid #ffd166;
+        }
+
+        .priority-medium {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+        }
+
+        .emergency-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #6c757d;
+        }
+
+        .detail-item strong {
+            color: #2c3e50;
+        }
+
+        .route-preview {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .route-path {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .route-edge {
+            background: #e84118;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .route-arrow {
+            color: #e84118;
+            font-weight: bold;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .btn-cancel {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .btn-greenwave {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-greenwave:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-details {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-details:hover {
+            background: #138496;
+            transform: translateY(-2px);
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .info-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .info-panel h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3em;
+        }
+
+        .greenwave-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .greenwave-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #28a745;
+        }
+
+        .greenwave-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .greenwave-tl {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .greenwave-time {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .greenwave-details {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .action-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .action-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        .action-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .action-description {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 30px;
+            color: #6c757d;
+        }
+
+        .empty-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #e84118;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .emergency-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            margin: 60px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .emergency-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .emergency-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <h1>🚨 Active Emergencies Dashboard</h1>
+                <div class="subtitle">Real-time monitoring and management of emergency vehicle operations</div>
+            </div>
+            <div class="header-actions">
+                <button class="refresh-btn" onclick="loadActiveEmergencies()">
+                    🔄 Refresh Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-number" id="total-emergencies">0</div>
+                <div class="stat-label">Total Emergencies</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="active-emergencies">0</div>
+                <div class="stat-label">Active Now</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="critical-priority">0</div>
+                <div class="stat-label">Critical Priority</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="greenwaves-active">0</div>
+                <div class="stat-label">Green Waves Active</div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Left Column - Emergencies List -->
+            <div class="emergencies-section">
+                <div class="section-header">
+                    <h2>📋 Active Emergency Vehicles</h2>
+                    <div class="controls">
+                        <select class="filter-select" id="statusFilter" onchange="filterEmergencies()">
+                            <option value="all">All Status</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="SCHEDULED">Scheduled</option>
+                            <option value="COMPLETED">Completed</option>
+                        </select>
+                        <select class="filter-select" id="priorityFilter" onchange="filterEmergencies()">
+                            <option value="all">All Priorities</option>
+                            <option value="CRITICAL">Critical</option>
+                            <option value="HIGH">High</option>
+                            <option value="MEDIUM">Medium</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="emergencies-list" id="emergenciesList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading active emergencies...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Sidebar -->
+            <div class="sidebar">
+                <!-- Active Green Waves -->
+                <div class="info-panel">
+                    <h3>🟢 Active Green Waves</h3>
+                    <div class="greenwave-list" id="greenwaveList">
+                        <div class="loading">
+                            <div class="spinner" style="border-top-color: #28a745; width: 30px; height: 30px;"></div>
+                            <p>Loading green waves...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="info-panel">
+                    <h3>⚡ Quick Actions</h3>
+                    <div class="quick-actions">
+                        <div class="action-card" onclick="scheduleNewEmergency()">
+                            <div class="action-icon">🚑</div>
+                            <div class="action-title">Schedule New Emergency</div>
+                            <div class="action-description">Create new emergency vehicle schedule</div>
+                        </div>
+                        <div class="action-card" onclick="scheduleGreenWave()">
+                            <div class="action-icon">🟢</div>
+                            <div class="action-title">Schedule Green Wave</div>
+                            <div class="action-description">Create traffic light priority</div>
+                        </div>
+                        <!-- <div class="action-card" onclick="viewSystemStatus()">
+                            <div class="action-icon">📊</div>
+                            <div class="action-title">System Status</div>
+                            <div class="action-description">View simulation and TLS status</div>
+                        </div> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Details Modal -->
+    <div class="emergency-modal" id="emergencyModal">
+        <div class="modal-content">
+            <div id="modalContent">
+                <!-- Modal content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let allEmergencies = [];
+        let allGreenWaves = [];
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadActiveEmergencies();
+            loadActiveGreenWaves();
+            startAutoRefresh();
+        });
+
+        // Load active emergencies
+        async function loadActiveEmergencies() {
+            showLoading('emergenciesList', 'Loading active emergencies...');
+            
+            try {
+                const response = await fetch('/api/emergency/active');
+                const result = await response.json();
+                
+                if (result.success) {
+                    allEmergencies = result.emergencies;
+                    updateStatistics();
+                    displayEmergencies(allEmergencies);
+                } else {
+                    showError('emergenciesList', 'Failed to load emergencies: ' + result.error);
+                }
+            } catch (error) {
+                showError('emergenciesList', 'Network error: ' + error.message);
+            }
+        }
+
+        // Load active green waves
+        async function loadActiveGreenWaves() {
+            showLoading('greenwaveList', 'Loading green waves...');
+            
+            try {
+                const response = await fetch('/api/emergency/green-wave/active');
+                const result = await response.json();
+                
+                if (result.success) {
+                    allGreenWaves = result.green_waves;
+                    displayGreenWaves(allGreenWaves);
+                } else {
+                    showError('greenwaveList', 'Failed to load green waves: ' + result.error);
+                }
+            } catch (error) {
+                showError('greenwaveList', 'Network error: ' + error.message);
+            }
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const total = allEmergencies.length;
+            const active = allEmergencies.filter(e => e.status === 'ACTIVE').length;
+            const critical = allEmergencies.filter(e => e.priority === 'CRITICAL').length;
+            const greenWavesActive = allGreenWaves.filter(gw => gw.status === 'ACTIVE').length;
+
+            document.getElementById('total-emergencies').textContent = total;
+            document.getElementById('active-emergencies').textContent = active;
+            document.getElementById('critical-priority').textContent = critical;
+            document.getElementById('greenwaves-active').textContent = greenWavesActive;
+        }
+
+        // Display emergencies in the list
+        function displayEmergencies(emergencies) {
+            const container = document.getElementById('emergenciesList');
+            
+            if (emergencies.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🚨</div>
+                        <h3>No Active Emergencies</h3>
+                        <p>There are currently no emergency vehicles scheduled or active.</p>
+                        <button class="refresh-btn" onclick="loadActiveEmergencies()" style="margin-top: 20px;">
+                            Refresh
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = emergencies.map(emergency => `
+                <div class="emergency-card" onclick="showEmergencyDetails('${emergency.id}')">
+                    <div class="emergency-header">
+                        <div class="vehicle-info">
+                            <div class="vehicle-icon">${getVehicleIcon(emergency.emergency_type)}</div>
+                            <div class="vehicle-details">
+                                <h3>${emergency.vehicle_id}</h3>
+                                <div class="vehicle-id">${emergency.emergency_type} • ${emergency.scenario}</div>
+                            </div>
+                        </div>
+                        <div class="emergency-status">
+                            <span class="status-badge status-${emergency.status.toLowerCase()}">
+                                ${emergency.status}
+                            </span>
+                            <span class="priority-badge priority-${emergency.priority.toLowerCase()}">
+                                ${emergency.priority}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="emergency-details">
+                        <div class="detail-item">
+                            <strong>Departure:</strong> 
+                            ${formatTime(emergency.departure_time)}
+                        </div>
+                        <div class="detail-item">
+                            <strong>From:</strong> 
+                            ${emergency.from_location || 'Not specified'}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Duration:</strong> 
+                            ${emergency.estimated_duration || 'Unknown'}s
+                        </div>
+                        <div class="detail-item">
+                            <strong>To:</strong> 
+                            ${emergency.to_location || 'Not specified'}
+                        </div>
+                    </div>
+
+                    ${emergency.route_edges && emergency.route_edges.length > 0 ? `
+                        <div class="route-preview">
+                            <strong>Route:</strong>
+                            <div class="route-path">
+                                ${emergency.route_edges.map((edge, index) => `
+                                    <span class="route-edge">${edge}</span>
+                                    ${index < emergency.route_edges.length - 1 ? '<span class="route-arrow">→</span>' : ''}
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="action-buttons">
+                        <button class="btn btn-cancel" onclick="event.stopPropagation(); cancelEmergency('${emergency.id}')">
+                            Cancel
+                        </button>
+                        <button class="btn btn-greenwave" onclick="event.stopPropagation(); scheduleGreenWaveForEmergency('${emergency.id}')">
+                            Schedule Green Wave
+                        </button>
+                        <button class="btn btn-details" onclick="event.stopPropagation(); showEmergencyDetails('${emergency.id}')">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Display green waves
+        function displayGreenWaves(greenWaves) {
+            const container = document.getElementById('greenwaveList');
+            
+            if (greenWaves.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="padding: 30px;">
+                        <div class="empty-icon">🟢</div>
+                        <p>No active green waves</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = greenWaves.map(gw => `
+                <div class="greenwave-item">
+                    <div class="greenwave-header">
+                        <span class="greenwave-tl">${gw.traffic_light_id}</span>
+                        <span class="status-badge status-${gw.status.toLowerCase()}">
+                            ${gw.status}
+                        </span>
+                    </div>
+                    <div class="greenwave-details">
+                        <div>Start: ${formatTime(gw.scheduled_start)}</div>
+                        <div>Duration: ${gw.duration}s</div>
+                        ${gw.emergency_id ? `<div>For: ${getEmergencyVehicleId(gw.emergency_id)}</div>` : ''}
+                        ${gw.edge ? `<div>Edge: ${gw.edge}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filter emergencies
+        function filterEmergencies() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            
+            let filtered = allEmergencies;
+            
+            if (statusFilter !== 'all') {
+                filtered = filtered.filter(e => e.status === statusFilter);
+            }
+            
+            if (priorityFilter !== 'all') {
+                filtered = filtered.filter(e => e.priority === priorityFilter);
+            }
+            
+            displayEmergencies(filtered);
+        }
+
+        // Show emergency details modal
+        async function showEmergencyDetails(emergencyId) {
+            const emergency = allEmergencies.find(e => e.id === emergencyId);
+            if (!emergency) return;
+
+            const modal = document.getElementById('emergencyModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalContent.innerHTML = `
+                <h2 style="margin-bottom: 20px; color: #2c3e50;">Emergency Vehicle Details</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 35px;">
+                    <div>
+                        <strong>Vehicle ID:</strong> ${emergency.vehicle_id}<br><br>
+                        <strong>Type:</strong> ${emergency.emergency_type}<br><br>
+                        <strong>Priority:</strong> <span class="priority-badge priority-${emergency.priority.toLowerCase()}">${emergency.priority}</span><br><br>
+                        <strong>Status:</strong> <span class="status-badge status-${emergency.status.toLowerCase()}">${emergency.status}</span>
+                    </div>
+                    <div>
+                        <strong>Scenario:</strong> ${emergency.scenario}<br><br>
+                        <strong>Departure:</strong> ${formatTime(emergency.departure_time)}<br><br>
+                        <strong>Duration:</strong> ${emergency.estimated_duration || 'Unknown'}s<br><br>
+                        <strong>Created:</strong> ${formatDateTime(emergency.created_at)}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <strong>Route Information:</strong><br><br>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 10px;">
+                        <strong>From:</strong> ${emergency.from_location || 'Not specified'}<br><br>
+                        <strong>To:</strong> ${emergency.to_location || 'Not specified'}<br><br>
+                        <strong>Route:</strong> 
+                        <div class="route-path" style="margin-top: 10px;">
+                            ${emergency.route_edges ? emergency.route_edges.map((edge, index) => `
+                                <span class="route-edge">${edge}</span>
+                                ${index < emergency.route_edges.length - 1 ? '<span class="route-arrow">→</span>' : ''}
+                            `).join('') : 'No route specified'}
+                        </div>
+                    </div>
+                </div>
+
+                ${emergency.description ? `
+                    <div style="margin-bottom: 25px;">
+                        <strong>Description:</strong><br>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 10px;">
+                            ${emergency.description}
+                        </div>
+                    </div>
+                ` : ''}
+
+                <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 30px;">
+                    <button class="btn btn-cancel" onclick="closeModal()">Close</button>
+                    <button class="btn btn-greenwave" onclick="scheduleGreenWaveForEmergency('${emergency.id}')">Schedule Green Wave</button>
+                    <button class="btn btn-cancel" onclick="cancelEmergency('${emergency.id}')">Cancel Emergency</button>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('emergencyModal').style.display = 'none';
+        }
+
+        // Cancel emergency
+        async function cancelEmergency(emergencyId) {
+            if (!confirm('Are you sure you want to cancel this emergency?')) return;
+            
+            try {
+                const response = await fetch(`/api/emergency/${emergencyId}/cancel`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Emergency cancelled successfully');
+                    loadActiveEmergencies();
+                    closeModal();
+                } else {
+                    alert('Failed to cancel emergency: ' + result.error);
+                }
+            } catch (error) {
+                alert('Network error: ' + error.message);
+            }
+        }
+
+        // Schedule green wave for emergency
+        function scheduleGreenWaveForEmergency(emergencyId) {
+            const emergency = allEmergencies.find(e => e.id === emergencyId);
+            if (emergency) {
+                alert(`Redirecting to schedule green wave for ${emergency.vehicle_id}...`);
+                window.location.href = `/api/emergency/greenwave-schedule?emergency_id=${emergencyId}`;
+            }
+        }
+
+        // Utility functions
+        function getVehicleIcon(emergencyType) {
+            const icons = {
+                'AMBULANCE': '🚑',
+                'FIRE_TRUCK': '🚒',
+                'POLICE': '🚓',
+                'EMERGENCY': '🚨'
+            };
+            return icons[emergencyType] || '🚗';
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return 'Unknown';
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleTimeString();
+        }
+
+        function formatDateTime(dateTimeString) {
+            if (!dateTimeString) return 'Unknown';
+            const date = new Date(dateTimeString);
+            return date.toLocaleString();
+        }
+
+        function getEmergencyVehicleId(emergencyId) {
+            const emergency = allEmergencies.find(e => e.id === emergencyId);
+            return emergency ? emergency.vehicle_id : 'Unknown';
+        }
+
+        function showLoading(containerId, message) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        function showError(containerId, message) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">⚠️</div>
+                    <h3>Error Loading Data</h3>
+                    <p>${message}</p>
+                    <button class="refresh-btn" onclick="loadActiveEmergencies()" style="margin-top: 20px;">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        // Auto-refresh every 30 seconds
+        function startAutoRefresh() {
+            setInterval(() => {
+                loadActiveEmergencies();
+                loadActiveGreenWaves();
+            }, 30000);
+        }
+
+        // Navigation functions
+        function scheduleNewEmergency() {
+            window.location.href = '/api/emergency/emergency-schedule';
+        }
+
+        function scheduleGreenWave() {
+            window.location.href = '/api/emergency/greenwave-schedule';
+        }
+
+        // function viewSystemStatus() {
+        //     alert('Opening System Status dashboard...');
+        //     // In real app: window.location.href = '/system-status.html';
+        // }
+
+        // Close modal when clicking outside
+        document.getElementById('emergencyModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

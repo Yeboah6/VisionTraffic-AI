@@ -1,0 +1,1106 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Main Content -->
+<main class="main-content min-h-screen pb-8">
+    <!-- Header -->
+    {% include 'includes/header.html' %}
+
+    <!-- Filter Controls -->
+    <div class="px-6 py-4 bg-white border-b">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-slate-600">Simulation Step: <strong id="simulation-step">0</strong></span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button id="refresh-btn" class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm flex items-center hover:bg-slate-50">
+                    <div class="w-4 h-4 flex items-center justify-center mr-2">
+                        <i class="ri-refresh-line"></i>
+                    </div>
+                    <span>Refresh</span>
+                </button>
+                <a href="{{ url_for('signal.list') }}" class="px-4 py-2 border border-slate-200 bg-white rounded-button text-sm flex items-center">
+                    <div class="w-4 h-4 flex items-center justify-center mr-2">
+                        <i class="ri-eye-line"></i>
+                    </div>
+                    <span>View Signals</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="px-6 py-6">
+        <!-- Status Cards -->
+        <div class="grid grid-cols-4 gap-6 mb-6">
+            <div class="card signal-status-card optimal p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-500">Flow Efficiency</p>
+                        <h3 class="text-2xl font-semibold mt-1" id="flow-efficiency">--</h3>
+                        <p class="text-xs mt-1 flex items-center" id="efficiency-change">
+                            <span class="w-4 h-4 flex items-center justify-center mr-1">
+                                <i class="ri-information-line"></i>
+                            </span>
+                            <span>Grade: <strong id="performance-grade">-</strong></span>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                        <div class="w-6 h-6 flex items-center justify-center text-green-500">
+                            <i class="ri-flow-chart"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card signal-status-card p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-500">Avg. Speed</p>
+                        <h3 class="text-2xl font-semibold mt-1" id="avg-speed">--</h3>
+                        <p class="text-xs text-slate-500 mt-1 flex items-center">
+                            <span class="w-4 h-4 flex items-center justify-center mr-1">
+                                <i class="ri-speed-line"></i>
+                            </span>
+                            <span>km/h</span>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                        <div class="w-6 h-6 flex items-center justify-center text-indigo-500">
+                            <i class="ri-speedometer-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card signal-status-card p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-500">Congestion Level</p>
+                        <h3 class="text-2xl font-semibold mt-1" id="congestion-level">--</h3>
+                        <p class="text-xs text-slate-500 mt-1 flex items-center">
+                            <span class="w-4 h-4 flex items-center justify-center mr-1">
+                                <i class="ri-roadster-line"></i>
+                            </span>
+                            <span id="congestion-percent">--</span>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+                        <div class="w-6 h-6 flex items-center justify-center text-orange-500">
+                            <i class="ri-traffic-light-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card signal-status-card warning p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-500">Avg. Waiting Vehicles</p>
+                        <h3 class="text-2xl font-semibold mt-1" id="avg-waiting">--</h3>
+                        <p class="text-xs text-slate-500 mt-1 flex items-center">
+                            <span class="w-4 h-4 flex items-center justify-center mr-1">
+                                <i class="ri-car-line"></i>
+                            </span>
+                            <span>per intersection</span>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
+                        <div class="w-6 h-6 flex items-center justify-center text-yellow-500">
+                            <i class="ri-time-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second Row of Status Cards -->
+        <div class="grid grid-cols-4 gap-6 mb-6">
+            <div class="card signal-status-card p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-500">Active Signals</p>
+                        <h3 class="text-2xl font-semibold mt-1" id="total-signals">--</h3>
+                        <p class="text-xs text-slate-500 mt-1 flex items-center">
+                            <span class="w-4 h-4 flex items-center justify-center mr-1">
+                                <i class="ri-traffic-light-line"></i>
+                            </span>
+                            <span id="valid-signals-text">Valid signals</span>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                        <div class="w-6 h-6 flex items-center justify-center text-primary">
+                            <i class="ri-loop-left-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card signal-status-card p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-500">Vehicles Observed</p>
+                        <h3 class="text-2xl font-semibold mt-1" id="vehicle-throughput">--</h3>
+                        <p class="text-xs text-slate-500 mt-1 flex items-center">
+                            <span class="w-4 h-4 flex items-center justify-center mr-1">
+                                <i class="ri-dashboard-line"></i>
+                            </span>
+                            <span>in simulation</span>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                        <div class="w-6 h-6 flex items-center justify-center text-purple-500">
+                            <i class="ri-car-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card signal-status-card p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-500">Total Lanes</p>
+                        <h3 class="text-2xl font-semibold mt-1" id="total-lanes">--</h3>
+                        <p class="text-xs text-slate-500 mt-1 flex items-center">
+                            <span class="w-4 h-4 flex items-center justify-center mr-1">
+                                <i class="ri-road-map-line"></i>
+                            </span>
+                            <span>monitored</span>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
+                        <div class="w-6 h-6 flex items-center justify-center text-teal-500">
+                            <i class="ri-road-map-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card signal-status-card p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-500">Emergency Vehicles</p>
+                        <h3 class="text-2xl font-semibold mt-1" id="emergency-vehicles">--</h3>
+                        <p class="text-xs text-slate-500 mt-1 flex items-center">
+                            <span class="w-4 h-4 flex items-center justify-center mr-1">
+                                <i class="ri-alarm-warning-line"></i>
+                            </span>
+                            <span id="emergency-status">monitoring</span>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                        <div class="w-6 h-6 flex items-center justify-center text-red-500">
+                            <i class="ri-police-car-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-6 mb-6">
+            <div class="card signal-status-card p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-500">Active Incidents</p>
+                        <h3 class="text-2xl font-semibold mt-1" id="active-incidents">{{incidents|length}}</h3>
+                        <p class="text-xs text-slate-500 mt-1 flex items-center">
+                            <span class="w-4 h-4 flex items-center justify-center mr-1">
+                                <i class="ri-error-warning-line"></i>
+                            </span>
+                            <span id="incident-status">monitoring</span>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                        <div class="w-6 h-6 flex items-center justify-center text-amber-500">
+                            <i class="ri-alert-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card signal-status-card p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-500">AI Predictions</p>
+                        <h3 class="text-2xl font-semibold mt-1" id="ai-predictions">--</h3>
+                        <p class="text-xs text-slate-500 mt-1 flex items-center">
+                            <span class="w-4 h-4 flex items-center justify-center mr-1">
+                                <i class="ri-flashlight-line"></i>
+                            </span>
+                            <span id="prediction-status">analyzing</span>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-cyan-100 flex items-center justify-center">
+                        <div class="w-6 h-6 flex items-center justify-center text-cyan-500">
+                            <i class="ri-brain-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="card mb-6">
+                <div class="p-4 border-b flex items-center justify-between">
+                    <h2 class="font-semibold">Performance Grade Distribution</h2>
+                    <button class="toggle-card-btn p-1 hover:bg-slate-100 rounded" data-target="performance-distribution-content">
+                        <i class="ri-subtract-line"></i>
+                    </button>
+                </div>
+                <div class="p-4 card-collapsible-content" id="performance-distribution-content">
+                    <div class="space-y-3" id="grade-distribution">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t">
+                        <h4 class="font-medium mb-2 text-sm">Collection Statistics</h4>
+                        <div class="space-y-2 text-xs text-slate-600">
+                            <div class="flex justify-between">
+                                <span>Successful Collections:</span>
+                                <span class="font-medium" id="successful-collections">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Collection Errors:</span>
+                                <span class="font-medium" id="collection-errors">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Logged Instances:</span>
+                                <span class="font-medium" id="logged-instances">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Signal Control Panel -->
+            <div class="card">
+                <div class="p-4 border-b flex items-center justify-between">
+                    <h2 class="font-semibold">Active Traffic Signals</h2>
+                    <button class="toggle-card-btn p-1 hover:bg-slate-100 rounded" data-target="signal-control-content">
+                        <i class="ri-subtract-line"></i>
+                    </button>
+                </div>
+                <div class="p-4 card-collapsible-content" id="signal-control-content">
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-medium text-sm">Scenario Information</h4>
+                            <span class="text-xs text-slate-500" id="scenario-name">-</span>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg text-xs">
+                            <div class="flex justify-between mb-1">
+                                <span class="text-slate-600">Simulation Time:</span>
+                                <span class="font-medium" id="sim-timestamp">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-600">Data Collection:</span>
+                                <span class="font-medium text-green-600" id="collection-status">Active</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h4 class="font-medium mb-3 text-sm">Signal List</h4>
+                        <div class="space-y-2 max-h-64 overflow-y-auto" id="signal-list">
+                            <div class="text-sm text-slate-500 text-center py-4">
+                                Loading signals...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Row: Incidents and Traffic Control -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <!-- Current Incidents -->
+            <div class="card">
+                <div class="p-4 border-b flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <h2 class="font-semibold">Current Incidents</h2>
+                        <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full" id="incident-count">0 Active</span>
+                    </div>
+                    <button class="toggle-card-btn p-1 hover:bg-slate-100 rounded" data-target="incidents-container">
+                        <i class="ri-subtract-line"></i>
+                    </button>
+                </div>
+                <div class="p-2 card-collapsible-content" id="incidents-container">
+                    <div class="text-sm text-slate-500 text-center py-8">
+                        Loading incidents...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Traffic Control Settings -->
+            <div class="card">
+                <div class="p-4 border-b flex items-center justify-between">
+                    <h2 class="font-semibold">Traffic Control Settings</h2>
+                    <button class="toggle-card-btn p-1 hover:bg-slate-100 rounded" data-target="traffic-control-content">
+                        <i class="ri-subtract-line"></i>
+                    </button>
+                </div>
+                <div class="p-4 card-collapsible-content" id="traffic-control-content">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="text-sm font-medium">AI Traffic Optimization</h4>
+                                <p class="text-xs text-slate-500 mt-0.5">Automatically adjust signals based on flow</p>
+                            </div>
+                            <label class="custom-switch">
+                                <input type="checkbox" id="ai-optimization" checked>
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="text-sm font-medium">Pedestrian Priority</h4>
+                                <p class="text-xs text-slate-500 mt-0.5">Extend crossing times in busy areas</p>
+                            </div>
+                            <label class="custom-switch">
+                                <input type="checkbox" id="pedestrian-priority">
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="text-sm font-medium">Emergency Vehicle Detection</h4>
+                                <p class="text-xs text-slate-500 mt-0.5">Auto-clear routes for emergency vehicles</p>
+                            </div>
+                            <label class="custom-switch">
+                                <input type="checkbox" id="emergency-detection" checked>
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Data Section -->
+        <div class="card">
+            <div class="p-4 border-b flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <h2 class="font-semibold">Real-time Signal Data</h2>
+                    <span class="text-xs text-slate-500" id="realtime-count">0 signals</span>
+                </div>
+                <button class="toggle-card-btn p-1 hover:bg-slate-100 rounded" data-target="real-time-content">
+                    <i class="ri-subtract-line"></i>
+                </button>
+            </div>
+            <div class="p-4 card-collapsible-content" id="real-time-content">
+                <div id="realtime-data" class="space-y-2">
+                    <div class="text-sm text-slate-500 text-center py-4">Loading real-time data...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+let refreshInterval;
+
+// Fetch performance data
+async function fetchPerformanceData() {
+    try {
+        const response = await fetch('/api/tls/performance');
+        const data = await response.json();
+        
+        if (data.success && data.performance) {
+            const perf = data.performance;
+            
+            // Update status cards
+            document.getElementById('flow-efficiency').textContent = 
+                perf.average_efficiency ? `${perf.average_efficiency.toFixed(1)}%` : '--';
+            document.getElementById('performance-grade').textContent = 
+                perf.overall_performance_grade || '-';
+            
+            document.getElementById('avg-waiting').textContent = 
+                perf.average_waiting_vehicles !== undefined ? 
+                perf.average_waiting_vehicles.toFixed(1) : '--';
+            
+            document.getElementById('total-signals').textContent = 
+                perf.total_tls || '--';
+            document.getElementById('valid-signals-text').textContent = 
+                `${perf.valid_tls_count || 0} valid signals`;
+            
+            document.getElementById('vehicle-throughput').textContent = 
+                perf.total_vehicles_observed || '--';
+            
+            // Update scenario info
+            document.getElementById('scenario-name').textContent = 
+                perf.scenario || 'Unknown';
+            document.getElementById('sim-timestamp').textContent = 
+                perf.timestamp ? `${perf.timestamp.toFixed(1)}s` : '-';
+            
+            // Update collection stats
+            document.getElementById('successful-collections').textContent = 
+                perf.successful_collections || '0';
+            document.getElementById('collection-errors').textContent = 
+                perf.collection_errors || '0';
+            document.getElementById('logged-instances').textContent = 
+                perf.logged_instances || '0';
+            
+            // Update grade distribution
+            updateGradeDistribution(perf.performance_grade_distribution);
+            
+            // Update efficiency card styling based on grade
+            updateEfficiencyCardStyle(perf.overall_performance_grade);
+        }
+    } catch (error) {
+        console.error('Error fetching performance data:', error);
+    }
+}
+
+// Update grade distribution chart
+function updateGradeDistribution(distribution) {
+    const container = document.getElementById('grade-distribution');
+    if (!distribution) {
+        container.innerHTML = '<div class="text-sm text-slate-500">No data available</div>';
+        return;
+    }
+    
+    const grades = ['A', 'B', 'C', 'D'];
+    const colors = {
+        'A': 'bg-green-500',
+        'B': 'bg-blue-500',
+        'C': 'bg-yellow-500',
+        'D': 'bg-red-500'
+    };
+    
+    const total = Object.values(distribution).reduce((sum, val) => sum + val, 0);
+    
+    container.innerHTML = grades.map(grade => {
+        const count = distribution[grade] || 0;
+        const percentage = total > 0 ? (count / total * 100).toFixed(1) : 0;
+        
+        return `
+            <div class="flex items-center">
+                <span class="text-sm font-medium w-8">Grade ${grade}:</span>
+                <div class="flex-1 mx-3">
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="${colors[grade]} h-2 rounded-full" style="width: ${percentage}%"></div>
+                    </div>
+                </div>
+                <span class="text-sm font-medium w-16 text-right">${count} (${percentage}%)</span>
+            </div>
+        `;
+    }).join('');
+}
+
+// Update efficiency card styling
+function updateEfficiencyCardStyle(grade) {
+    const card = document.querySelector('.signal-status-card.optimal');
+    const changeElement = document.getElementById('efficiency-change');
+    
+    card.classList.remove('optimal', 'warning');
+    
+    if (grade === 'A' || grade === 'B') {
+        card.classList.add('optimal');
+        changeElement.classList.remove('text-yellow-600', 'text-red-600');
+        changeElement.classList.add('text-green-600');
+    } else if (grade === 'C') {
+        card.classList.add('warning');
+        changeElement.classList.remove('text-green-600', 'text-red-600');
+        changeElement.classList.add('text-yellow-600');
+    } else {
+        changeElement.classList.remove('text-green-600', 'text-yellow-600');
+        changeElement.classList.add('text-red-600');
+    }
+}
+
+// Fetch all traffic signals
+async function fetchAllSignals() {
+    try {
+        const response = await fetch('/api/tls/all');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('active-signals-count').textContent = data.count || 0;
+            
+            // Display signal list
+            const signalList = document.getElementById('signal-list');
+            if (data.details && Object.keys(data.details).length > 0) {
+                signalList.innerHTML = Object.entries(data.details).map(([id, info]) => {
+                    const stateColor = getStateColor(info.state);
+                    return `
+                        <div class="flex items-center justify-between p-2 bg-slate-50 rounded border border-slate-200">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 rounded-full ${stateColor}"></div>
+                                <span class="text-sm font-medium">${id}</span>
+                            </div>
+                            <div class="text-xs text-slate-600">
+                                ${info.phase_name || info.phase || 'Phase ' + (info.phase || 0)}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                signalList.innerHTML = '<div class="text-sm text-slate-500 text-center py-4">No signals available</div>';
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching signals:', error);
+    }
+}
+
+// Get state color based on signal state
+function getStateColor(state) {
+    if (!state) return 'bg-slate-400';
+    if (state.includes('G') || state.includes('g')) return 'bg-green-500';
+    if (state.includes('y')) return 'bg-yellow-500';
+    if (state.includes('r')) return 'bg-red-500';
+    return 'bg-slate-400';
+}
+
+// Fetch snapshot data
+async function fetchSnapshot() {
+    try {
+        const response = await fetch('/api/tls/snapshot');
+        const data = await response.json();
+        
+        if (data.success && data.simulation_step !== undefined) {
+            document.getElementById('simulation-step').textContent = data.simulation_step;
+        }
+    } catch (error) {
+        console.error('Error fetching snapshot:', error);
+    }
+}
+
+// Track expanded TLS cards
+let expandedTLSCards = new Set();
+let aggregatedMetrics = {
+    totalSpeed: 0,
+    totalLanes: 0,
+    emergencyVehicles: 0,
+    activeIncidents: 0,
+    aiPredictions: 0,
+    congestionCounts: { LOW: 0, MEDIUM: 0, HIGH: 0 },
+    signalCount: 0
+};
+
+// Fetch real-time data
+async function fetchRealtimeData() {
+    try {
+        const response = await fetch('/api/tls/realtime');
+        const data = await response.json();
+        
+        const realtimeContainer = document.getElementById('realtime-data');
+        const realtimeCount = document.getElementById('realtime-count');
+        
+        if (data.success && data.realtime_data) {
+            const rtData = data.realtime_data;
+            const signalCount = Object.keys(rtData).length;
+            
+            realtimeCount.textContent = `${signalCount} signal${signalCount !== 1 ? 's' : ''}`;
+            
+            // Reset aggregated metrics
+            aggregatedMetrics = {
+                totalSpeed: 0,
+                totalLanes: 0,
+                emergencyVehicles: 0,
+                activeIncidents: 0,
+                aiPredictions: 0,
+                congestionCounts: { LOW: 0, MEDIUM: 0, HIGH: 0 },
+                signalCount: 0
+            };
+            
+            if (signalCount > 0) {
+                // Calculate aggregated metrics
+                Object.entries(rtData).forEach(([tlsId, tlsData]) => {
+                    aggregatedMetrics.signalCount++;
+                    
+                    // Aggregate speed
+                    if (tlsData.lane_data?.summary?.average_speed) {
+                        aggregatedMetrics.totalSpeed += tlsData.lane_data.summary.average_speed;
+                    }
+                    
+                    // Aggregate lanes
+                    if (tlsData.lane_data?.summary?.total_lanes) {
+                        aggregatedMetrics.totalLanes += tlsData.lane_data.summary.total_lanes;
+                    }
+                    
+                    // Count emergency vehicles
+                    if (tlsData.emergency_vehicles) {
+                        aggregatedMetrics.emergencyVehicles += tlsData.emergency_vehicles;
+                    }
+                    
+                    // Count active incidents
+                    if (tlsData.active_incidents) {
+                        aggregatedMetrics.activeIncidents += tlsData.active_incidents;
+                    }
+                    
+                    // Count AI predictions/recommendations
+                    if (tlsData.optimization_metrics?.recommendations) {
+                        aggregatedMetrics.aiPredictions += tlsData.optimization_metrics.recommendations.length;
+                    }
+                    
+                    // Aggregate congestion
+                    if (tlsData.performance?.congestion_level) {
+                        const level = tlsData.performance.congestion_level;
+                        if (aggregatedMetrics.congestionCounts[level] !== undefined) {
+                            aggregatedMetrics.congestionCounts[level]++;
+                        }
+                    }
+                });
+                
+                // Update aggregated metrics display
+                updateAggregatedMetrics();
+                
+                realtimeContainer.innerHTML = Object.entries(rtData).map(([tlsId, tlsData]) => {
+                    return createTLSCard(tlsId, tlsData);
+                }).join('');
+                
+                // Restore expanded state
+                expandedTLSCards.forEach(tlsId => {
+                    const content = document.getElementById(`content-${tlsId}`);
+                    const header = document.querySelector(`[data-tls-id="${tlsId}"]`);
+                    if (content && header) {
+                        content.classList.remove('hidden');
+                        const chevron = header.querySelector('.tls-chevron');
+                        if (chevron) {
+                            chevron.classList.remove('ri-arrow-down-s-line');
+                            chevron.classList.add('ri-arrow-up-s-line');
+                        }
+                    }
+                });
+                
+                // Add click handlers for expandable sections
+                document.querySelectorAll('.tls-card-header').forEach(header => {
+                    header.addEventListener('click', toggleTLSCard);
+                });
+            } else {
+                realtimeContainer.innerHTML = '<div class="text-slate-500 text-center py-4">No real-time data available</div>';
+            }
+        } else {
+            realtimeContainer.innerHTML = '<div class="text-slate-500 text-center py-4">Real-time data not available</div>';
+        }
+    } catch (error) {
+        console.error('Error fetching realtime data:', error);
+        document.getElementById('realtime-data').innerHTML = 
+            '<div class="text-red-500 text-center py-4">Error loading real-time data</div>';
+    }
+}
+
+// Update aggregated metrics
+function updateAggregatedMetrics() {
+    const count = aggregatedMetrics.signalCount;
+    
+    if (count > 0) {
+        // Average Speed
+        const avgSpeed = (aggregatedMetrics.totalSpeed / count).toFixed(1);
+        document.getElementById('avg-speed').textContent = avgSpeed;
+        
+        // Total Lanes
+        document.getElementById('total-lanes').textContent = aggregatedMetrics.totalLanes;
+        
+        // AI Predictions
+        const aiPredCount = aggregatedMetrics.aiPredictions;
+        document.getElementById('ai-predictions').textContent = aiPredCount;
+        
+        const predictionStatus = document.getElementById('prediction-status');
+        const aiPredCard = document.getElementById('ai-predictions').closest('.card');
+        
+        if (aiPredCount > 0) {
+            predictionStatus.textContent = `${aiPredCount} active`;
+            aiPredCard.style.borderLeft = '4px solid #06b6d4';
+        } else {
+            predictionStatus.textContent = 'monitoring';
+            aiPredCard.style.borderLeft = 'none';
+        }
+        
+        // Active Incidents
+        const incidentCount = aggregatedMetrics.activeIncidents;
+        document.getElementById('active-incidents').textContent = incidentCount;
+        
+        const incidentStatus = document.getElementById('incident-status');
+        const incidentCard = document.getElementById('active-incidents').closest('.card');
+        
+        if (incidentCount > 0) {
+            incidentStatus.textContent = 'incidents detected';
+            incidentCard.style.borderLeft = '4px solid #f59e0b';
+        } else {
+            incidentStatus.textContent = 'all clear';
+            incidentCard.style.borderLeft = 'none';
+        }
+        
+        // Emergency Vehicles
+        const emergencyCount = aggregatedMetrics.emergencyVehicles;
+        document.getElementById('emergency-vehicles').textContent = emergencyCount;
+        
+        const emergencyStatus = document.getElementById('emergency-status');
+        const emergencyCard = document.getElementById('emergency-vehicles').closest('.card');
+        
+        if (emergencyCount > 0) {
+            emergencyStatus.textContent = 'active alert';
+            emergencyCard.style.borderLeft = '4px solid #ef4444';
+            emergencyCard.classList.add('signal-status-card');
+        } else {
+            emergencyStatus.textContent = 'no alerts';
+            emergencyCard.style.borderLeft = 'none';
+            emergencyCard.classList.remove('signal-status-card');
+        }
+        
+        // Congestion Level - determine dominant level
+        const congestion = aggregatedMetrics.congestionCounts;
+        let dominantLevel = 'LOW';
+        let maxCount = congestion.LOW;
+        
+        if (congestion.MEDIUM > maxCount) {
+            dominantLevel = 'MEDIUM';
+            maxCount = congestion.MEDIUM;
+        }
+        if (congestion.HIGH > maxCount) {
+            dominantLevel = 'HIGH';
+            maxCount = congestion.HIGH;
+        }
+        
+        document.getElementById('congestion-level').textContent = dominantLevel;
+        
+        // Calculate percentage distribution
+        const highPercent = ((congestion.HIGH / count) * 100).toFixed(0);
+        const mediumPercent = ((congestion.MEDIUM / count) * 100).toFixed(0);
+        const lowPercent = ((congestion.LOW / count) * 100).toFixed(0);
+        
+        document.getElementById('congestion-percent').textContent = 
+            `H:${highPercent}% M:${mediumPercent}% L:${lowPercent}%`;
+        
+        // Update congestion card styling
+        updateCongestionCardStyle(dominantLevel, congestion.HIGH, count);
+    }
+}
+
+// Update congestion card styling based on level
+function updateCongestionCardStyle(level, highCount, totalCount) {
+    const card = document.querySelector('#congestion-level').closest('.card');
+    const icon = card.querySelector('.w-12.h-12.rounded-full');
+    
+    // Remove existing classes
+    card.classList.remove('signal-status-card');
+    icon.classList.remove('bg-orange-100', 'bg-red-100', 'bg-green-100');
+    
+    const iconDiv = icon.querySelector('div');
+    iconDiv.classList.remove('text-orange-500', 'text-red-500', 'text-green-500');
+    
+    // Apply styling based on level
+    if (level === 'HIGH' || (highCount / totalCount) > 0.3) {
+        card.style.borderLeft = '4px solid #ef4444';
+        icon.classList.add('bg-red-100');
+        iconDiv.classList.add('text-red-500');
+    } else if (level === 'MEDIUM') {
+        card.style.borderLeft = '4px solid #f97316';
+        icon.classList.add('bg-orange-100');
+        iconDiv.classList.add('text-orange-500');
+    } else {
+        card.style.borderLeft = '4px solid #10b981';
+        icon.classList.add('bg-green-100');
+        iconDiv.classList.add('text-green-500');
+    }
+}
+
+// Create TLS card HTML
+function createTLSCard(tlsId, data) {
+    const stateColor = getSignalStateColor(data.state);
+    const performanceColor = getPerformanceColor(data.performance?.performance_grade);
+    
+    return `
+        <div class="border border-slate-200 rounded-lg overflow-hidden bg-white">
+            <div class="tls-card-header p-4 cursor-pointer hover:bg-slate-50 flex items-center justify-between" data-tls-id="${tlsId}">
+                <div class="flex items-center space-x-3">
+                    <div class="w-3 h-3 rounded-full ${stateColor}"></div>
+                    <div>
+                        <h3 class="font-semibold text-sm">${tlsId}</h3>
+                        <p class="text-xs text-slate-500">${data.phase_name || 'Phase ' + data.phase}</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <div class="text-xs text-slate-500">Performance</div>
+                        <div class="text-sm font-semibold ${performanceColor}">
+                            ${data.performance?.performance_grade || 'N/A'}
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-500">Vehicles</div>
+                        <div class="text-sm font-semibold">${data.performance?.total_vehicles || 0}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-500">Waiting</div>
+                        <div class="text-sm font-semibold">${data.performance?.waiting_vehicles || 0}</div>
+                    </div>
+                    <i class="ri-arrow-down-s-line text-slate-400 tls-chevron"></i>
+                </div>
+            </div>
+            
+            <div class="tls-card-content hidden border-t border-slate-200" id="content-${tlsId}">
+                <div class="p-4 space-y-4">
+                    <!-- Signal State -->
+                    <div>
+                        <h4 class="text-xs font-semibold text-slate-700 mb-2">Signal State</h4>
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="bg-slate-50 p-2 rounded">
+                                <span class="text-slate-500">State:</span>
+                                <span class="font-medium ml-2">${data.state || 'N/A'}</span>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded">
+                                <span class="text-slate-500">Phase:</span>
+                                <span class="font-medium ml-2">${data.phase}/${data.phase_count}</span>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded">
+                                <span class="text-slate-500">Duration:</span>
+                                <span class="font-medium ml-2">${data.phase_duration}s</span>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded">
+                                <span class="text-slate-500">Next Switch:</span>
+                                <span class="font-medium ml-2">${data.next_switch}s</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Signal Groups -->
+                    ${data.signal_groups ? `
+                    <div>
+                        <h4 class="text-xs font-semibold text-slate-700 mb-2">Signal Groups</h4>
+                        <div class="flex flex-wrap gap-2">
+                            ${data.signal_groups.map(group => `
+                                <div class="flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded text-xs">
+                                    <div class="w-2 h-2 rounded-full ${getSignalColor(group.signal)}"></div>
+                                    <span class="font-medium">${group.type}</span>
+                                    <span class="text-slate-500">(${group.count})</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Performance Metrics -->
+                    ${data.performance ? `
+                    <div>
+                        <h4 class="text-xs font-semibold text-slate-700 mb-2">Performance Metrics</h4>
+                        <div class="grid grid-cols-3 gap-3 text-xs">
+                            <div class="bg-slate-50 p-2 rounded">
+                                <div class="text-slate-500">Efficiency</div>
+                                <div class="font-semibold text-base mt-1">${data.performance.efficiency_score}%</div>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded">
+                                <div class="text-slate-500">Green Ratio</div>
+                                <div class="font-semibold text-base mt-1">${(data.performance.green_ratio * 100).toFixed(1)}%</div>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded">
+                                <div class="text-slate-500">Congestion</div>
+                                <div class="font-semibold text-base mt-1">${data.performance.congestion_level}</div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Lane Data Summary -->
+                    ${data.lane_data?.summary ? `
+                    <div>
+                        <h4 class="text-xs font-semibold text-slate-700 mb-2">Lane Summary</h4>
+                        <div class="grid grid-cols-4 gap-3 text-xs">
+                            <div class="bg-slate-50 p-2 rounded">
+                                <div class="text-slate-500">Total Lanes</div>
+                                <div class="font-semibold text-base mt-1">${data.lane_data.summary.total_lanes}</div>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded">
+                                <div class="text-slate-500">Vehicles</div>
+                                <div class="font-semibold text-base mt-1">${data.lane_data.summary.total_vehicles}</div>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded">
+                                <div class="text-slate-500">Waiting</div>
+                                <div class="font-semibold text-base mt-1">${data.lane_data.summary.total_waiting}</div>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded">
+                                <div class="text-slate-500">Avg Speed</div>
+                                <div class="font-semibold text-base mt-1">${data.lane_data.summary.average_speed.toFixed(1)}</div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Controlled Lanes -->
+                    ${data.controlled_lanes ? `
+                    <div>
+                        <h4 class="text-xs font-semibold text-slate-700 mb-2">Controlled Lanes (${data.controlled_lanes.length})</h4>
+                        <div class="bg-slate-50 p-3 rounded max-h-32 overflow-y-auto">
+                            <div class="flex flex-wrap gap-1.5">
+                                ${data.controlled_lanes.map(lane => `
+                                    <span class="px-2 py-1 bg-white border border-slate-200 rounded text-xs font-mono">${lane}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Optimization Metrics -->
+                    ${data.optimization_metrics ? `
+                    <div>
+                        <h4 class="text-xs font-semibold text-slate-700 mb-2">Optimization</h4>
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-slate-50 p-2 rounded flex-1">
+                                <div class="text-slate-500 text-xs">Score</div>
+                                <div class="font-semibold text-base mt-1">${data.optimization_metrics.optimization_score}</div>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded flex-1">
+                                <div class="text-slate-500 text-xs">Priority</div>
+                                <div class="font-semibold text-base mt-1">${data.optimization_metrics.priority_level}</div>
+                            </div>
+                        </div>
+                        ${data.optimization_metrics.recommendations?.length > 0 ? `
+                        <div class="mt-2 text-xs">
+                            <div class="text-slate-500 mb-1">Recommendations:</div>
+                            <ul class="list-disc list-inside space-y-1 text-slate-700">
+                                ${data.optimization_metrics.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+                    </div>
+                    ` : ''}
+
+                    <!-- Timestamp -->
+                    <div class="text-xs text-slate-400 text-right pt-2 border-t">
+                        Last updated: ${data.timestamp}s | Scenario: ${data.scenario || 'N/A'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Toggle TLS card expansion
+function toggleTLSCard(event) {
+    const header = event.currentTarget;
+    const tlsId = header.dataset.tlsId;
+    const content = document.getElementById(`content-${tlsId}`);
+    const chevron = header.querySelector('.tls-chevron');
+    
+    content.classList.toggle('hidden');
+    
+    if (content.classList.contains('hidden')) {
+        // Card is closing
+        expandedTLSCards.delete(tlsId);
+        chevron.classList.remove('ri-arrow-up-s-line');
+        chevron.classList.add('ri-arrow-down-s-line');
+    } else {
+        // Card is opening
+        expandedTLSCards.add(tlsId);
+        chevron.classList.remove('ri-arrow-down-s-line');
+        chevron.classList.add('ri-arrow-up-s-line');
+    }
+}
+
+// Get signal state color
+function getSignalStateColor(state) {
+    if (!state) return 'bg-slate-400';
+    if (state.includes('G')) return 'bg-green-500';
+    if (state.includes('y')) return 'bg-yellow-500';
+    if (state.includes('r')) return 'bg-red-500';
+    return 'bg-slate-400';
+}
+
+// Get signal color for individual signals
+function getSignalColor(signal) {
+    if (signal === 'G' || signal === 'g') return 'bg-green-500';
+    if (signal === 'y') return 'bg-yellow-500';
+    if (signal === 'r' || signal === 'R') return 'bg-red-500';
+    return 'bg-slate-400';
+}
+
+// Get performance grade color
+function getPerformanceColor(grade) {
+    switch(grade) {
+        case 'A': return 'text-green-600';
+        case 'B': return 'text-blue-600';
+        case 'C': return 'text-yellow-600';
+        case 'D': return 'text-red-600';
+        default: return 'text-slate-600';
+    }
+}
+
+// Refresh all data
+async function refreshAllData() {
+    await Promise.all([
+        fetchPerformanceData(),
+        fetchAllSignals(),
+        fetchSnapshot(),
+        fetchRealtimeData()
+    ]);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    refreshAllData();
+    
+    // Auto-refresh every 5 seconds
+    refreshInterval = setInterval(refreshAllData, 15000);
+    
+    // Manual refresh button
+    document.getElementById('refresh-btn').addEventListener('click', refreshAllData);
+
+    // Add toggle functionality for collapsible cards
+    document.querySelectorAll('.toggle-card-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const targetId = this.dataset.target;
+            const content = document.getElementById(targetId);
+            const icon = this.querySelector('i');
+            
+            if (content) {
+                content.classList.toggle('hidden');
+                
+                // Toggle icon between subtract and add
+                if (content.classList.contains('hidden')) {
+                    icon.classList.remove('ri-subtract-line');
+                    icon.classList.add('ri-add-line');
+                } else {
+                    icon.classList.remove('ri-add-line');
+                    icon.classList.add('ri-subtract-line');
+                }
+            }
+        });
+    });
+
+    // Initialize all cards as expanded by default
+    document.querySelectorAll('.card-collapsible-content').forEach(content => {
+        content.classList.remove('hidden');
+    });
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+</script>
+
+<style>
+.signal-status-card.optimal {
+    border-left: 4px solid #10b981;
+}
+
+.signal-status-card.warning {
+    border-left: 4px solid #f59e0b;
+}
+
+.tls-card-content {
+    transition: max-height 0.3s ease-in-out;
+}
+
+.tls-chevron {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-collapsible-content {
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+}
+
+.card-collapsible-content.hidden {
+    display: none;
+}
+
+.toggle-card-btn {
+    transition: background-color 0.2s ease-in-out;
+}
+
+</style>
+
+{% endblock %}

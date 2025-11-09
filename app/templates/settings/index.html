@@ -29,6 +29,7 @@
                 <div class="card sticky top-6">
                     <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Settings</h3>
                     <nav class="space-y-2">
+                        {% if user.is_admin == true %}
                         <a href="#system-config" class="settings-nav-item active">
                             <i class="ri-settings-3-line mr-3"></i>
                             System Configuration
@@ -41,10 +42,12 @@
                             <i class="ri-code-s-slash-line mr-3"></i>
                             API Access
                         </a>
+                        {% endif %}
                         <a href="#user-profile" class="settings-nav-item">
                             <i class="ri-user-line mr-3"></i>
                             Your Profile
                         </a>
+                        {% if user.is_admin == true %}
                         <a href="#team-management" class="settings-nav-item">
                             <i class="ri-team-line mr-3"></i>
                             Team Members
@@ -57,6 +60,7 @@
                             <i class="ri-alert-line mr-3"></i>
                             Danger Zone
                         </a>
+                        {% endif %}
                     </nav>
                 </div>
             </div>
@@ -64,6 +68,7 @@
             <!-- Main Settings Content -->
             <div class="lg:col-span-3">
                 <!-- System Settings Section -->
+                {% if user.is_admin == true %}
                 <div id="system-config" class="card settings-section">
                     <div class="section-header">
                         <div class="section-icon">
@@ -237,7 +242,7 @@
                         </select>
                     </div>
                 </div>
-
+                {% endif%}
                 <!-- User Profile Section -->
                 <div id="user-profile" class="card settings-section">
                     <div class="section-header">
@@ -257,58 +262,118 @@
                         <div class="ml-4">
                             <h3 class="font-semibold text-lg">{{ user.username|capitalize }}</h3>
                             <p class="text-sm text-slate-500">{{ user.email }}</p>
-                            <button class="mt-2 text-primary text-sm font-medium flex items-center">
+                            <!-- <button class="mt-2 text-primary text-sm font-medium flex items-center">
                                 <i class="ri-camera-line mr-1"></i> Change Avatar
-                            </button>
+                            </button> -->
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="setting-item">
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Username</label>
-                            <input type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" value="{{ user.username }}">
+                    <!-- Profile Update Form -->
+                    <form id="update-profile-form">
+                        <div id="profile-form-errors" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+                            <div class="flex items-start">
+                                <i class="ri-error-warning-line text-lg mr-2 mt-0.5"></i>
+                                <div>
+                                    <p class="font-medium mb-1">Please fix the following errors:</p>
+                                    <ul id="profile-error-list" class="list-disc list-inside space-y-1"></ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="profile-form-success" class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm mb-4">
+                            <div class="flex items-start">
+                                <i class="ri-checkbox-circle-line text-lg mr-2 mt-0.5"></i>
+                                <p id="profile-success-message"></p>
+                            </div>
                         </div>
                         
-                        <div class="setting-item">
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Email</label>
-                            <input type="email" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" value="{{ user.email }}">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="setting-item">
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Username</label>
+                                <input type="text" id="profile-username" name="username" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" value="{{ user.username }}" required>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Email</label>
+                                <input type="email" id="profile-email" name="email" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" value="{{ user.email }}" required>
+                            </div>
                         </div>
-                    </div>
+                        
+                        <button type="submit" id="update-profile-btn" class="px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-medium transition-all hover:bg-primary-dark flex items-center">
+                            <i class="ri-save-line mr-2"></i>
+                            <span id="profile-submit-text">Update Profile</span>
+                            <span id="profile-submit-loading" class="hidden">
+                                <i class="ri-loader-4-line animate-spin mr-2"></i>
+                                Updating...
+                            </span>
+                        </button>
+                    </form>
                     
-                    <div class="setting-item">
+                    {% if user.is_admin == true %}
+                    <!-- Two-Factor Authentication -->
+                    <div class="setting-item mt-6">
                         <div class="setting-label">
                             <label class="block text-sm font-medium text-slate-700">Two-Factor Authentication</label>
                             <p class="setting-description">Add an extra layer of security to your account</p>
                         </div>
                         <div class="flex items-center space-x-4">
                             <label class="custom-switch">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" id="2fa-toggle" {% if user.two_factor_enabled %}checked{% endif %}>
                                 <span class="switch-slider"></span>
                             </label>
-                            <button class="px-4 py-2 border border-slate-300 bg-white rounded-lg text-sm font-medium transition-all hover:bg-slate-50">
+                            <button id="configure-2fa-btn" class="px-4 py-2 border border-slate-300 bg-white rounded-lg text-sm font-medium transition-all hover:bg-slate-50">
                                 Configure 2FA
                             </button>
                         </div>
                     </div>
+                    {% endif %}
                     
+                    <!-- Change Password Section -->
                     <div class="mt-6 pt-6 border-t border-slate-200">
                         <h3 class="text-md font-medium text-slate-700 mb-4">Change Password</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Current Password</label>
-                                <input type="password" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                        
+                        <form id="change-password-form">
+                            <div id="password-form-errors" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+                                <div class="flex items-start">
+                                    <i class="ri-error-warning-line text-lg mr-2 mt-0.5"></i>
+                                    <div>
+                                        <p class="font-medium mb-1">Please fix the following errors:</p>
+                                        <ul id="password-error-list" class="list-disc list-inside space-y-1"></ul>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">New Password</label>
-                                <input type="password" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+
+                            <div id="password-form-success" class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm mb-4">
+                                <div class="flex items-start">
+                                    <i class="ri-checkbox-circle-line text-lg mr-2 mt-0.5"></i>
+                                    <p id="password-success-message"></p>
+                                </div>
                             </div>
-                        </div>
-                        <button class="mt-4 px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-medium transition-all hover:bg-primary-dark">
-                            Update Password
-                        </button>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Current Password</label>
+                                    <input type="password" id="current-password" name="current_password" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">New Password</label>
+                                    <input type="password" id="new-password" name="new_password" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" required>
+                                    <p class="text-xs text-slate-500 mt-1">Must be at least 8 characters with uppercase, lowercase, and number</p>
+                                </div>
+                            </div>
+                            <button type="submit" id="change-password-btn" class="mt-4 px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-medium transition-all hover:bg-primary-dark flex items-center">
+                                <i class="ri-lock-password-line mr-2"></i>
+                                <span id="password-submit-text">Update Password</span>
+                                <span id="password-submit-loading" class="hidden">
+                                    <i class="ri-loader-4-line animate-spin mr-2"></i>
+                                    Updating...
+                                </span>
+                            </button>
+                        </form>
                     </div>
                 </div>
 
+                {% if user.is_admin == true %}
                 <!-- Team Management Section -->
                 <div id="team-management" class="card settings-section">
                     <div class="section-header">
@@ -321,46 +386,35 @@
                         </div>
                     </div>
                     
-                    <div class="team-member">
-                        <div class="team-member-avatar">
-                            <i class="ri-user-line"></i>
+                    <div id="team-members-list">
+                        {% for member in teams %}
+                        <div class="team-member">
+                            <div class="team-member-avatar">
+                                <i class="ri-user-line"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-sm font-medium">{{ member.username|capitalize }}</h3>
+                                <p class="text-xs text-slate-500">{{ member.role|capitalize }}</p>
+                            </div>
+                            <div class="text-xs text-slate-500 mr-4">Active now</div>
+                            <div class="relative">
+                                <button class="team-member-menu-btn text-slate-400 hover:text-primary transition-colors" data-member-id="{{ member.id }}">
+                                    <i class="ri-more-2-line"></i>
+                                </button>
+                                <!-- Dropdown Menu -->
+                                <div class="team-member-dropdown hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
+                                    <button class="edit-member-btn w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center" data-member-id="{{ member.id }}">
+                                        <i class="ri-edit-line mr-2 text-blue-600"></i>
+                                        Edit Role
+                                    </button>
+                                    <button class="delete-member-btn w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center" data-member-id="{{ member.id }}">
+                                        <i class="ri-delete-bin-line mr-2"></i>
+                                        Remove Member
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex-1">
-                            <h3 class="text-sm font-medium">Michael Chen</h3>
-                            <p class="text-xs text-slate-500">Traffic Operator</p>
-                        </div>
-                        <div class="text-xs text-slate-500 mr-4">Active now</div>
-                        <button class="text-slate-400 hover:text-primary transition-colors">
-                            <i class="ri-more-2-line"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="team-member">
-                        <div class="team-member-avatar">
-                            <i class="ri-user-line"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="text-sm font-medium">David Rodriguez</h3>
-                            <p class="text-xs text-slate-500">Traffic Analyst</p>
-                        </div>
-                        <div class="text-xs text-slate-500 mr-4">Last active: 2h ago</div>
-                        <button class="text-slate-400 hover:text-primary transition-colors">
-                            <i class="ri-more-2-line"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="team-member">
-                        <div class="team-member-avatar">
-                            <i class="ri-user-line"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="text-sm font-medium">Emily Wilson</h3>
-                            <p class="text-xs text-slate-500">System Administrator</p>
-                        </div>
-                        <div class="text-xs text-slate-500 mr-4">Last active: 1d ago</div>
-                        <button class="text-slate-400 hover:text-primary transition-colors">
-                            <i class="ri-more-2-line"></i>
-                        </button>
+                        {% endfor %}
                     </div>
                     
                     <div class="mt-4">
@@ -445,6 +499,7 @@
                         </button>
                     </div>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -464,75 +519,1631 @@
         </div>
         
         <form id="add-team-member-form" class="p-6 space-y-4">
-            <div>
-                <label for="member-name" class="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-                <input type="text" id="member-name" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Enter full name" required>
+            <!-- Error Messages -->
+            <div id="form-errors" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                <div class="flex items-start">
+                    <i class="ri-error-warning-line text-lg mr-2 mt-0.5"></i>
+                    <div>
+                        <p class="font-medium mb-1">Please fix the following errors:</p>
+                        <ul id="error-list" class="list-disc list-inside space-y-1"></ul>
+                    </div>
+                </div>
             </div>
-            
-            <div>
-                <label for="member-email" class="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
-                <input type="email" id="member-email" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Enter email address" required>
-            </div>
-            
-            <div>
-                <label for="member-role" class="block text-sm font-medium text-slate-700 mb-1">Role</label>
-                <select id="member-role" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
-                    <option value="Traffic Operator">Traffic Operator</option>
-                    <option value="Traffic Analyst">Traffic Analyst</option>
-                    <option value="System Administrator">System Administrator</option>
-                    <option value="View Only">View Only</option>
-                </select>
-            </div>
-            
-            <div>
-                <label for="member-department" class="block text-sm font-medium text-slate-700 mb-1">Department</label>
-                <select id="member-department" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
-                    <option value="Operations">Operations</option>
-                    <option value="Analysis">Analysis</option>
-                    <option value="Engineering">Engineering</option>
-                    <option value="Management">Management</option>
-                </select>
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Permissions</label>
-                <div class="space-y-2">
-                    <label class="flex items-center">
-                        <input type="checkbox" class="rounded border-slate-300 text-primary focus:ring-primary" checked>
-                        <span class="ml-2 text-sm text-slate-700">View traffic data</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="checkbox" class="rounded border-slate-300 text-primary focus:ring-primary" checked>
-                        <span class="ml-2 text-sm text-slate-700">Manage incidents</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="checkbox" class="rounded border-slate-300 text-primary focus:ring-primary">
-                        <span class="ml-2 text-sm text-slate-700">System configuration</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="checkbox" class="rounded border-slate-300 text-primary focus:ring-primary">
-                        <span class="ml-2 text-sm text-slate-700">User management</span>
-                    </label>
+
+            <!-- Success Message -->
+            <div id="form-success" class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+                <div class="flex items-start">
+                    <i class="ri-checkbox-circle-line text-lg mr-2 mt-0.5"></i>
+                    <p id="success-message"></p>
                 </div>
             </div>
             
-            <div class="pt-4">
-                <label for="welcome-message" class="block text-sm font-medium text-slate-700 mb-1">Welcome Message (Optional)</label>
-                <textarea id="welcome-message" rows="3" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Add a personalized welcome message..."></textarea>
+            <div>
+                <label for="member-name" class="block text-sm font-medium text-slate-700 mb-1">Username <span class="text-red-500">*</span></label>
+                <input type="text" name="username" id="member-name" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Enter username" required>
+            </div>
+            
+            <div>
+                <label for="member-email" class="block text-sm font-medium text-slate-700 mb-1">Email Address <span class="text-red-500">*</span></label>
+                <input type="email" name="email" id="member-email" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Enter email address" required>
+            </div>
+            
+            <div>
+                <label for="member-role" class="block text-sm font-medium text-slate-700 mb-1">Role <span class="text-red-500">*</span></label>
+                <select name="role" id="member-role" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                    <option value="Emergency Operator">Emergency Operator</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            
+            <div>
+                <label for="member-password" class="block text-sm font-medium text-slate-700 mb-1">Password <span class="text-red-500">*</span></label>
+                <input type="password" name="password" id="member-password" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Enter password" required>
+                <p class="text-xs text-slate-500 mt-1">Must be at least 8 characters with uppercase, lowercase, and number</p>
+            </div>
+            
+            <div class="pt-4 border-t border-slate-200">
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="cancel-add-member" class="px-4 py-2.5 border border-slate-300 bg-white text-slate-700 rounded-lg text-sm font-medium transition-all hover:bg-slate-50">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submit-add-member" class="px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium transition-all hover:bg-primary-dark flex items-center">
+                        <i class="ri-user-add-line mr-2"></i>
+                        <span id="submit-text">Add Team Member</span>
+                        <span id="submit-loading" class="hidden">
+                            <i class="ri-loader-4-line animate-spin mr-2"></i>
+                            Adding...
+                        </span>
+                    </button>
+                </div>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Edit Team Member Modal -->
+<div id="edit-team-member-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+        <div class="p-6 border-b border-slate-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-slate-800">Edit Team Member</h3>
+                <button id="close-edit-modal" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="ri-close-line text-xl"></i>
+                </button>
+            </div>
+            <p class="text-sm text-slate-500 mt-1">Update member role</p>
+        </div>
         
-        <div class="p-6 border-t border-slate-200 bg-slate-50 rounded-b-xl">
+        <form id="edit-team-member-form" class="p-6 space-y-4">
+            <input type="hidden" id="edit-member-id">
+            
+            <!-- Error Messages -->
+            <div id="edit-form-errors" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                <div class="flex items-start">
+                    <i class="ri-error-warning-line text-lg mr-2 mt-0.5"></i>
+                    <div>
+                        <p class="font-medium mb-1">Please fix the following errors:</p>
+                        <ul id="edit-error-list" class="list-disc list-inside space-y-1"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Message -->
+            <div id="edit-form-success" class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+                <div class="flex items-start">
+                    <i class="ri-checkbox-circle-line text-lg mr-2 mt-0.5"></i>
+                    <p id="edit-success-message"></p>
+                </div>
+            </div>
+            
+            <div>
+                <label for="edit-member-username" class="block text-sm font-medium text-slate-700 mb-1">Username</label>
+                <input type="text" id="edit-member-username" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm bg-slate-100" disabled>
+            </div>
+            
+            <div>
+                <label for="edit-member-role" class="block text-sm font-medium text-slate-700 mb-1">Role <span class="text-red-500">*</span></label>
+                <select name="role" id="edit-member-role" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" required>
+                    <option value="Emergency Operator">Emergency Operator</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            
+            <div class="pt-4 border-t border-slate-200">
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="cancel-edit-member" class="px-4 py-2.5 border border-slate-300 bg-white text-slate-700 rounded-lg text-sm font-medium transition-all hover:bg-slate-50">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submit-edit-member" class="px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium transition-all hover:bg-primary-dark flex items-center">
+                        <i class="ri-save-line mr-2"></i>
+                        <span id="edit-submit-text">Update Role</span>
+                        <span id="edit-submit-loading" class="hidden">
+                            <i class="ri-loader-4-line animate-spin mr-2"></i>
+                            Updating...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-team-member-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+        <div class="p-6 border-b border-slate-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-red-600">Remove Team Member</h3>
+                <button id="close-delete-modal" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="ri-close-line text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <input type="hidden" id="delete-member-id">
+            
+            <!-- Error Messages -->
+            <div id="delete-form-errors" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+                <div class="flex items-start">
+                    <i class="ri-error-warning-line text-lg mr-2 mt-0.5"></i>
+                    <div>
+                        <p class="font-medium mb-1">Error:</p>
+                        <ul id="delete-error-list" class="list-disc list-inside space-y-1"></ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-start mb-6">
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                        <i class="ri-error-warning-line text-2xl text-red-600"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-slate-700">
+                        Are you sure you want to remove <strong id="delete-member-username" class="text-slate-900"></strong> from the team?
+                    </p>
+                    <p class="text-sm text-slate-500 mt-2">
+                        This action cannot be undone. The user will lose access to the system immediately.
+                    </p>
+                </div>
+            </div>
+            
             <div class="flex justify-end space-x-3">
-                <button id="cancel-add-member" class="px-4 py-2.5 border border-slate-300 bg-white text-slate-700 rounded-lg text-sm font-medium transition-all hover:bg-slate-50">
+                <button type="button" id="cancel-delete-member" class="px-4 py-2.5 border border-slate-300 bg-white text-slate-700 rounded-lg text-sm font-medium transition-all hover:bg-slate-50">
                     Cancel
                 </button>
-                <button id="submit-add-member" class="px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium transition-all hover:bg-primary-dark flex items-center">
-                    <i class="ri-user-add-line mr-2"></i> Add Team Member
+                <button type="button" id="confirm-delete-member" class="px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium transition-all hover:bg-red-700 flex items-center">
+                    <i class="ri-delete-bin-line mr-2"></i>
+                    <span id="delete-submit-text">Remove Member</span>
+                    <span id="delete-submit-loading" class="hidden">
+                        <i class="ri-loader-4-line animate-spin mr-2"></i>
+                        Removing...
+                    </span>
                 </button>
             </div>
         </div>
     </div>
 </div>
+
+<!-- 2FA Setup Modal -->
+<div id="2fa-setup-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4" style="height: 600px;">
+        <div class="p-3 border-b border-slate-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-slate-800">Setup Two-Factor Authentication</h3>
+                <button id="close-2fa-modal" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="ri-close-line text-xl"></i>
+                </button>
+            </div>
+            <p class="text-sm text-slate-500 mt-1">Scan the QR code with your authenticator app</p>
+        </div>
+        
+        <div class="p-3">
+            <!-- Error Messages -->
+            <div id="2fa-form-errors" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+                <div class="flex items-start">
+                    <i class="ri-error-warning-line text-lg mr-2 mt-0.5"></i>
+                    <div>
+                        <p class="font-medium mb-1">Error:</p>
+                        <ul id="2fa-error-list" class="list-disc list-inside space-y-1"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Message -->
+            <div id="2fa-form-success" class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm mb-4">
+                <div class="flex items-start">
+                    <i class="ri-checkbox-circle-line text-lg mr-2 mt-0.5"></i>
+                    <p id="2fa-success-message"></p>
+                </div>
+            </div>
+            
+            <!-- QR Code Section -->
+            <div id="qr-code-section" class="text-center mb-6">
+                <div id="qr-code-container" class="inline-block p-4 bg-white border-2 border-slate-300 rounded-lg mb-4">
+                    <div class="w-48 h-48 flex items-center justify-center">
+                        <i class="ri-loader-4-line animate-spin text-4xl text-slate-400"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-50 p-4 rounded-lg">
+                    <p class="text-xs text-slate-600 mb-2">Or enter this code manually:</p>
+                    <code id="manual-entry-code" class="text-sm font-mono bg-white px-3 py-2 rounded border border-slate-300 inline-block"></code>
+                </div>
+            </div>
+            
+            <!-- Verification Form -->
+            <form id="verify-2fa-form">
+                <div class="mb-4">
+                    <label for="2fa-token" class="block text-sm font-medium text-slate-700 mb-2">
+                        Enter 6-digit code from your authenticator app
+                    </label>
+                    <input type="text" id="2fa-token" name="token" maxlength="6" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-center text-2xl tracking-widest focus:ring-2 focus:ring-primary focus:border-primary" placeholder="000000" pattern="[0-9]{6}" required>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="cancel-2fa-setup" class="px-4 py-2.5 border border-slate-300 bg-white text-slate-700 rounded-lg text-sm font-medium transition-all hover:bg-slate-50">
+                        Cancel
+                    </button>
+                    <button type="submit" id="verify-2fa-btn" class="px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium transition-all hover:bg-primary-dark flex items-center">
+                        <i class="ri-shield-check-line mr-2"></i>
+                        <span id="2fa-submit-text">Verify & Enable</span>
+                        <span id="2fa-submit-loading" class="hidden">
+                            <i class="ri-loader-4-line animate-spin mr-2"></i>
+                            Verifying...
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2FA Disable Confirmation Modal -->
+<div id="2fa-disable-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+        <div class="p-6 border-b border-slate-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-red-600">Disable Two-Factor Authentication</h3>
+                <button id="close-2fa-disable-modal" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="ri-close-line text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <!-- Error Messages -->
+            <div id="2fa-disable-errors" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+                <div class="flex items-start">
+                    <i class="ri-error-warning-line text-lg mr-2 mt-0.5"></i>
+                    <div>
+                        <p class="font-medium mb-1">Error:</p>
+                        <ul id="2fa-disable-error-list" class="list-disc list-inside space-y-1"></ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-start mb-6">
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                        <i class="ri-shield-cross-line text-2xl text-red-600"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-slate-700 mb-4">
+                        Are you sure you want to disable two-factor authentication? This will make your account less secure.
+                    </p>
+                    <label for="2fa-disable-password" class="block text-sm font-medium text-slate-700 mb-2">
+                        Enter your password to confirm
+                    </label>
+                    <input type="password" id="2fa-disable-password" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary" required>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button type="button" id="cancel-2fa-disable" class="px-4 py-2.5 border border-slate-300 bg-white text-slate-700 rounded-lg text-sm font-medium transition-all hover:bg-slate-50">
+                    Cancel
+                </button>
+                <button type="button" id="confirm-2fa-disable" class="px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium transition-all hover:bg-red-700 flex items-center">
+                    <i class="ri-shield-cross-line mr-2"></i>
+                    <span id="2fa-disable-text">Disable 2FA</span>
+                    <span id="2fa-disable-loading" class="hidden">
+                        <i class="ri-loader-4-line animate-spin mr-2"></i>
+                        Disabling...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Settings Page JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // ========================================
+    // ADD TEAM MEMBER FUNCTIONALITY
+    // ========================================
+    
+    // Get modal elements
+    const addTeamMemberBtn = document.getElementById('add-team-member-btn');
+    const addTeamMemberModal = document.getElementById('add-team-member-modal');
+    const closeModalBtn = document.getElementById('close-modal');
+    const cancelAddMemberBtn = document.getElementById('cancel-add-member');
+    const addTeamMemberForm = document.getElementById('add-team-member-form');
+    const submitBtn = document.getElementById('submit-add-member');
+    const submitText = document.getElementById('submit-text');
+    const submitLoading = document.getElementById('submit-loading');
+    const formErrors = document.getElementById('form-errors');
+    const formSuccess = document.getElementById('form-success');
+    const errorList = document.getElementById('error-list');
+    const successMessage = document.getElementById('success-message');
+    
+    // Helper function to show add modal
+    function showModal() {
+        addTeamMemberModal.classList.remove('hidden');
+        hideMessages();
+        addTeamMemberForm.reset();
+    }
+    
+    // Helper function to hide add modal
+    function hideModal() {
+        addTeamMemberModal.classList.add('hidden');
+        hideMessages();
+        addTeamMemberForm.reset();
+    }
+    
+    // Helper function to hide messages
+    function hideMessages() {
+        formErrors.classList.add('hidden');
+        formSuccess.classList.add('hidden');
+        errorList.innerHTML = '';
+    }
+    
+    // Helper function to show errors
+    function showErrors(errors) {
+        hideMessages();
+        errorList.innerHTML = '';
+        errors.forEach(error => {
+            const li = document.createElement('li');
+            li.textContent = error;
+            errorList.appendChild(li);
+        });
+        formErrors.classList.remove('hidden');
+    }
+    
+    // Helper function to show success
+    function showSuccess(message) {
+        hideMessages();
+        successMessage.textContent = message;
+        formSuccess.classList.remove('hidden');
+    }
+    
+    // Helper function to add new team member to the list
+    function addTeamMemberToList(member) {
+        const teamMembersList = document.getElementById('team-members-list');
+        
+        const memberDiv = document.createElement('div');
+        memberDiv.className = 'team-member';
+        memberDiv.setAttribute('data-member-id', member.id);
+        memberDiv.setAttribute('data-member-username', member.username);
+        memberDiv.setAttribute('data-member-role', member.role);
+        
+        memberDiv.innerHTML = `
+            <div class="team-member-avatar">
+                <i class="ri-user-line"></i>
+            </div>
+            <div class="flex-1">
+                <h3 class="text-sm font-medium member-username">${member.username.charAt(0).toUpperCase() + member.username.slice(1)}</h3>
+                <p class="text-xs text-slate-500 member-role">${member.role.charAt(0).toUpperCase() + member.role.slice(1)}</p>
+            </div>
+            <div class="text-xs text-slate-500 mr-4">Just added</div>
+            <div class="relative">
+                <button class="team-member-menu-btn text-slate-400 hover:text-primary transition-colors" data-member-id="${member.id}">
+                    <i class="ri-more-2-line"></i>
+                </button>
+                <div class="team-member-dropdown hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
+                    <button class="edit-member-btn w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center" data-member-id="${member.id}">
+                        <i class="ri-edit-line mr-2 text-blue-600"></i>
+                        Edit Role
+                    </button>
+                    <button class="delete-member-btn w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center" data-member-id="${member.id}">
+                        <i class="ri-delete-bin-line mr-2"></i>
+                        Remove Member
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        teamMembersList.appendChild(memberDiv);
+        
+        // Attach event listeners to the new buttons
+        attachDropdownListeners(memberDiv);
+    }
+    
+    // Show modal when "Add Team Member" button is clicked
+    if (addTeamMemberBtn) {
+        addTeamMemberBtn.addEventListener('click', showModal);
+    }
+    
+    // Hide modal when close button is clicked
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', hideModal);
+    }
+    
+    // Hide modal when cancel button is clicked
+    if (cancelAddMemberBtn) {
+        cancelAddMemberBtn.addEventListener('click', hideModal);
+    }
+    
+    // Hide modal when clicking outside the modal content
+    if (addTeamMemberModal) {
+        addTeamMemberModal.addEventListener('click', function(e) {
+            if (e.target === addTeamMemberModal) {
+                hideModal();
+            }
+        });
+    }
+    
+    // Handle form submission
+    if (addTeamMemberForm) {
+        addTeamMemberForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Hide previous messages
+            hideMessages();
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitText.classList.add('hidden');
+            submitLoading.classList.remove('hidden');
+            
+            // Get form data
+            const formData = {
+                username: document.getElementById('member-name').value.trim(),
+                email: document.getElementById('member-email').value.trim(),
+                role: document.getElementById('member-role').value,
+                password: document.getElementById('member-password').value
+            };
+            
+            try {
+                // Send POST request to API
+                const response = await fetch('/add-team-member', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Show success message
+                    showSuccess(data.message || 'Team member added successfully!');
+                    
+                    // Add new member to the list
+                    if (data.user) {
+                        addTeamMemberToList(data.user);
+                    }
+                    
+                    // Reset form after 2 seconds and close modal
+                    setTimeout(() => {
+                        hideModal();
+                    }, 2000);
+                    
+                } else {
+                    // Show error messages
+                    const errors = data.errors || [data.message || 'Failed to add team member'];
+                    showErrors(errors);
+                }
+                
+            } catch (error) {
+                console.error('Error adding team member:', error);
+                showErrors(['Network error. Please check your connection and try again.']);
+            } finally {
+                // Reset loading state
+                submitBtn.disabled = false;
+                submitText.classList.remove('hidden');
+                submitLoading.classList.add('hidden');
+            }
+        });
+    }
+    
+    // ========================================
+    // EDIT TEAM MEMBER FUNCTIONALITY
+    // ========================================
+    
+    const editTeamMemberModal = document.getElementById('edit-team-member-modal');
+    const closeEditModalBtn = document.getElementById('close-edit-modal');
+    const cancelEditMemberBtn = document.getElementById('cancel-edit-member');
+    const editTeamMemberForm = document.getElementById('edit-team-member-form');
+    const editSubmitBtn = document.getElementById('submit-edit-member');
+    const editSubmitText = document.getElementById('edit-submit-text');
+    const editSubmitLoading = document.getElementById('edit-submit-loading');
+    const editFormErrors = document.getElementById('edit-form-errors');
+    const editFormSuccess = document.getElementById('edit-form-success');
+    const editErrorList = document.getElementById('edit-error-list');
+    const editSuccessMessage = document.getElementById('edit-success-message');
+    
+    function showEditModal(memberId, username, role) {
+        document.getElementById('edit-member-id').value = memberId;
+        document.getElementById('edit-member-username').value = username;
+        document.getElementById('edit-member-role').value = role;
+        editTeamMemberModal.classList.remove('hidden');
+        hideEditMessages();
+    }
+    
+    function hideEditModal() {
+        editTeamMemberModal.classList.add('hidden');
+        hideEditMessages();
+        editTeamMemberForm.reset();
+    }
+    
+    function hideEditMessages() {
+        editFormErrors.classList.add('hidden');
+        editFormSuccess.classList.add('hidden');
+        editErrorList.innerHTML = '';
+    }
+    
+    function showEditErrors(errors) {
+        hideEditMessages();
+        editErrorList.innerHTML = '';
+        errors.forEach(error => {
+            const li = document.createElement('li');
+            li.textContent = error;
+            editErrorList.appendChild(li);
+        });
+        editFormErrors.classList.remove('hidden');
+    }
+    
+    function showEditSuccess(message) {
+        hideEditMessages();
+        editSuccessMessage.textContent = message;
+        editFormSuccess.classList.remove('hidden');
+    }
+    
+    if (closeEditModalBtn) {
+        closeEditModalBtn.addEventListener('click', hideEditModal);
+    }
+    
+    if (cancelEditMemberBtn) {
+        cancelEditMemberBtn.addEventListener('click', hideEditModal);
+    }
+    
+    if (editTeamMemberModal) {
+        editTeamMemberModal.addEventListener('click', function(e) {
+            if (e.target === editTeamMemberModal) {
+                hideEditModal();
+            }
+        });
+    }
+    
+    if (editTeamMemberForm) {
+        editTeamMemberForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            hideEditMessages();
+            
+            editSubmitBtn.disabled = true;
+            editSubmitText.classList.add('hidden');
+            editSubmitLoading.classList.remove('hidden');
+            
+            const memberId = document.getElementById('edit-member-id').value;
+            const newRole = document.getElementById('edit-member-role').value;
+            
+            try {
+                const response = await fetch(`/update-team-member/${memberId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ role: newRole })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showEditSuccess(data.message || 'Team member updated successfully!');
+                    
+                    // Update the member in the list
+                    const memberDiv = document.querySelector(`[data-member-id="${memberId}"]`);
+                    if (memberDiv) {
+                        const roleElement = memberDiv.querySelector('.member-role');
+                        if (roleElement) {
+                            roleElement.textContent = newRole.charAt(0).toUpperCase() + newRole.slice(1);
+                        }
+                        memberDiv.setAttribute('data-member-role', newRole);
+                    }
+                    
+                    setTimeout(() => {
+                        hideEditModal();
+                    }, 2000);
+                    
+                } else {
+                    const errors = data.errors || [data.message || 'Failed to update team member'];
+                    showEditErrors(errors);
+                }
+                
+            } catch (error) {
+                console.error('Error updating team member:', error);
+                showEditErrors(['Network error. Please check your connection and try again.']);
+            } finally {
+                editSubmitBtn.disabled = false;
+                editSubmitText.classList.remove('hidden');
+                editSubmitLoading.classList.add('hidden');
+            }
+        });
+    }
+    
+    // ========================================
+    // DELETE TEAM MEMBER FUNCTIONALITY
+    // ========================================
+    
+    const deleteTeamMemberModal = document.getElementById('delete-team-member-modal');
+    const closeDeleteModalBtn = document.getElementById('close-delete-modal');
+    const cancelDeleteMemberBtn = document.getElementById('cancel-delete-member');
+    const confirmDeleteMemberBtn = document.getElementById('confirm-delete-member');
+    const deleteSubmitText = document.getElementById('delete-submit-text');
+    const deleteSubmitLoading = document.getElementById('delete-submit-loading');
+    const deleteFormErrors = document.getElementById('delete-form-errors');
+    const deleteErrorList = document.getElementById('delete-error-list');
+    
+    function showDeleteModal(memberId, username) {
+        document.getElementById('delete-member-id').value = memberId;
+        document.getElementById('delete-member-username').textContent = username;
+        deleteTeamMemberModal.classList.remove('hidden');
+        hideDeleteMessages();
+    }
+    
+    function hideDeleteModal() {
+        deleteTeamMemberModal.classList.add('hidden');
+        hideDeleteMessages();
+    }
+    
+    function hideDeleteMessages() {
+        deleteFormErrors.classList.add('hidden');
+        deleteErrorList.innerHTML = '';
+    }
+    
+    function showDeleteErrors(errors) {
+        hideDeleteMessages();
+        deleteErrorList.innerHTML = '';
+        errors.forEach(error => {
+            const li = document.createElement('li');
+            li.textContent = error;
+            deleteErrorList.appendChild(li);
+        });
+        deleteFormErrors.classList.remove('hidden');
+    }
+    
+    if (closeDeleteModalBtn) {
+        closeDeleteModalBtn.addEventListener('click', hideDeleteModal);
+    }
+    
+    if (cancelDeleteMemberBtn) {
+        cancelDeleteMemberBtn.addEventListener('click', hideDeleteModal);
+    }
+    
+    if (deleteTeamMemberModal) {
+        deleteTeamMemberModal.addEventListener('click', function(e) {
+            if (e.target === deleteTeamMemberModal) {
+                hideDeleteModal();
+            }
+        });
+    }
+    
+    if (confirmDeleteMemberBtn) {
+        confirmDeleteMemberBtn.addEventListener('click', async function() {
+            const memberId = document.getElementById('delete-member-id').value;
+            
+            confirmDeleteMemberBtn.disabled = true;
+            deleteSubmitText.classList.add('hidden');
+            deleteSubmitLoading.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`/remove-team-member/${memberId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Remove the member from the list
+                    const memberDiv = document.querySelector(`[data-member-id="${memberId}"]`);
+                    if (memberDiv) {
+                        memberDiv.remove();
+                    }
+                    
+                    hideDeleteModal();
+                    
+                } else {
+                    const errors = data.errors || [data.message || 'Failed to remove team member'];
+                    showDeleteErrors(errors);
+                }
+                
+            } catch (error) {
+                console.error('Error deleting team member:', error);
+                showDeleteErrors(['Network error. Please check your connection and try again.']);
+            } finally {
+                confirmDeleteMemberBtn.disabled = false;
+                deleteSubmitText.classList.remove('hidden');
+                deleteSubmitLoading.classList.add('hidden');
+            }
+        });
+    }
+    
+    // ========================================
+    // DROPDOWN MENU FUNCTIONALITY
+    // ========================================
+    
+    function attachDropdownListeners(container = document) {
+        // Toggle dropdown menus
+        const menuButtons = container.querySelectorAll('.team-member-menu-btn');
+        menuButtons.forEach(btn => {
+            // Remove any existing listeners by cloning
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const dropdown = this.nextElementSibling;
+                
+                // Close all other dropdowns
+                document.querySelectorAll('.team-member-dropdown').forEach(d => {
+                    if (d !== dropdown) {
+                        d.classList.add('hidden');
+                    }
+                });
+                
+                // Toggle current dropdown
+                dropdown.classList.toggle('hidden');
+            });
+        });
+        
+        // Edit member buttons
+        const editButtons = container.querySelectorAll('.edit-member-btn');
+        editButtons.forEach(btn => {
+            // Remove any existing listeners by cloning
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.addEventListener('click', function() {
+                const memberId = this.getAttribute('data-member-id');
+                const memberDiv = document.querySelector(`[data-member-id="${memberId}"]`);
+                const username = memberDiv.getAttribute('data-member-username');
+                const role = memberDiv.getAttribute('data-member-role');
+                
+                // Close dropdown
+                this.closest('.team-member-dropdown').classList.add('hidden');
+                
+                // Show edit modal
+                showEditModal(memberId, username, role);
+            });
+        });
+        
+        // Delete member buttons
+        const deleteButtons = container.querySelectorAll('.delete-member-btn');
+        deleteButtons.forEach(btn => {
+            // Remove any existing listeners by cloning
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.addEventListener('click', function() {
+                const memberId = this.getAttribute('data-member-id');
+                const memberDiv = document.querySelector(`[data-member-id="${memberId}"]`);
+                const username = memberDiv.getAttribute('data-member-username');
+                
+                // Close dropdown
+                this.closest('.team-member-dropdown').classList.add('hidden');
+                
+                // Show delete modal
+                showDeleteModal(memberId, username);
+            });
+        });
+    }
+    
+    // Attach listeners to existing members on page load
+    attachDropdownListeners();
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.team-member-dropdown').forEach(dropdown => {
+            dropdown.classList.add('hidden');
+        });
+    });
+    
+    // ========================================
+    // SMOOTH SCROLLING FOR NAV LINKS
+    // ========================================
+    
+    const navLinks = document.querySelectorAll('.settings-nav-item');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class from all links
+            navLinks.forEach(l => l.classList.remove('active'));
+            
+            // Add active class to clicked link
+            this.classList.add('active');
+            
+            // Smooth scroll to section
+            const targetId = this.getAttribute('href');
+            const targetSection = document.querySelector(targetId);
+            
+            if (targetSection) {
+                targetSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // ========================================
+    // API KEY COPY FUNCTIONALITY
+    // ========================================
+    
+    const copyApiKeyBtn = document.querySelector('.api-key-container button[class*="blue"]');
+    if (copyApiKeyBtn) {
+        copyApiKeyBtn.addEventListener('click', function() {
+            const apiKey = document.querySelector('.api-key-value').textContent;
+            
+            navigator.clipboard.writeText(apiKey).then(() => {
+                // Store original content
+                const originalHTML = this.innerHTML;
+                
+                // Show success message
+                this.innerHTML = '<i class="ri-check-line mr-1"></i> Copied!';
+                this.classList.remove('bg-blue-100', 'text-blue-700', 'hover:bg-blue-200');
+                this.classList.add('bg-green-100', 'text-green-700');
+                
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    this.innerHTML = originalHTML;
+                    this.classList.remove('bg-green-100', 'text-green-700');
+                    this.classList.add('bg-blue-100', 'text-blue-700', 'hover:bg-blue-200');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy API key');
+            });
+        });
+    }
+
+// ========================================
+    // CHANGE PASSWORD FUNCTIONALITY
+    // ========================================
+    
+    const changePasswordForm = document.getElementById('change-password-form');
+    const changePasswordBtn = document.getElementById('change-password-btn');
+    const passwordSubmitText = document.getElementById('password-submit-text');
+    const passwordSubmitLoading = document.getElementById('password-submit-loading');
+    const passwordFormErrors = document.getElementById('password-form-errors');
+    const passwordFormSuccess = document.getElementById('password-form-success');
+    const passwordErrorList = document.getElementById('password-error-list');
+    const passwordSuccessMessage = document.getElementById('password-success-message');
+    
+    function hidePasswordMessages() {
+        passwordFormErrors.classList.add('hidden');
+        passwordFormSuccess.classList.add('hidden');
+        passwordErrorList.innerHTML = '';
+    }
+    
+    function showPasswordErrors(errors) {
+        hidePasswordMessages();
+        passwordErrorList.innerHTML = '';
+        errors.forEach(error => {
+            const li = document.createElement('li');
+            li.textContent = error;
+            passwordErrorList.appendChild(li);
+        });
+        passwordFormErrors.classList.remove('hidden');
+    }
+    
+    function showPasswordSuccess(message) {
+        hidePasswordMessages();
+        passwordSuccessMessage.textContent = message;
+        passwordFormSuccess.classList.remove('hidden');
+    }
+    
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            hidePasswordMessages();
+            
+            changePasswordBtn.disabled = true;
+            passwordSubmitText.classList.add('hidden');
+            passwordSubmitLoading.classList.remove('hidden');
+            
+            const formData = {
+                current_password: document.getElementById('current-password').value,
+                new_password: document.getElementById('new-password').value
+            };
+            
+            try {
+                const response = await fetch('/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showPasswordSuccess(data.message || 'Password changed successfully!');
+                    
+                    // Clear form after success
+                    setTimeout(() => {
+                        changePasswordForm.reset();
+                        hidePasswordMessages();
+                    }, 3000);
+                    
+                } else {
+                    const errors = data.errors || [data.message || 'Failed to change password'];
+                    showPasswordErrors(errors);
+                }
+                
+            } catch (error) {
+                console.error('Error changing password:', error);
+                showPasswordErrors(['Network error. Please check your connection and try again.']);
+            } finally {
+                changePasswordBtn.disabled = false;
+                passwordSubmitText.classList.remove('hidden');
+                passwordSubmitLoading.classList.add('hidden');
+            }
+        });
+    }
+    
+    // ========================================
+    // UPDATE PROFILE FUNCTIONALITY
+    // ========================================
+    
+    const updateProfileForm = document.getElementById('update-profile-form');
+    const updateProfileBtn = document.getElementById('update-profile-btn');
+    const profileSubmitText = document.getElementById('profile-submit-text');
+    const profileSubmitLoading = document.getElementById('profile-submit-loading');
+    const profileFormErrors = document.getElementById('profile-form-errors');
+    const profileFormSuccess = document.getElementById('profile-form-success');
+    const profileErrorList = document.getElementById('profile-error-list');
+    const profileSuccessMessage = document.getElementById('profile-success-message');
+    
+    function hideProfileMessages() {
+        profileFormErrors.classList.add('hidden');
+        profileFormSuccess.classList.add('hidden');
+        profileErrorList.innerHTML = '';
+    }
+    
+    function showProfileErrors(errors) {
+        hideProfileMessages();
+        profileErrorList.innerHTML = '';
+        errors.forEach(error => {
+            const li = document.createElement('li');
+            li.textContent = error;
+            profileErrorList.appendChild(li);
+        });
+        profileFormErrors.classList.remove('hidden');
+    }
+    
+    function showProfileSuccess(message) {
+        hideProfileMessages();
+        profileSuccessMessage.textContent = message;
+        profileFormSuccess.classList.remove('hidden');
+    }
+    
+    if (updateProfileForm) {
+        updateProfileForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            hideProfileMessages();
+            
+            updateProfileBtn.disabled = true;
+            profileSubmitText.classList.add('hidden');
+            profileSubmitLoading.classList.remove('hidden');
+            
+            const formData = {
+                username: document.getElementById('profile-username').value.trim(),
+                email: document.getElementById('profile-email').value.trim()
+            };
+            
+            try {
+                const response = await fetch('/update-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showProfileSuccess(data.message || 'Profile updated successfully!');
+                    
+                    // Update displayed username if changed
+                    if (data.user) {
+                        const usernameDisplay = document.querySelector('.user-avatar-large + div h3');
+                        if (usernameDisplay) {
+                            usernameDisplay.textContent = data.user.username.charAt(0).toUpperCase() + data.user.username.slice(1);
+                        }
+                    }
+                    
+                    setTimeout(() => {
+                        hideProfileMessages();
+                    }, 3000);
+                    
+                } else {
+                    const errors = data.errors || [data.message || 'Failed to update profile'];
+                    showProfileErrors(errors);
+                }
+                
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showProfileErrors(['Network error. Please check your connection and try again.']);
+            } finally {
+                updateProfileBtn.disabled = false;
+                profileSubmitText.classList.remove('hidden');
+                profileSubmitLoading.classList.add('hidden');
+            }
+        });
+    }
+    
+    // ========================================
+    // TWO-FACTOR AUTHENTICATION FUNCTIONALITY
+    // ========================================
+    
+    const twoFAToggle = document.getElementById('2fa-toggle');
+    const configure2FABtn = document.getElementById('configure-2fa-btn');
+    const twoFASetupModal = document.getElementById('2fa-setup-modal');
+    const close2FAModal = document.getElementById('close-2fa-modal');
+    const cancel2FASetup = document.getElementById('cancel-2fa-setup');
+    const verify2FAForm = document.getElementById('verify-2fa-form');
+    const verify2FABtn = document.getElementById('verify-2fa-btn');
+    const twoFASubmitText = document.getElementById('2fa-submit-text');
+    const twoFASubmitLoading = document.getElementById('2fa-submit-loading');
+    const twoFAFormErrors = document.getElementById('2fa-form-errors');
+    const twoFAFormSuccess = document.getElementById('2fa-form-success');
+    const twoFAErrorList = document.getElementById('2fa-error-list');
+    const twoFASuccessMessage = document.getElementById('2fa-success-message');
+    
+    const twoFADisableModal = document.getElementById('2fa-disable-modal');
+    const close2FADisableModal = document.getElementById('close-2fa-disable-modal');
+    const cancel2FADisable = document.getElementById('cancel-2fa-disable');
+    const confirm2FADisable = document.getElementById('confirm-2fa-disable');
+    const twoFADisableText = document.getElementById('2fa-disable-text');
+    const twoFADisableLoading = document.getElementById('2fa-disable-loading');
+    const twoFADisableErrors = document.getElementById('2fa-disable-errors');
+    const twoFADisableErrorList = document.getElementById('2fa-disable-error-list');
+    
+    function hide2FAMessages() {
+        twoFAFormErrors.classList.add('hidden');
+        twoFAFormSuccess.classList.add('hidden');
+        twoFAErrorList.innerHTML = '';
+    }
+    
+    function show2FAErrors(errors) {
+        hide2FAMessages();
+        twoFAErrorList.innerHTML = '';
+        errors.forEach(error => {
+            const li = document.createElement('li');
+            li.textContent = error;
+            twoFAErrorList.appendChild(li);
+        });
+        twoFAFormErrors.classList.remove('hidden');
+    }
+    
+    function show2FASuccess(message) {
+        hide2FAMessages();
+        twoFASuccessMessage.textContent = message;
+        twoFAFormSuccess.classList.remove('hidden');
+    }
+    
+    function hide2FASetupModal() {
+        twoFASetupModal.classList.add('hidden');
+        hide2FAMessages();
+        verify2FAForm.reset();
+    }
+    
+    function hide2FADisableModal() {
+        twoFADisableModal.classList.add('hidden');
+        twoFADisableErrors.classList.add('hidden');
+        twoFADisableErrorList.innerHTML = '';
+        document.getElementById('2fa-disable-password').value = '';
+    }
+    
+    // Configure 2FA button
+    if (configure2FABtn) {
+        configure2FABtn.addEventListener('click', async function() {
+            const is2FAEnabled = twoFAToggle.checked;
+            
+            if (is2FAEnabled) {
+                // Show disable modal
+                twoFADisableModal.classList.remove('hidden');
+            } else {
+                // Setup 2FA
+                twoFASetupModal.classList.remove('hidden');
+                hide2FAMessages();
+                
+                // Show loading in QR code container
+                const qrCodeContainer = document.getElementById('qr-code-container');
+                qrCodeContainer.innerHTML = '<div class="w-48 h-48 flex items-center justify-center"><i class="ri-loader-4-line animate-spin text-4xl text-slate-400"></i></div>';
+                
+                try {
+                    const response = await fetch('/setup-2fa', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok && data.success) {
+                        // Display QR code
+                        qrCodeContainer.innerHTML = `<img src="${data.qr_code}" alt="QR Code" class="w-48 h-48">`;
+                        document.getElementById('manual-entry-code').textContent = data.manual_entry;
+                    } else {
+                        show2FAErrors([data.message || 'Failed to setup 2FA']);
+                    }
+                    
+                } catch (error) {
+                    console.error('Error setting up 2FA:', error);
+                    show2FAErrors(['Network error. Please try again.']);
+                }
+            }
+        });
+    }
+    
+    // Close 2FA setup modal
+    if (close2FAModal) {
+        close2FAModal.addEventListener('click', hide2FASetupModal);
+    }
+    
+    if (cancel2FASetup) {
+        cancel2FASetup.addEventListener('click', hide2FASetupModal);
+    }
+    
+    if (twoFASetupModal) {
+        twoFASetupModal.addEventListener('click', function(e) {
+            if (e.target === twoFASetupModal) {
+                hide2FASetupModal();
+            }
+        });
+    }
+    
+    // Verify 2FA form
+    if (verify2FAForm) {
+        verify2FAForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            hide2FAMessages();
+            
+            verify2FABtn.disabled = true;
+            twoFASubmitText.classList.add('hidden');
+            twoFASubmitLoading.classList.remove('hidden');
+            
+            const token = document.getElementById('2fa-token').value;
+            
+            try {
+                const response = await fetch('/verify-2fa', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    show2FASuccess(data.message || '2FA enabled successfully!');
+                    
+                    // Update toggle
+                    twoFAToggle.checked = true;
+                    
+                    setTimeout(() => {
+                        hide2FASetupModal();
+                    }, 2000);
+                    
+                } else {
+                    const errors = data.errors || [data.message || 'Failed to verify 2FA'];
+                    show2FAErrors(errors);
+                }
+                
+            } catch (error) {
+                console.error('Error verifying 2FA:', error);
+                show2FAErrors(['Network error. Please try again.']);
+            } finally {
+                verify2FABtn.disabled = false;
+                twoFASubmitText.classList.remove('hidden');
+                twoFASubmitLoading.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Close disable 2FA modal
+    if (close2FADisableModal) {
+        close2FADisableModal.addEventListener('click', hide2FADisableModal);
+    }
+    
+    if (cancel2FADisable) {
+        cancel2FADisable.addEventListener('click', hide2FADisableModal);
+    }
+    
+    if (twoFADisableModal) {
+        twoFADisableModal.addEventListener('click', function(e) {
+            if (e.target === twoFADisableModal) {
+                hide2FADisableModal();
+            }
+        });
+    }
+    
+    // Confirm disable 2FA
+    if (confirm2FADisable) {
+        confirm2FADisable.addEventListener('click', async function() {
+            const password = document.getElementById('2fa-disable-password').value;
+            
+            if (!password) {
+                twoFADisableErrorList.innerHTML = '<li>Password is required</li>';
+                twoFADisableErrors.classList.remove('hidden');
+                return;
+            }
+            
+            confirm2FADisable.disabled = true;
+            twoFADisableText.classList.add('hidden');
+            twoFADisableLoading.classList.remove('hidden');
+            
+            try {
+                const response = await fetch('/disable-2fa', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Update toggle
+                    twoFAToggle.checked = false;
+                    
+                    hide2FADisableModal();
+                    
+                } else {
+                    const errors = data.errors || [data.message || 'Failed to disable 2FA'];
+                    twoFADisableErrorList.innerHTML = '';
+                    errors.forEach(error => {
+                        const li = document.createElement('li');
+                        li.textContent = error;
+                        twoFADisableErrorList.appendChild(li);
+                    });
+                    twoFADisableErrors.classList.remove('hidden');
+                }
+                
+            } catch (error) {
+                console.error('Error disabling 2FA:', error);
+                twoFADisableErrorList.innerHTML = '<li>Network error. Please try again.</li>';
+                twoFADisableErrors.classList.remove('hidden');
+            } finally {
+                confirm2FADisable.disabled = false;
+                twoFADisableText.classList.remove('hidden');
+                twoFADisableLoading.classList.add('hidden');
+            }
+        });
+    }
+});
+</script>
+
+<style>
+
+/* Settings Page Styles */
+
+/* Main Content */
+.main-content {
+    background-color: #f8fafc;
+}
+
+/* Card Styles */
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+}
+
+/* Navigation Items */
+.settings-nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    color: #64748b;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.settings-nav-item:hover {
+    background-color: #f1f5f9;
+    color: #334155;
+}
+
+.settings-nav-item.active {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.settings-nav-item.active i {
+    color: white;
+}
+
+.settings-nav-item i {
+    font-size: 18px;
+    color: #94a3b8;
+}
+
+/* Section Styles */
+.settings-section {
+    scroll-margin-top: 24px;
+}
+
+.section-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.section-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background-color: #dbeafe;
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+
+.section-icon i {
+    font-size: 20px;
+}
+
+/* Setting Items */
+.setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.setting-label {
+    flex: 1;
+    margin-right: 24px;
+}
+
+.setting-description {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+/* Custom Switch */
+.custom-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.custom-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.custom-switch input:checked + .switch-slider {
+    background-color: #3b82f6;
+}
+
+.custom-switch input:checked + .switch-slider:before {
+    transform: translateX(20px);
+}
+
+/* Custom Select */
+.custom-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 20px;
+    padding-right: 40px;
+}
+
+/* API Key Container */
+.api-key-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.api-key-value-container {
+    flex: 1;
+    min-width: 250px;
+    padding: 12px 16px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.api-key-value {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #334155;
+    font-weight: 500;
+}
+
+/* User Avatar */
+.user-avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+/* Team Member Item */
+.team-member {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background-color: #f8fafc;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+}
+
+.team-member:hover {
+    background-color: #f1f5f9;
+}
+
+.team-member-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+/* Audit Log Item */
+.audit-log-item {
+    padding: 16px;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+/* Danger Zone */
+.danger-zone {
+    border: 2px solid #fecaca;
+    background-color: #fef2f2;
+}
+
+/* Primary Colors */
+.bg-primary {
+    background-color: #3b82f6;
+}
+
+.bg-primary-dark {
+    background-color: #2563eb;
+}
+
+.text-primary {
+    color: #3b82f6;
+}
+
+.text-primary-dark {
+    color: #2563eb;
+}
+
+.hover\:bg-primary:hover {
+    background-color: #3b82f6;
+}
+
+.hover\:bg-primary-dark:hover {
+    background-color: #2563eb;
+}
+
+.hover\:text-primary:hover {
+    color: #3b82f6;
+}
+
+.hover\:text-primary-dark:hover {
+    color: #2563eb;
+}
+
+.focus\:ring-primary:focus {
+    --tw-ring-color: #3b82f6;
+}
+
+.focus\:border-primary:focus {
+    border-color: #3b82f6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    .setting-label {
+        margin-right: 0;
+    }
+    
+    .api-key-container {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* Smooth scrolling for anchor links */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Add animation for loading spinner */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+</style>
 
 {% endblock %}

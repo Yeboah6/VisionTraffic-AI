@@ -14,14 +14,8 @@
                 <div class="card p-5">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm text-slate-500">Current Traffic Volume</p>
+                            <p class="text-sm text-slate-500">Traffic Volume</p>
                             <h3 class="text-2xl font-semibold mt-1">12,845</h3>
-                            <p class="text-xs text-green-600 mt-1 flex items-center">
-                                <span class="w-4 h-4 flex items-center justify-center mr-1">
-                                    <i class="ri-arrow-up-line"></i>
-                                </span>
-                                <span>4.5% from yesterday</span>
-                            </p>
                         </div>
                         <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
                             <div class="w-6 h-6 flex items-center justify-center text-primary">
@@ -36,12 +30,6 @@
                         <div>
                             <p class="text-sm text-slate-500">Active Incidents</p>
                             <h3 class="text-2xl font-semibold mt-1">{{ incidents|length }}</h3>
-                            <p class="text-xs text-red-600 mt-1 flex items-center">
-                                <span class="w-4 h-4 flex items-center justify-center mr-1">
-                                    <i class="ri-arrow-up-line"></i>
-                                </span>
-                                <span>2 new in last hour</span>
-                            </p>
                         </div>
                         <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                             <div class="w-6 h-6 flex items-center justify-center text-red-500">
@@ -56,12 +44,6 @@
                         <div>
                             <p class="text-sm text-slate-500">Average Speed</p>
                             <h3 class="text-2xl font-semibold mt-1">42 mph</h3>
-                            <p class="text-xs text-yellow-600 mt-1 flex items-center">
-                                <span class="w-4 h-4 flex items-center justify-center mr-1">
-                                    <i class="ri-arrow-down-line"></i>
-                                </span>
-                                <span>3.2% from normal</span>
-                            </p>
                         </div>
                         <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
                             <div class="w-6 h-6 flex items-center justify-center text-yellow-500">
@@ -76,12 +58,6 @@
                         <div>
                             <p class="text-sm text-slate-500">AI Predictions</p>
                             <h3 class="text-2xl font-semibold mt-1">98.7%</h3>
-                            <p class="text-xs text-green-600 mt-1 flex items-center">
-                                <span class="w-4 h-4 flex items-center justify-center mr-1">
-                                    <i class="ri-arrow-up-line"></i>
-                                </span>
-                                <span>1.2% accuracy increase</span>
-                            </p>
                         </div>
                         <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
                             <div class="w-6 h-6 flex items-center justify-center text-green-500">
@@ -93,7 +69,7 @@
             </div>
             
             <!-- Main Grid -->
-            <div class="grid grid-cols-3 gap-6">
+            <div class="grid grid-cols-3 gap-4">
                 <!-- Left Column -->
                 <div class="col-span-2 space-y-6">
                     <!-- Traffic Map -->
@@ -149,7 +125,7 @@
                     </div>
                     
                     <!-- Traffic Trend Chart -->
-                    <div class="card">
+                    <!-- <div class="card">
                         <div class="p-4 border-b flex items-center justify-between">
                             <h2 class="font-semibold">Traffic Trends</h2>
                             <div class="flex items-center space-x-2">
@@ -161,61 +137,66 @@
                         <div class="p-4">
                             <div id="trafficTrendsChart" class="h-[250px]"></div>
                         </div>
-                    </div>
+                    </div> -->
                     
-                    <!-- Camera Feeds -->
-                    <div class="card">
-                        <div class="p-4 border-b flex items-center justify-between">
-                            <h2 class="font-semibold">Live Camera Feeds</h2>
-                            <button class="text-primary text-sm">View All Cameras</button>
-                        </div>
-                        <div class="p-4 grid grid-cols-2 gap-4">
-                            <div>
-                                <div class="camera-feed rounded-lg bg-slate-800 relative">
-                                    <!-- <img src="https://readdy.ai/api/search-image?query=traffic%20camera%20view%20of%20busy%20intersection%20with%20cars%20and%20traffic%20lights%2C%20realistic%20security%20camera%20footage%20style%2C%20grainy%20texture%2C%20timestamp%20in%20corner&width=400&height=225&seq=1&orientation=landscape" alt="Traffic Camera Feed" class="w-full h-full object-cover object-top"> -->
-                                    <div class="absolute bottom-3 left-3 z-10 flex items-center">
-                                        <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-2"></div>
-                                        <span class="text-white text-xs font-medium">Main St & 5th Ave</span>
-                                    </div>
-                                </div>
-                                <div class="mt-2 flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <div class="w-4 h-4 flex items-center justify-center text-slate-600">
-                                            <i class="ri-car-line"></i>
-                                        </div>
-                                        <span class="text-xs ml-1">245 vehicles</span>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div class="w-4 h-4 flex items-center justify-center text-yellow-500">
-                                            <i class="ri-alert-line"></i>
-                                        </div>
-                                        <span class="text-xs ml-1">Medium congestion</span>
-                                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
+                        <!-- Traffic Trends Chart -->
+                        <div class="card">
+                            <div class="p-4 border-b flex items-center justify-between">
+                                <h2 class="font-semibold">Traffic Trends</h2>
+                                <div class="flex items-center space-x-2">
+                                    <button class="px-3 py-1 bg-slate-100 rounded-full text-xs">Today</button>
+                                    <button class="px-3 py-1 text-xs">Week</button>
+                                    <button class="px-3 py-1 text-xs">Month</button>
                                 </div>
                             </div>
-                            
-                            <div>
-                                <div class="camera-feed rounded-lg bg-slate-800 relative">
-                                    <!-- <img src="https://readdy.ai/api/search-image?query=highway%20traffic%20camera%20view%20with%20multiple%20lanes%20and%20cars%2C%20realistic%20security%20camera%20footage%20style%2C%20grainy%20texture%2C%20timestamp%20in%20corner&width=400&height=225&seq=2&orientation=landscape" alt="Traffic Camera Feed" class="w-full h-full object-cover object-top"> -->
-                                    <div class="absolute bottom-3 left-3 z-10 flex items-center">
-                                        <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-2"></div>
-                                        <span class="text-white text-xs font-medium">Highway 101 North</span>
-                                    </div>
+                            <div class="p-4">
+                                <div id="trafficTrendsChart" class="chart-container"></div>
+                            </div>
+                        </div>
+
+                        <!-- Peak Hours Chart -->
+                        <div class="card">
+                            <div class="p-4 border-b flex items-center justify-between">
+                                <h2 class="font-semibold">Peak Traffic Hours</h2>
+                                <div class="flex items-center space-x-2">
+                                    <button class="px-3 py-1 bg-slate-100 rounded-full text-xs">Today</button>
+                                    <button class="px-3 py-1 text-xs">Week</button>
+                                    <button class="px-3 py-1 text-xs">Month</button>
                                 </div>
-                                <div class="mt-2 flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <div class="w-4 h-4 flex items-center justify-center text-slate-600">
-                                            <i class="ri-car-line"></i>
-                                        </div>
-                                        <span class="text-xs ml-1">387 vehicles</span>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div class="w-4 h-4 flex items-center justify-center text-green-500">
-                                            <i class="ri-alert-line"></i>
-                                        </div>
-                                        <span class="text-xs ml-1">Low congestion</span>
-                                    </div>
+                            </div>
+                            <div class="p-4">
+                                <div id="peakHoursChart" class="chart-container"></div>
+                            </div>
+                        </div>
+
+                        <!-- Traffic Distribution Chart -->
+                        <div class="card">
+                            <div class="p-4 border-b flex items-center justify-between">
+                                <h2 class="font-semibold">Traffic Distribution</h2>
+                                <div class="flex items-center space-x-2">
+                                    <button class="px-3 py-1 bg-slate-100 rounded-full text-xs">Today</button>
+                                    <button class="px-3 py-1 text-xs">Week</button>
+                                    <button class="px-3 py-1 text-xs">Month</button>
                                 </div>
+                            </div>
+                            <div class="p-4">
+                                <div id="trafficDistributionChart" class="chart-container"></div>
+                            </div>
+                        </div>
+
+                        <!-- Traffic Comparison Chart -->
+                        <div class="card">
+                            <div class="p-4 border-b flex items-center justify-between">
+                                <h2 class="font-semibold">Weekly Comparison</h2>
+                                <div class="flex items-center space-x-2">
+                                    <button class="px-3 py-1 bg-slate-100 rounded-full text-xs">This Week</button>
+                                    <button class="px-3 py-1 text-xs">Last Week</button>
+                                    <button class="px-3 py-1 text-xs">Monthly</button>
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                <div id="trafficComparisonChart" class="chart-container"></div>
                             </div>
                         </div>
                     </div>
@@ -304,17 +285,6 @@
                                 
                                 <div class="flex items-center justify-between">
                                     <div>
-                                        <h4 class="text-sm font-medium">Rush Hour Mode</h4>
-                                        <p class="text-xs text-slate-500 mt-0.5">Prioritize main arterial roads</p>
-                                    </div>
-                                    <label class="custom-switch">
-                                        <input type="checkbox" checked>
-                                        <span class="switch-slider"></span>
-                                    </label>
-                                </div>
-                                
-                                <div class="flex items-center justify-between">
-                                    <div>
                                         <h4 class="text-sm font-medium">Pedestrian Priority</h4>
                                         <p class="text-xs text-slate-500 mt-0.5">Extend crossing times in busy areas</p>
                                     </div>
@@ -337,20 +307,336 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Traffic Distribution -->
-                    <div class="card">
-                        <div class="p-4 border-b">
-                            <h2 class="font-semibold">Vehicle Distribution</h2>
-                        </div>
-                        <div class="p-4">
-                            <div id="vehicleDistributionChart" class="h-[200px]"></div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all charts
+            const trafficTrendsChart = echarts.init(document.getElementById('trafficTrendsChart'));
+            const peakHoursChart = echarts.init(document.getElementById('peakHoursChart'));
+            const trafficDistributionChart = echarts.init(document.getElementById('trafficDistributionChart'));
+            const trafficComparisonChart = echarts.init(document.getElementById('trafficComparisonChart'));
+
+            // Traffic Trends Chart
+            const trafficTrendsOption = {
+                animation: false,
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    borderColor: '#e2e8f0',
+                    textStyle: {
+                        color: '#1f2937'
+                    }
+                },
+                legend: {
+                    data: ['Today', 'Yesterday'],
+                    textStyle: {
+                        color: '#1f2937'
+                    },
+                    right: 0
+                },
+                grid: {
+                    left: '3%',
+                    right: '3%',
+                    bottom: '3%',
+                    top: '15%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: ['6AM', '8AM', '10AM', '12PM', '2PM', '4PM', '6PM', '8PM', '10PM'],
+                    axisLine: {
+                        lineStyle: {
+                            color: '#e2e8f0'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#64748b'
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Vehicles',
+                    axisLine: {
+                        show: false
+                    },
+                    axisLabel: {
+                        color: '#64748b'
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#e2e8f0'
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: 'Today',
+                        type: 'line',
+                        smooth: true,
+                        lineStyle: {
+                            width: 3,
+                            color: 'rgba(87, 181, 231, 1)'
+                        },
+                        symbol: 'none',
+                        areaStyle: {
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0, color: 'rgba(87, 181, 231, 0.2)'
+                                }, {
+                                    offset: 1, color: 'rgba(87, 181, 231, 0.01)'
+                                }]
+                            }
+                        },
+                        data: [2500, 5200, 8300, 7100, 6500, 7800, 9500, 8200, 4100]
+                    },
+                    {
+                        name: 'Yesterday',
+                        type: 'line',
+                        smooth: true,
+                        lineStyle: {
+                            width: 3,
+                            color: 'rgba(141, 211, 199, 1)'
+                        },
+                        symbol: 'none',
+                        areaStyle: {
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0, color: 'rgba(141, 211, 199, 0.2)'
+                                }, {
+                                    offset: 1, color: 'rgba(141, 211, 199, 0.01)'
+                                }]
+                            }
+                        },
+                        data: [2300, 4800, 7900, 6800, 6200, 7500, 9100, 7800, 3900]
+                    }
+                ]
+            };
+
+            // Peak Hours Chart
+            const peakHoursOption = {
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    borderColor: '#e2e8f0',
+                    textStyle: {
+                        color: '#1f2937'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '3%',
+                    bottom: '3%',
+                    top: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['6AM', '8AM', '10AM', '12PM', '2PM', '4PM', '6PM', '8PM', '10PM'],
+                    axisLine: {
+                        lineStyle: {
+                            color: '#e2e8f0'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#64748b'
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Vehicles',
+                    axisLine: {
+                        show: false
+                    },
+                    axisLabel: {
+                        color: '#64748b'
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#e2e8f0'
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: 'Peak Hours',
+                        type: 'bar',
+                        barWidth: '60%',
+                        itemStyle: {
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0, color: 'rgba(87, 181, 231, 1)'
+                                }, {
+                                    offset: 1, color: 'rgba(87, 181, 231, 0.5)'
+                                }]
+                            }
+                        },
+                        data: [2500, 5200, 8300, 7100, 6500, 7800, 9500, 8200, 4100]
+                    }
+                ]
+            };
+
+            // Traffic Distribution Chart
+            const trafficDistributionOption = {
+                tooltip: {
+                    trigger: 'item',
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    borderColor: '#e2e8f0',
+                    textStyle: {
+                        color: '#1f2937'
+                    }
+                },
+                legend: {
+                    orient: 'vertical',
+                    right: 10,
+                    top: 'center',
+                    textStyle: {
+                        color: '#1f2937'
+                    }
+                },
+                series: [
+                    {
+                        name: 'Traffic Distribution',
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        avoidLabelOverlap: false,
+                        itemStyle: {
+                            borderRadius: 10,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        },
+                        label: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            label: {
+                                show: true,
+                                fontSize: '18',
+                                fontWeight: 'bold'
+                            }
+                        },
+                        labelLine: {
+                            show: false
+                        },
+                        data: [
+                            { value: 35, name: 'Cars', itemStyle: { color: '#57b5e7' } },
+                            { value: 25, name: 'Trucks', itemStyle: { color: '#8dd3c7' } },
+                            { value: 20, name: 'Motorcycles', itemStyle: { color: '#f7c6c7' } },
+                            { value: 15, name: 'Buses', itemStyle: { color: '#f7e1a1' } },
+                            { value: 5, name: 'Others', itemStyle: { color: '#bc80bd' } }
+                        ]
+                    }
+                ]
+            };
+
+            // Traffic Comparison Chart
+            const trafficComparisonOption = {
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    borderColor: '#e2e8f0',
+                    textStyle: {
+                        color: '#1f2937'
+                    }
+                },
+                legend: {
+                    data: ['This Week', 'Last Week'],
+                    textStyle: {
+                        color: '#1f2937'
+                    },
+                    right: 0
+                },
+                grid: {
+                    left: '3%',
+                    right: '3%',
+                    bottom: '3%',
+                    top: '15%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    axisLine: {
+                        lineStyle: {
+                            color: '#e2e8f0'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#64748b'
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Vehicles',
+                    axisLine: {
+                        show: false
+                    },
+                    axisLabel: {
+                        color: '#64748b'
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#e2e8f0'
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: 'This Week',
+                        type: 'bar',
+                        barWidth: '40%',
+                        itemStyle: {
+                            color: 'rgba(87, 181, 231, 0.8)'
+                        },
+                        data: [32000, 35000, 38000, 42000, 45000, 38000, 28000]
+                    },
+                    {
+                        name: 'Last Week',
+                        type: 'bar',
+                        barWidth: '40%',
+                        itemStyle: {
+                            color: 'rgba(141, 211, 199, 0.8)'
+                        },
+                        data: [30000, 33000, 36000, 40000, 43000, 36000, 26000]
+                    }
+                ]
+            };
+
+            // Set options for all charts
+            trafficTrendsChart.setOption(trafficTrendsOption);
+            peakHoursChart.setOption(peakHoursOption);
+            trafficDistributionChart.setOption(trafficDistributionOption);
+            trafficComparisonChart.setOption(trafficComparisonOption);
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                trafficTrendsChart.resize();
+                peakHoursChart.resize();
+                trafficDistributionChart.resize();
+                trafficComparisonChart.resize();
+            });
+        });
+    </script>
 
     <script id="trafficTrendsChartInit">
         document.addEventListener('DOMContentLoaded', function() {
@@ -470,7 +756,7 @@
         });
     </script>
 
-    <script id="vehicleDistributionChartInit">
+    <!-- <script id="vehicleDistributionChartInit">
         document.addEventListener('DOMContentLoaded', function() {
             const vehicleDistributionChart = echarts.init(document.getElementById('vehicleDistributionChart'));
             
@@ -530,7 +816,7 @@
                 vehicleDistributionChart.resize();
             });
         });
-    </script>
+    </script> -->
 
     <script id="switchToggleInit">
         document.addEventListener('DOMContentLoaded', function() {

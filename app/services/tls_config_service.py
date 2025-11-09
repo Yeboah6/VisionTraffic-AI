@@ -284,9 +284,10 @@ class TLSConfigService:
                 if existing_config:
                     # Update existing config
                     existing_config.program_id = config_data['program_id']
-                    existing_config.set_phases(config_data['phases'])
+                    existing_config.phases = config_data['phases']
                     existing_config.current_phase_index = config_data['current_phase_index']
                     existing_config.cycle_time = config_data['cycle_time']
+                    existing_config.controlled_lanes = config_data['controlled_lanes']
                     existing_config.is_adaptive = config_data['is_adaptive']
                     existing_config.config_type = config_data['config_type']
                     existing_config.updated_at = datetime.utcnow()
@@ -297,12 +298,13 @@ class TLSConfigService:
                         traffic_light_id=config_data['traffic_light_id'],
                         scenario=config_data['scenario'],
                         program_id=config_data['program_id'],
+                        phases=config_data['phases'],
                         current_phase_index=config_data['current_phase_index'],
                         cycle_time=config_data['cycle_time'],
+                        controlled_lanes=config_data['controlled_lanes'],
                         is_adaptive=config_data['is_adaptive'],
                         config_type=config_data['config_type']
                     )
-                    new_config.set_phases(config_data['phases'])
                     db.session.add(new_config)
                     action = "created"
                 

@@ -14,7 +14,10 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     is_admin = db.Column(db.Boolean, default=False)
+    role = db.Column(db.String(64))
     last_login = db.Column(db.DateTime)
+    two_factor_enabled = db.Column(db.Boolean, default=False)
+    totp_secret = db.Column(db.String(32))
     
     def set_password(self, password):
         self.password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')

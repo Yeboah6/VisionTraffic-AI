@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+
+<main class="main-content min-h-screen pb-8">
+  <!-- Header (Same as add.html) -->
+   {% include 'includes/header.html' %}
+
+   <nav class="px-6 py-4 bg-white flex items-center justify-between">
+      <div class="space-x-2 text-sm text-slate-500">
+          <a href="{{ url_for('signal.signals') }}" class="hover:text-primary">Signals</a>
+          <i class="ri-arrow-right-s-line"></i>
+          <span>Signal lists</span>
+      </div>
+    </nav>
+
+  <!-- Signals Table -->
+  <div class="px-6 py-6">
+    <div class="card">
+      <div class="p-4 border-b flex justify-between items-center">
+        <h2 class="font-semibold">Signals</h2>
+        <div class="px-6 py-4" style="text-align: center;font-weight: bold;font-size: 2.5rem;">
+          <div class="ml-6 px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-600">
+            Active: {{ signals|length }} Signals
+          </div>
+        </div>
+      </div>
+      <div class="p-6">
+        <table id="signalsTable" class="w-full">
+          <thead>
+            <tr class="text-left text-sm text-slate-500 border-b">
+              <th class="pb-3">Signal ID</th>
+              <th class="pb-3">Location</th>
+              <th class="pb-3">Config Type</th>
+              <th class="pb-3">Cycle Time</th>
+              <th class="pb-3">Current Phase Index</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm">
+            {% for signal in signals %}
+            <tr class="border-b hover:bg-slate-50">
+              <td class="py-4">
+                <a href="{{ url_for('signal.view', id=signal.id) }}" class="text-primary font-medium">
+                  {{ signal.traffic_light_id }}
+                </a>
+              </td>
+              <td>{{ signal.scenario|capitalize }}</td>
+              <td>{{ signal.config_type }}</td>
+              <td>{{ signal.cycle_time|capitalize }}</td>
+              <td>{{ signal.current_phase_index|capitalize }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+{% endblock %}
