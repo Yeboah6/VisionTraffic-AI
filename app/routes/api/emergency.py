@@ -1,6 +1,6 @@
 # routes/emergency_routes.py - Updated routes
 from flask import Blueprint, render_template, request, jsonify
-from app.services.emergency_scheduler import emergency_scheduler
+# from app.services.emergency_scheduler import emergency_scheduler
 from app.services.emergency import emergency_service
 from app.models.traffic_light import TrafficLightConfig
 from datetime import datetime
@@ -23,113 +23,113 @@ def active_emergency():
 
     return render_template('emergency/active_emergency.html')
 
-@emergency_bp.route('/schedule', methods=['POST'])
-def schedule_emergency():
-    """Schedule emergency vehicle via web form"""
-    try:
-        data = request.get_json()
+# @emergency_bp.route('/schedule', methods=['POST'])
+# def schedule_emergency():
+#     """Schedule emergency vehicle via web form"""
+#     try:
+#         data = request.get_json()
         
-        # Validate required fields - ADD SCENARIO TO REQUIRED FIELDS
-        required_fields = ['scenario', 'emergency_type', 'priority', 'vehicle_id', 'departure_time', 'route_edges']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({
-                    "success": False,
-                    "error": f"Missing required field: {field}"
-                }), 400
+#         # Validate required fields - ADD SCENARIO TO REQUIRED FIELDS
+#         required_fields = ['scenario', 'emergency_type', 'priority', 'vehicle_id', 'departure_time', 'route_edges']
+#         for field in required_fields:
+#             if field not in data:
+#                 return jsonify({
+#                     "success": False,
+#                     "error": f"Missing required field: {field}"
+#                 }), 400
         
-        result = emergency_scheduler.schedule_emergency(data)
+#         result = emergency_scheduler.schedule_emergency(data)
         
-        if result['success']:
-            return jsonify({
-                "success": True,
-                "message": result['message'],
-                "emergency_id": result['emergency_id']
-            }), 201
-        else:
-            return jsonify({
-                "success": False,
-                "error": result['error']
-            }), 400
+#         if result['success']:
+#             return jsonify({
+#                 "success": True,
+#                 "message": result['message'],
+#                 "emergency_id": result['emergency_id']
+#             }), 201
+#         else:
+#             return jsonify({
+#                 "success": False,
+#                 "error": result['error']
+#             }), 400
             
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": f"Server error: {str(e)}"
-        }), 500
+#     except Exception as e:
+#         return jsonify({
+#             "success": False,
+#             "error": f"Server error: {str(e)}"
+#         }), 500
 
-@emergency_bp.route('/green-wave/schedule', methods=['POST'])
-def schedule_green_wave():
-    """Schedule green wave manually via web form"""
-    try:
-        data = request.get_json()
+# @emergency_bp.route('/green-wave/schedule', methods=['POST'])
+# def schedule_green_wave():
+#     """Schedule green wave manually via web form"""
+#     try:
+#         data = request.get_json()
         
-        # Validate required fields
-        required_fields = ['traffic_light_id', 'scheduled_start', 'duration']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({
-                    "success": False,
-                    "error": f"Missing required field: {field}"
-                }), 400
+#         # Validate required fields
+#         required_fields = ['traffic_light_id', 'scheduled_start', 'duration']
+#         for field in required_fields:
+#             if field not in data:
+#                 return jsonify({
+#                     "success": False,
+#                     "error": f"Missing required field: {field}"
+#                 }), 400
         
-        result = emergency_scheduler.schedule_green_wave(data)
+#         result = emergency_scheduler.schedule_green_wave(data)
         
-        if result['success']:
-            return jsonify({
-                "success": True,
-                "message": result['message'],
-                "green_wave_id": result['green_wave_id']
-            }), 201
-        else:
-            return jsonify({
-                "success": False,
-                "error": result['error']
-            }), 400
+#         if result['success']:
+#             return jsonify({
+#                 "success": True,
+#                 "message": result['message'],
+#                 "green_wave_id": result['green_wave_id']
+#             }), 201
+#         else:
+#             return jsonify({
+#                 "success": False,
+#                 "error": result['error']
+#             }), 400
             
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": f"Server error: {str(e)}"
-        }), 500
+#     except Exception as e:
+#         return jsonify({
+#             "success": False,
+#             "error": f"Server error: {str(e)}"
+#         }), 500
         
-@emergency_bp.route('/traffic-lights/<tl_id>', methods=['GET'])
-def get_traffic_light_details(tl_id):
-    """Get detailed information about a specific traffic light"""
-    try:
-        details = emergency_scheduler.get_traffic_light_details(tl_id)
-        if details:
-            return jsonify({
-                "success": True,
-                "traffic_light": details
-            }), 200
-        else:
-            return jsonify({
-                "success": False,
-                "error": f"Traffic light {tl_id} not found"
-            }), 404
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+# @emergency_bp.route('/traffic-lights/<tl_id>', methods=['GET'])
+# def get_traffic_light_details(tl_id):
+#     """Get detailed information about a specific traffic light"""
+#     try:
+#         details = emergency_scheduler.get_traffic_light_details(tl_id)
+#         if details:
+#             return jsonify({
+#                 "success": True,
+#                 "traffic_light": details
+#             }), 200
+#         else:
+#             return jsonify({
+#                 "success": False,
+#                 "error": f"Traffic light {tl_id} not found"
+#             }), 404
+#     except Exception as e:
+#         return jsonify({
+#             "success": False,
+#             "error": str(e)
+#         }), 500
 
-@emergency_bp.route('/traffic-lights/for-edge/<edge>', methods=['GET'])
-def get_traffic_lights_for_edge(edge):
-    """Get traffic lights that control a specific edge"""
-    try:
-        traffic_lights = emergency_scheduler.get_traffic_lights_for_edge(edge)
-        return jsonify({
-            "success": True,
-            "edge": edge,
-            "traffic_lights": traffic_lights,
-            "count": len(traffic_lights)
-        }), 200
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+# @emergency_bp.route('/traffic-lights/for-edge/<edge>', methods=['GET'])
+# def get_traffic_lights_for_edge(edge):
+#     """Get traffic lights that control a specific edge"""
+#     try:
+#         traffic_lights = emergency_scheduler.get_traffic_lights_for_edge(edge)
+#         return jsonify({
+#             "success": True,
+#             "edge": edge,
+#             "traffic_lights": traffic_lights,
+#             "count": len(traffic_lights)
+#         }), 200
+#     except Exception as e:
+#         return jsonify({
+#             "success": False,
+#             "error": str(e)
+#         }), 500
 
 # @emergency_bp.route('/active', methods=['GET'])
 # def get_active_emergencies():
@@ -147,166 +147,166 @@ def get_traffic_lights_for_edge(edge):
 #             "error": str(e)
 #         }), 500
 
-@emergency_bp.route('/green-wave/active', methods=['GET'])
-def get_active_green_waves():
-    """Get all active green wave schedules"""
-    try:
-        green_waves = emergency_scheduler.get_active_green_waves()
-        return jsonify({
-            "success": True,
-            "green_waves": green_waves,
-            "count": len(green_waves)
-        }), 200
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+# @emergency_bp.route('/green-wave/active', methods=['GET'])
+# def get_active_green_waves():
+#     """Get all active green wave schedules"""
+#     try:
+#         green_waves = emergency_scheduler.get_active_green_waves()
+#         return jsonify({
+#             "success": True,
+#             "green_waves": green_waves,
+#             "count": len(green_waves)
+#         }), 200
+#     except Exception as e:
+#         return jsonify({
+#             "success": False,
+#             "error": str(e)
+#         }), 500
 
-@emergency_bp.route('/<emergency_id>/cancel', methods=['POST'])
-def cancel_emergency(emergency_id):
-    """Cancel a scheduled emergency"""
-    try:
-        result = emergency_scheduler.cancel_emergency(emergency_id)
+# @emergency_bp.route('/<emergency_id>/cancel', methods=['POST'])
+# def cancel_emergency(emergency_id):
+#     """Cancel a scheduled emergency"""
+#     try:
+#         result = emergency_scheduler.cancel_emergency(emergency_id)
         
-        if result['success']:
-            return jsonify({
-                "success": True,
-                "message": result['message']
-            }), 200
-        else:
-            return jsonify({
-                "success": False,
-                "error": result['error']
-            }), 400
+#         if result['success']:
+#             return jsonify({
+#                 "success": True,
+#                 "message": result['message']
+#             }), 200
+#         else:
+#             return jsonify({
+#                 "success": False,
+#                 "error": result['error']
+#             }), 400
             
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+#     except Exception as e:
+#         return jsonify({
+#             "success": False,
+#             "error": str(e)
+#         }), 500
 
-@emergency_bp.route('/green-wave/<green_wave_id>/cancel', methods=['POST'])
-def cancel_green_wave(green_wave_id):
-    """Cancel a scheduled green wave"""
-    try:
-        result = emergency_scheduler.cancel_green_wave(green_wave_id)
+# @emergency_bp.route('/green-wave/<green_wave_id>/cancel', methods=['POST'])
+# def cancel_green_wave(green_wave_id):
+#     """Cancel a scheduled green wave"""
+#     try:
+#         result = emergency_scheduler.cancel_green_wave(green_wave_id)
         
-        if result['success']:
-            return jsonify({
-                "success": True,
-                "message": result['message']
-            }), 200
-        else:
-            return jsonify({
-                "success": False,
-                "error": result['error']
-            }), 400
+#         if result['success']:
+#             return jsonify({
+#                 "success": True,
+#                 "message": result['message']
+#             }), 200
+#         else:
+#             return jsonify({
+#                 "success": False,
+#                 "error": result['error']
+#             }), 400
             
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+#     except Exception as e:
+#         return jsonify({
+#             "success": False,
+#             "error": str(e)
+#         }), 500
     
-@emergency_bp.route('/route-details', methods=['POST'])
-def get_route_details():
-    """Get detailed information about a route including TLS-controlled edges"""
-    try:
-        data = request.get_json()
-        edges = data.get('edges', [])
+# @emergency_bp.route('/route-details', methods=['POST'])
+# def get_route_details():
+#     """Get detailed information about a route including TLS-controlled edges"""
+#     try:
+#         data = request.get_json()
+#         edges = data.get('edges', [])
         
-        if not edges:
-            return jsonify({
-                "success": False,
-                "error": "No edges provided"
-            }), 400
+#         if not edges:
+#             return jsonify({
+#                 "success": False,
+#                 "error": "No edges provided"
+#             }), 400
         
-        route_details = {
-            'edges': edges,
-            'traffic_lights': [],
-            'estimated_time': 0,
-            'total_lanes': 0,
-            'edge_details': []
-        }
+#         route_details = {
+#             'edges': edges,
+#             'traffic_lights': [],
+#             'estimated_time': 0,
+#             'total_lanes': 0,
+#             'edge_details': []
+#         }
         
-        # Calculate route details based on TLS config
-        edge_travel_times = {
-            'E0': 10.0, '-E0': 10.0, 'E1': 12.0, '-E1': 12.0,
-            'E2': 8.0, '-E2': 8.0, 'E0.55': 10.0, '-E0.55': 10.0
-        }
+#         # Calculate route details based on TLS config
+#         edge_travel_times = {
+#             'E0': 10.0, '-E0': 10.0, 'E1': 12.0, '-E1': 12.0,
+#             'E2': 8.0, '-E2': 8.0, 'E0.55': 10.0, '-E0.55': 10.0
+#         }
         
-        total_time = 0
-        controlled_lanes = set()
+#         total_time = 0
+#         controlled_lanes = set()
         
-        for edge in edges:
-            # Get traffic lights for this edge
-            tls_for_edge = emergency_scheduler.get_traffic_lights_for_edge(edge)
-            edge_tls = [tls['traffic_light_id'] for tls in tls_for_edge]
+#         for edge in edges:
+#             # Get traffic lights for this edge
+#             tls_for_edge = emergency_scheduler.get_traffic_lights_for_edge(edge)
+#             edge_tls = [tls['traffic_light_id'] for tls in tls_for_edge]
             
-            # Add to route traffic lights
-            for tl_id in edge_tls:
-                if tl_id not in route_details['traffic_lights']:
-                    route_details['traffic_lights'].append(tl_id)
+#             # Add to route traffic lights
+#             for tl_id in edge_tls:
+#                 if tl_id not in route_details['traffic_lights']:
+#                     route_details['traffic_lights'].append(tl_id)
             
-            # Get TLS details for lane information
-            if tls_for_edge:
-                tls_details = emergency_scheduler.get_traffic_light_details(tls_for_edge[0]['traffic_light_id'])
-                if tls_details and 'controlled_lanes' in tls_details:
-                    for lane in tls_details['controlled_lanes']:
-                        if lane.startswith(edge + '_'):
-                            controlled_lanes.add(lane)
+#             # Get TLS details for lane information
+#             if tls_for_edge:
+#                 tls_details = emergency_scheduler.get_traffic_light_details(tls_for_edge[0]['traffic_light_id'])
+#                 if tls_details and 'controlled_lanes' in tls_details:
+#                     for lane in tls_details['controlled_lanes']:
+#                         if lane.startswith(edge + '_'):
+#                             controlled_lanes.add(lane)
             
-            # Calculate travel time
-            travel_time = edge_travel_times.get(edge, 10.0)
-            total_time += travel_time
+#             # Calculate travel time
+#             travel_time = edge_travel_times.get(edge, 10.0)
+#             total_time += travel_time
             
-            # Add edge details
-            route_details['edge_details'].append({
-                'edge': edge,
-                'traffic_lights': edge_tls,
-                'travel_time': travel_time,
-                'lanes': len([lane for lane in controlled_lanes if lane.startswith(edge + '_')])
-            })
+#             # Add edge details
+#             route_details['edge_details'].append({
+#                 'edge': edge,
+#                 'traffic_lights': edge_tls,
+#                 'travel_time': travel_time,
+#                 'lanes': len([lane for lane in controlled_lanes if lane.startswith(edge + '_')])
+#             })
         
-        route_details['estimated_time'] = total_time
-        route_details['total_lanes'] = len(controlled_lanes)
+#         route_details['estimated_time'] = total_time
+#         route_details['total_lanes'] = len(controlled_lanes)
         
-        return jsonify({
-            "success": True,
-            "route_details": route_details
-        }), 200
+#         return jsonify({
+#             "success": True,
+#             "route_details": route_details
+#         }), 200
         
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": f"Server error: {str(e)}"
-        }), 500
+#     except Exception as e:
+#         return jsonify({
+#             "success": False,
+#             "error": f"Server error: {str(e)}"
+#         }), 500
 
-@emergency_bp.route('/traffic-lights', methods=['GET'])
-def get_traffic_lights():
-    """Get all available traffic lights from TLS config, optionally filtered by scenario"""
-    try:
-        scenario = request.args.get('scenario')
+# @emergency_bp.route('/traffic-lights', methods=['GET'])
+# def get_traffic_lights():
+#     """Get all available traffic lights from TLS config, optionally filtered by scenario"""
+#     try:
+#         scenario = request.args.get('scenario')
         
-        if scenario:
-            # Filter by specific scenario
-            traffic_lights = emergency_scheduler.get_traffic_lights_by_scenario(scenario)
-        else:
-            # Get all traffic lights
-            traffic_lights = emergency_scheduler.get_available_traffic_lights()
+#         if scenario:
+#             # Filter by specific scenario
+#             traffic_lights = emergency_scheduler.get_traffic_lights_by_scenario(scenario)
+#         else:
+#             # Get all traffic lights
+#             traffic_lights = emergency_scheduler.get_available_traffic_lights()
             
-        return jsonify({
-            "success": True,
-            "traffic_lights": traffic_lights,
-            "count": len(traffic_lights),
-            "scenario": scenario or "all"
-        }), 200
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+#         return jsonify({
+#             "success": True,
+#             "traffic_lights": traffic_lights,
+#             "count": len(traffic_lights),
+#             "scenario": scenario or "all"
+#         }), 200
+#     except Exception as e:
+#         return jsonify({
+#             "success": False,
+#             "error": str(e)
+#         }), 500
     
 @emergency_bp.route('/available-routes', methods=['GET'])
 def get_available_routes():

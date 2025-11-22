@@ -16,9 +16,6 @@
                     <div class="relative">
                         <select id="scenarioFilter" class="w-full py-2 px-3 border border-slate-300 rounded-lg text-sm bg-white hover:border-primary transition-colors focus:ring-2 focus:ring-primary/20">
                             <option value="accra">Accra Network</option>
-                            <option value="kumasi">Kumasi Network</option>
-                            <option value="takoradi">Takoradi Network</option>
-                            <option value="test">Test Scenario</option>
                         </select>
                     </div>
                 </div>
@@ -27,14 +24,14 @@
                 <div class="flex items-center space-x-2">
                     <div class="w-36">
                         <label class="block text-xs font-medium text-slate-700 mb-1">From Date</label>
-                        <input type="date" id="startDate" class="date-input w-full" value="2025-06-27">
+                        <input type="date" id="startDate" class="date-input w-full">
                     </div>
                     <div class="flex items-center pt-5">
                         <i class="ri-arrow-right-line text-slate-400"></i>
                     </div>
                     <div class="w-36">
                         <label class="block text-xs font-medium text-slate-700 mb-1">To Date</label>
-                        <input type="date" id="endDate" class="date-input w-full" value="2025-07-04">
+                        <input type="date" id="endDate" class="date-input w-full">
                     </div>
                 </div>
 
@@ -62,11 +59,6 @@
                         <i class="ri-download-line mr-2"></i>
                         <span>Export</span>
                     </button>
-                    
-                    <button id="printBtn" class="px-4 py-2 border border-slate-300 bg-white rounded-lg text-sm flex items-center hover:bg-slate-50 transition-colors">
-                        <i class="ri-printer-line mr-2"></i>
-                        <span>Print</span>
-                    </button>
                 </div>
             </div>
         </div>
@@ -81,11 +73,9 @@
                 <div class="flex items-center justify-between">
                     <div class="flex-1">
                         <p class="text-sm text-slate-500 mb-1">Total Vehicle Count</p>
-                        <h3 class="text-3xl font-bold text-slate-800" id="totalVehicleCount">
-                            <span class="loading-skeleton">Loading...</span>
-                        </h3>
-                        <p class="text-xs mt-2 flex items-center" id="vehicleCountTrend">
-                            <span class="loading-text">Calculating...</span>
+                        <h3 class="text-3xl font-bold text-slate-800" id="totalVehicleCount">0</h3>
+                        <p class="text-xs mt-2 flex items-center text-slate-500" id="vehicleCountTrend">
+                            <span>Loading...</span>
                         </p>
                     </div>
                     <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
@@ -99,11 +89,9 @@
                 <div class="flex items-center justify-between">
                     <div class="flex-1">
                         <p class="text-sm text-slate-500 mb-1">Average Speed</p>
-                        <h3 class="text-3xl font-bold text-slate-800" id="averageSpeed">
-                            <span class="loading-skeleton">Loading...</span>
-                        </h3>
-                        <p class="text-xs mt-2 flex items-center" id="speedTrend">
-                            <span class="loading-text">Calculating...</span>
+                        <h3 class="text-3xl font-bold text-slate-800" id="averageSpeed">0 mph</h3>
+                        <p class="text-xs mt-2 flex items-center text-slate-500" id="speedTrend">
+                            <span>Loading...</span>
                         </p>
                     </div>
                     <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center shadow-lg">
@@ -117,11 +105,9 @@
                 <div class="flex items-center justify-between">
                     <div class="flex-1">
                         <p class="text-sm text-slate-500 mb-1">Emergency Responses</p>
-                        <h3 class="text-3xl font-bold text-slate-800" id="emergencyCount">
-                            <span class="loading-skeleton">0</span>
-                        </h3>
-                        <p class="text-xs mt-2 flex items-center" id="emergencyTrend">
-                            <span class="loading-text">Analyzing...</span>
+                        <h3 class="text-3xl font-bold text-slate-800" id="emergencyCount">0</h3>
+                        <p class="text-xs mt-2 flex items-center text-slate-500" id="emergencyTrend">
+                            <span>Loading...</span>
                         </p>
                     </div>
                     <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg">
@@ -135,11 +121,9 @@
                 <div class="flex items-center justify-between">
                     <div class="flex-1">
                         <p class="text-sm text-slate-500 mb-1">Congestion Level</p>
-                        <h3 class="text-3xl font-bold text-slate-800" id="congestionLevel">
-                            <span class="loading-skeleton">Low</span>
-                        </h3>
-                        <p class="text-xs mt-2 flex items-center" id="congestionTrend">
-                            <span class="loading-text">Calculating...</span>
+                        <h3 class="text-3xl font-bold text-slate-800" id="congestionLevel">Low</h3>
+                        <p class="text-xs mt-2 flex items-center text-slate-500" id="congestionTrend">
+                            <span>Loading...</span>
                         </p>
                     </div>
                     <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
@@ -152,28 +136,10 @@
         <!-- Traffic Volume Trends -->
         <div class="card mb-6 shadow-sm hover:shadow-md transition-shadow">
             <div class="p-4 border-b bg-gradient-to-r from-slate-50 to-white">
-                <div class="flex items-center justify-between">
-                    <h2 class="font-semibold text-slate-800 flex items-center">
-                        <i class="ri-line-chart-line text-primary mr-2"></i>
-                        Traffic Volume Trends
-                    </h2>
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="flex items-center">
-                                <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                                <span class="text-xs text-slate-600">Cars</span>
-                            </div>
-                            <div class="flex items-center">
-                                <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                                <span class="text-xs text-slate-600">Trucks</span>
-                            </div>
-                            <div class="flex items-center">
-                                <span class="w-3 h-3 bg-orange-500 rounded-full mr-2"></span>
-                                <span class="text-xs text-slate-600">Buses</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <h2 class="font-semibold text-slate-800 flex items-center">
+                    <i class="ri-line-chart-line text-primary mr-2"></i>
+                    Traffic Volume Trends
+                </h2>
             </div>
             <div class="p-4">
                 <div id="trafficVolumeChart" class="h-[350px]"></div>
@@ -256,10 +222,7 @@
                         <select id="reportTemplate" class="w-full py-2 px-3 border border-slate-300 rounded-lg text-sm bg-white hover:border-primary transition-colors">
                             <option value="comprehensive">Comprehensive Report</option>
                             <option value="traffic_volume">Traffic Volume Summary</option>
-                            <option value="congestion">Congestion Analysis</option>
-                            <option value="emergency">Emergency Response Report</option>
                             <option value="patterns">Traffic Pattern Analysis</option>
-                            <option value="performance">System Performance</option>
                         </select>
                     </div>
 
@@ -270,10 +233,6 @@
                             <label class="flex items-center cursor-pointer">
                                 <input type="radio" name="format" value="PDF" class="w-4 h-4 text-primary" checked>
                                 <span class="ml-2 text-sm">PDF</span>
-                            </label>
-                            <label class="flex items-center cursor-pointer">
-                                <input type="radio" name="format" value="Excel" class="w-4 h-4 text-primary">
-                                <span class="ml-2 text-sm">Excel</span>
                             </label>
                             <label class="flex items-center cursor-pointer">
                                 <input type="radio" name="format" value="CSV" class="w-4 h-4 text-primary">
@@ -290,75 +249,42 @@
                         </button>
                     </div>
                 </div>
-
-                <!-- Metrics Selection -->
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-3">Include Metrics</label>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <label class="flex items-center cursor-pointer hover:bg-slate-50 p-2 rounded transition-colors">
-                            <input type="checkbox" name="metrics" value="Traffic Volume" class="w-4 h-4 text-primary rounded" checked>
-                            <span class="ml-2 text-sm">Traffic Volume</span>
-                        </label>
-                        <label class="flex items-center cursor-pointer hover:bg-slate-50 p-2 rounded transition-colors">
-                            <input type="checkbox" name="metrics" value="Average Speed" class="w-4 h-4 text-primary rounded" checked>
-                            <span class="ml-2 text-sm">Average Speed</span>
-                        </label>
-                        <label class="flex items-center cursor-pointer hover:bg-slate-50 p-2 rounded transition-colors">
-                            <input type="checkbox" name="metrics" value="Congestion Levels" class="w-4 h-4 text-primary rounded" checked>
-                            <span class="ml-2 text-sm">Congestion</span>
-                        </label>
-                        <label class="flex items-center cursor-pointer hover:bg-slate-50 p-2 rounded transition-colors">
-                            <input type="checkbox" name="metrics" value="Peak Hours" class="w-4 h-4 text-primary rounded" checked>
-                            <span class="ml-2 text-sm">Peak Hours</span>
-                        </label>
-                        <label class="flex items-center cursor-pointer hover:bg-slate-50 p-2 rounded transition-colors">
-                            <input type="checkbox" name="metrics" value="Emergency Vehicles" class="w-4 h-4 text-primary rounded">
-                            <span class="ml-2 text-sm">Emergency</span>
-                        </label>
-                        <label class="flex items-center cursor-pointer hover:bg-slate-50 p-2 rounded transition-colors">
-                            <input type="checkbox" name="metrics" value="Traffic Patterns" class="w-4 h-4 text-primary rounded">
-                            <span class="ml-2 text-sm">Patterns</span>
-                        </label>
-                        <label class="flex items-center cursor-pointer hover:bg-slate-50 p-2 rounded transition-colors">
-                            <input type="checkbox" name="metrics" value="AI Performance" class="w-4 h-4 text-primary rounded">
-                            <span class="ml-2 text-sm">AI Performance</span>
-                        </label>
-                        <label class="flex items-center cursor-pointer hover:bg-slate-50 p-2 rounded transition-colors">
-                            <input type="checkbox" name="metrics" value="Signal Timing" class="w-4 h-4 text-primary rounded">
-                            <span class="ml-2 text-sm">Signal Timing</span>
-                        </label>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
 </main>
 
-<script src="{{ url_for('static', filename='js/map.js') }}"></script>
-<script id="reportDataManager">
+<script>
 // Global state
 let currentFilters = {
     scenario: 'accra',
-    startDate: '2025-06-27',
-    endDate: '2025-07-04',
+    startDate: getTodayDate(),
+    endDate: getTodayDate(),
     period: 'daily'
 };
 
 // Initialize charts
 let trafficVolumeChart, congestionHeatmap, vehicleDistributionChart, emergencyActivityChart;
 
+// Helper functions
+function getTodayDate() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Set default dates
+    document.getElementById('startDate').value = getTodayDate();
+    document.getElementById('endDate').value = getTodayDate();
+    
     // Initialize ECharts
     trafficVolumeChart = echarts.init(document.getElementById('trafficVolumeChart'));
     congestionHeatmap = echarts.init(document.getElementById('congestionHeatmap'));
     vehicleDistributionChart = echarts.init(document.getElementById('vehicleDistributionChart'));
     emergencyActivityChart = echarts.init(document.getElementById('emergencyActivityChart'));
     
-    // Load scenarios first
-    loadScenarios().then(() => {
-        // Then load initial data
-        loadReportData();
-    });
+    // Load scenarios and data
+    loadScenarios().then(() => loadReportData());
     
     // Setup event listeners
     setupEventListeners();
@@ -388,20 +314,15 @@ async function loadScenarios() {
                 scenarioSelect.appendChild(option);
             });
             
-            // Set first scenario as default
             currentFilters.scenario = result.scenarios[0].value;
             console.log(`✅ Loaded ${result.scenarios.length} scenarios`);
-        } else {
-            console.warn('⚠️ No scenarios found, using defaults');
         }
     } catch (error) {
         console.error('❌ Error loading scenarios:', error);
-        // Keep default scenarios in HTML
     }
 }
 
 function setupEventListeners() {
-    // Apply filters button
     document.getElementById('applyFiltersBtn').addEventListener('click', function() {
         currentFilters.scenario = document.getElementById('scenarioFilter').value;
         currentFilters.startDate = document.getElementById('startDate').value;
@@ -410,15 +331,7 @@ function setupEventListeners() {
         loadReportData();
     });
     
-    // Export button
-    document.getElementById('exportBtn').addEventListener('click', exportData);
-    
-    // Print button
-    document.getElementById('printBtn').addEventListener('click', function() {
-        window.print();
-    });
-    
-    // Generate report button
+    document.getElementById('exportBtn').addEventListener('click', generateReport);
     document.getElementById('generateReportBtn').addEventListener('click', generateReport);
 }
 
@@ -426,7 +339,6 @@ async function loadReportData() {
     try {
         showLoading();
         
-        // Load all data
         await Promise.all([
             loadTrafficOverview(),
             loadTrafficVolumeTrends(),
@@ -531,16 +443,6 @@ async function loadTrafficVolumeTrends() {
                     type: 'line',
                     smooth: true,
                     lineStyle: { width: 3, color: '#10b981' },
-                    areaStyle: {
-                        color: {
-                            type: 'linear',
-                            x: 0, y: 0, x2: 0, y2: 1,
-                            colorStops: [
-                                { offset: 0, color: 'rgba(16, 185, 129, 0.3)' },
-                                { offset: 1, color: 'rgba(16, 185, 129, 0.05)' }
-                            ]
-                        }
-                    },
                     data: result.data.datasets.trucks
                 },
                 {
@@ -548,16 +450,6 @@ async function loadTrafficVolumeTrends() {
                     type: 'line',
                     smooth: true,
                     lineStyle: { width: 3, color: '#f97316' },
-                    areaStyle: {
-                        color: {
-                            type: 'linear',
-                            x: 0, y: 0, x2: 0, y2: 1,
-                            colorStops: [
-                                { offset: 0, color: 'rgba(249, 115, 22, 0.3)' },
-                                { offset: 1, color: 'rgba(249, 115, 22, 0.05)' }
-                            ]
-                        }
-                    },
                     data: result.data.datasets.buses
                 }
             ]
@@ -680,7 +572,7 @@ async function loadEmergencyActivity() {
         console.log('🚨 Emergency activity response:', result);
         
         if (result.success && result.data) {
-            const hasData = result.data.labels && result.data.labels.length > 0;
+            const hasData = result.data.labels && result.data.labels.length > 0 && result.data.labels[0] !== 'No Data';
             
             const option = {
                 tooltip: {
@@ -700,11 +592,14 @@ async function loadEmergencyActivity() {
                 },
                 xAxis: {
                     type: 'category',
-                    data: hasData ? result.data.labels : ['No Data']
+                    data: result.data.labels,
+                    axisLabel: {
+                        rotate: hasData && result.data.labels.length > 10 ? 45 : 0
+                    }
                 },
                 yAxis: {
                     type: 'value',
-                    name: 'Responses'
+                    name: 'Count'
                 },
                 series: [
                     {
@@ -712,21 +607,21 @@ async function loadEmergencyActivity() {
                         type: 'bar',
                         stack: 'total',
                         itemStyle: { color: '#ef4444' },
-                        data: hasData ? result.data.datasets.ambulance : [0]
+                        data: result.data.datasets.ambulance
                     },
                     {
                         name: 'Fire Truck',
                         type: 'bar',
                         stack: 'total',
                         itemStyle: { color: '#f97316' },
-                        data: hasData ? result.data.datasets.fire_truck : [0]
+                        data: result.data.datasets.fire_truck
                     },
                     {
                         name: 'Police',
                         type: 'bar',
                         stack: 'total',
                         itemStyle: { color: '#3b82f6' },
-                        data: hasData ? result.data.datasets.police : [0]
+                        data: result.data.datasets.police
                     }
                 ]
             };
@@ -749,19 +644,6 @@ async function loadEmergencyActivity() {
         }
     } catch (error) {
         console.error('❌ Error loading emergency activity:', error);
-        // Show empty chart with error message
-        emergencyActivityChart.setOption({
-            graphic: [{
-                type: 'text',
-                left: 'center',
-                top: 'middle',
-                style: {
-                    text: 'Failed to load emergency data',
-                    fontSize: 14,
-                    fill: '#ef4444'
-                }
-            }]
-        });
     }
 }
 
@@ -781,41 +663,146 @@ async function loadTrafficPatterns() {
         const patternsList = document.getElementById('patternsList');
         
         if (result.success && result.data && result.data.length > 0) {
-            patternsList.innerHTML = result.data.map(pattern => `
-                <div class="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors border border-slate-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="font-medium text-sm text-slate-800">${pattern.pattern_type || 'Unknown Pattern'}</span>
-                        <span class="text-xs px-2 py-1 rounded-full ${getConfidenceClass(pattern.confidence_score)}">
-                            ${pattern.confidence_score}% confidence
-                        </span>
-                    </div>
-                    <div class="text-xs text-slate-600 mb-1">
-                        <i class="ri-traffic-light-line mr-1"></i>
-                        <strong>TL:</strong> ${pattern.traffic_light_id || 'N/A'}
-                    </div>
-                    <div class="text-xs text-slate-500">
-                        <i class="ri-calendar-line mr-1"></i>
-                        ${formatPatternDate(pattern.interval_start)} - ${formatPatternDate(pattern.interval_end)}
-                    </div>
-                    ${pattern.note ? `
-                        <div class="mt-2 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
-                            <i class="ri-information-line"></i> ${pattern.note}
+            patternsList.innerHTML = result.data.map((pattern, index) => {
+                const metrics = pattern.pattern_metrics || {};
+                const efficiency = metrics.efficiency || {};
+                const congestion = metrics.congestion || {};
+                const volume = metrics.volume || {};
+                
+                // Pattern type badge styling
+                const patternTypeClass = getPatternTypeClass(pattern.pattern_type);
+                
+                return `
+                    <div class="p-4 bg-white rounded-lg hover:shadow-md transition-all border-l-4 ${patternTypeClass.border}">
+                        <!-- Header -->
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-sm font-semibold ${patternTypeClass.text}">
+                                        ${formatPatternType(pattern.pattern_type)}
+                                    </span>
+                                    <span class="text-xs px-2 py-0.5 rounded-full ${getConfidenceClass(pattern.confidence_score)}">
+                                        ${pattern.confidence_score}%
+                                    </span>
+                                </div>
+                                <div class="text-xs text-slate-500">
+                                    <i class="ri-traffic-light-line mr-1"></i>
+                                    ${pattern.traffic_light_id}
+                                </div>
+                            </div>
+                            
+                            ${pattern.best_action ? `
+                                <div class="text-xs px-2 py-1 rounded ${getActionClass(pattern.best_action)}">
+                                    ${formatAction(pattern.best_action)}
+                                </div>
+                            ` : ''}
                         </div>
-                    ` : ''}
-                    ${pattern.recommendations && pattern.recommendations.length > 0 ? `
-                        <div class="mt-2 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                            <i class="ri-lightbulb-line"></i> ${Array.isArray(pattern.recommendations) ? pattern.recommendations[0] : pattern.recommendations}
+                        
+                        <!-- Metrics Grid -->
+                        <div class="grid grid-cols-3 gap-3 mb-3 pb-3 border-b border-slate-100">
+                            ${efficiency.average !== undefined ? `
+                                <div>
+                                    <div class="text-xs text-slate-500 mb-0.5">Efficiency</div>
+                                    <div class="text-sm font-semibold text-slate-800">
+                                        ${efficiency.average.toFixed(1)}%
+                                    </div>
+                                    ${efficiency.trend ? `
+                                        <div class="text-xs ${getTrendClass(efficiency.trend)}">
+                                            ${getTrendIcon(efficiency.trend)} ${efficiency.trend}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+                            
+                            ${congestion.average_waiting !== undefined ? `
+                                <div>
+                                    <div class="text-xs text-slate-500 mb-0.5">Avg Wait</div>
+                                    <div class="text-sm font-semibold text-slate-800">
+                                        ${congestion.average_waiting.toFixed(1)}
+                                    </div>
+                                    <div class="text-xs text-slate-500">
+                                        Peak: ${congestion.peak_waiting || 0}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${volume.average_volume !== undefined ? `
+                                <div>
+                                    <div class="text-xs text-slate-500 mb-0.5">Volume</div>
+                                    <div class="text-sm font-semibold text-slate-800">
+                                        ${volume.average_volume.toFixed(0)}
+                                    </div>
+                                    <div class="text-xs text-slate-500">
+                                        Peak: ${volume.peak_volume || 0}
+                                    </div>
+                                </div>
+                            ` : ''}
                         </div>
-                    ` : ''}
-                </div>
-            `).join('');
+                        
+                        <!-- Interval and Sample Info -->
+                        <div class="mb-2 space-y-1">
+                            ${pattern.simulation_interval ? `
+                                <div class="text-xs text-slate-600 flex items-center">
+                                    <i class="ri-time-line mr-1"></i>
+                                    <span class="font-medium">Simulation Interval:</span>
+                                    <span class="ml-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded">
+                                        ${pattern.simulation_interval}s
+                                    </span>
+                                </div>
+                            ` : ''}
+                            
+                            ${pattern.sample_size ? `
+                                <div class="text-xs text-slate-600">
+                                    <i class="ri-database-2-line mr-1"></i>
+                                    <span class="font-medium">Sample Size:</span> ${pattern.sample_size} logs
+                                </div>
+                            ` : ''}
+                            
+                            ${pattern.updated_at ? `
+                                <div class="text-xs text-slate-500">
+                                    <i class="ri-refresh-line mr-1"></i>
+                                    Last updated: ${formatDateTime(pattern.updated_at)}
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <!-- Recommendations -->
+                        ${pattern.recommendations && pattern.recommendations.length > 0 ? `
+                            <div class="mt-3 pt-3 border-t border-slate-100">
+                                <div class="text-xs font-medium text-slate-700 mb-1 flex items-center">
+                                    <i class="ri-lightbulb-line mr-1 text-yellow-500"></i>
+                                    Recommendations:
+                                </div>
+                                ${pattern.recommendations.slice(0, 2).map(rec => `
+                                    <div class="text-xs text-slate-600 pl-5 mb-1">
+                                        • ${rec}
+                                    </div>
+                                `).join('')}
+                                ${pattern.recommendations.length > 2 ? `
+                                    <div class="text-xs text-blue-600 pl-5 cursor-pointer hover:text-blue-700">
+                                        + ${pattern.recommendations.length - 2} more...
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+            
             console.log(`✅ Rendered ${result.data.length} traffic patterns`);
         } else {
             patternsList.innerHTML = `
-                <div class="text-center text-slate-500 py-8">
-                    <i class="ri-bar-chart-line text-4xl mb-3 block text-slate-300"></i>
-                    <p class="font-medium">No traffic patterns detected</p>
-                    <p class="text-xs mt-1">${result.message || 'Try adjusting the date range or scenario'}</p>
+                <div class="text-center text-slate-500 py-12">
+                    <i class="ri-bar-chart-line text-5xl mb-4 block text-slate-300"></i>
+                    <p class="font-medium text-lg mb-2">No traffic patterns detected</p>
+                    <p class="text-sm text-slate-400 mb-4">
+                        ${result.message || 'Try adjusting the date range or scenario'}
+                    </p>
+                    <button onclick="forcePatternAnalysis()" 
+                            class="px-4 py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary-dark transition-colors">
+                        <i class="ri-refresh-line mr-2"></i>
+                        Analyze Current Data
+                    </button>
                 </div>
             `;
             console.log('⚠️ No traffic patterns found');
@@ -823,12 +810,138 @@ async function loadTrafficPatterns() {
     } catch (error) {
         console.error('❌ Error loading traffic patterns:', error);
         document.getElementById('patternsList').innerHTML = `
-            <div class="text-center text-red-500 py-8">
-                <i class="ri-error-warning-line text-4xl mb-3 block"></i>
-                <p class="font-medium">Failed to load patterns</p>
-                <p class="text-xs mt-1">${error.message}</p>
+            <div class="text-center text-red-500 py-12">
+                <i class="ri-error-warning-line text-5xl mb-4 block"></i>
+                <p class="font-medium text-lg mb-2">Failed to load patterns</p>
+                <p class="text-sm mb-4">${error.message}</p>
+                <button onclick="loadTrafficPatterns()" 
+                        class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300 transition-colors">
+                    <i class="ri-refresh-line mr-2"></i>
+                    Retry
+                </button>
             </div>
         `;
+    }
+}
+
+// Helper functions for formatting and styling
+function formatPatternType(type) {
+    const typeMap = {
+        'OPTIMAL_FLOW': '🟢 Optimal Flow',
+        'STABLE_FLOW': '🔵 Stable Flow',
+        'CONGESTED': '🔴 Congested',
+        'IMPROVING_FLOW': '🟡 Improving',
+        'DEGRADING_FLOW': '🟠 Degrading',
+        'VARIABLE_FLOW': '⚪ Variable',
+        'UNKNOWN': '❓ Unknown'
+    };
+    return typeMap[type] || type;
+}
+
+function getPatternTypeClass(type) {
+    const classes = {
+        'OPTIMAL_FLOW': { border: 'border-green-500', text: 'text-green-700' },
+        'STABLE_FLOW': { border: 'border-blue-500', text: 'text-blue-700' },
+        'CONGESTED': { border: 'border-red-500', text: 'text-red-700' },
+        'IMPROVING_FLOW': { border: 'border-yellow-500', text: 'text-yellow-700' },
+        'DEGRADING_FLOW': { border: 'border-orange-500', text: 'text-orange-700' },
+        'VARIABLE_FLOW': { border: 'border-slate-400', text: 'text-slate-700' }
+    };
+    return classes[type] || { border: 'border-slate-300', text: 'text-slate-700' };
+}
+
+function formatAction(action) {
+    const actionMap = {
+        'EXTEND_GREEN': '⏱️ Extend Green',
+        'REDUCE_GREEN': '⏩ Reduce Green',
+        'MAINTAIN': '✔️ Maintain',
+        'SKIP_PHASE': '⏭️ Skip Phase'
+    };
+    return actionMap[action] || action;
+}
+
+function getConfidenceClass(confidence) {
+    if (confidence >= 80) return 'bg-green-100 text-green-800 font-medium';
+    if (confidence >= 60) return 'bg-yellow-100 text-yellow-800 font-medium';
+    return 'bg-red-100 text-red-800 font-medium';
+}
+
+function getActionClass(action) {
+    const classes = {
+        'EXTEND_GREEN': 'bg-green-50 text-green-700 border border-green-200 font-medium',
+        'REDUCE_GREEN': 'bg-yellow-50 text-yellow-700 border border-yellow-200 font-medium',
+        'MAINTAIN': 'bg-blue-50 text-blue-700 border border-blue-200 font-medium',
+        'SKIP_PHASE': 'bg-orange-50 text-orange-700 border border-orange-200 font-medium'
+    };
+    return classes[action] || 'bg-slate-50 text-slate-700 border border-slate-200';
+}
+
+function getTrendClass(trend) {
+    const classes = {
+        'IMPROVING': 'text-green-600',
+        'DECLINING': 'text-red-600',
+        'STABLE': 'text-blue-600'
+    };
+    return classes[trend] || 'text-slate-600';
+}
+
+function getTrendIcon(trend) {
+    const icons = {
+        'IMPROVING': '↗',
+        'DECLINING': '↘',
+        'STABLE': '→'
+    };
+    return icons[trend] || '→';
+}
+
+function formatDateTime(isoString) {
+    if (!isoString) return 'N/A';
+    try {
+        const date = new Date(isoString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
+        
+        return date.toLocaleString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+    } catch {
+        return isoString;
+    }
+}
+
+// Force pattern analysis from the UI
+async function forcePatternAnalysis() {
+    try {
+        showSuccess('Starting pattern analysis...');
+        
+        const response = await fetch('/api/patterns/analyze-now', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                scenario: currentFilters.scenario
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showSuccess(`Analysis complete! Found ${result.patterns_found || 0} patterns`);
+            // Reload patterns after a brief delay
+            setTimeout(() => loadTrafficPatterns(), 1000);
+        } else {
+            showError(result.message || 'Analysis failed');
+        }
+    } catch (error) {
+        console.error('Analysis error:', error);
+        showError('Failed to start analysis');
     }
 }
 
@@ -836,7 +949,12 @@ function formatPatternDate(dateStr) {
     if (!dateStr || dateStr === 'N/A') return 'N/A';
     try {
         const date = new Date(dateStr);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        return date.toLocaleString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
     } catch {
         return dateStr;
     }
@@ -846,6 +964,16 @@ function getConfidenceClass(confidence) {
     if (confidence >= 80) return 'bg-green-100 text-green-800';
     if (confidence >= 60) return 'bg-yellow-100 text-yellow-800';
     return 'bg-red-100 text-red-800';
+}
+
+function getActionClass(action) {
+    const classes = {
+        'EXTEND_GREEN': 'bg-green-50 text-green-700 border border-green-200',
+        'REDUCE_GREEN': 'bg-yellow-50 text-yellow-700 border border-yellow-200',
+        'MAINTAIN': 'bg-blue-50 text-blue-700 border border-blue-200',
+        'SKIP_PHASE': 'bg-orange-50 text-orange-700 border border-orange-200'
+    };
+    return classes[action] || 'bg-slate-50 text-slate-700 border border-slate-200';
 }
 
 function updateTrendIndicator(elementId, trendValue) {
@@ -872,48 +1000,19 @@ function updateTrendIndicator(elementId, trendValue) {
     element.innerHTML = `<i class="${iconClass} mr-1"></i><span>${text}</span>`;
 }
 
-async function exportData() {
-    try {
-        const response = await fetch('/api/reports/export', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(currentFilters)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showSuccess(`Data exported successfully!`);
-        } else {
-            showError('Failed to export data');
-        }
-    } catch (error) {
-        console.error('Export error:', error);
-        showError('Failed to export data');
-    }
-}
-
 async function generateReport() {
     try {
-        const metricCheckboxes = document.querySelectorAll('input[name="metrics"]:checked');
-        const metrics = Array.from(metricCheckboxes).map(cb => cb.value);
-        
         const formatRadio = document.querySelector('input[name="format"]:checked');
-        const format = formatRadio ? formatRadio.value : 'PDF';
+        const format = formatRadio ? formatRadio.value : 'CSV';
         
         const reportData = {
             template: document.getElementById('reportTemplate').value,
             date_start: currentFilters.startDate,
             date_end: currentFilters.endDate,
             format: format,
-            metrics: metrics,
+            metrics: ['Traffic Volume', 'Average Speed', 'Congestion Levels'],
             scenario: currentFilters.scenario
         };
-        
-        if (metrics.length === 0) {
-            showError('Please select at least one metric');
-            return;
-        }
         
         const btn = document.getElementById('generateReportBtn');
         const originalHTML = btn.innerHTML;
@@ -927,7 +1026,6 @@ async function generateReport() {
         });
         
         if (response.ok) {
-            // Handle file download
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -938,7 +1036,7 @@ async function generateReport() {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
             
-            showSuccess(`Report generated successfully!`);
+            showSuccess('Report generated successfully!');
         } else {
             const result = await response.json();
             showError(result.error || 'Failed to generate report');
@@ -958,19 +1056,18 @@ async function generateReport() {
 }
 
 function showLoading() {
-    document.querySelectorAll('.loading-skeleton').forEach(el => {
+    document.querySelectorAll('#totalVehicleCount, #averageSpeed, #congestionLevel, #emergencyCount').forEach(el => {
         el.style.opacity = '0.5';
     });
 }
 
 function hideLoading() {
-    document.querySelectorAll('.loading-skeleton').forEach(el => {
+    document.querySelectorAll('#totalVehicleCount, #averageSpeed, #congestionLevel, #emergencyCount').forEach(el => {
         el.style.opacity = '1';
     });
 }
 
 function showSuccess(message) {
-    // Create toast notification
     const toast = document.createElement('div');
     toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center';
     toast.innerHTML = `<i class="ri-check-line mr-2"></i>${message}`;
@@ -1002,19 +1099,6 @@ function showError(message) {
     
     .main-content {
         padding: 0 !important;
-    }
-}
-
-.loading-skeleton {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: .5;
     }
 }
 

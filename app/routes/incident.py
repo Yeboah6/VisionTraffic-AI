@@ -20,13 +20,19 @@ def incidents():
     now = datetime.now()
     user = current_user
     
+    incidentsCount = Incident.query.all()
+    
     # Fetch incidents from the database
-    incidents = Incident.query.all()
+    incidents = Incident.query.filter(
+    Incident.status.in_(['reported', 'investigating', 'in_progress'])
+    ).order_by(Incident.created_at.desc()).limit(4).all()
+    
     return render_template('incident/index.html', 
                            current_date = now.strftime("%B %d, %Y"), 
                            current_time = now.strftime("%I:%M %p"),
                            user=user,
-                            incidents=incidents
+                            incidents=incidents,
+                            incidentsCount=incidentsCount
                            )
     
 @incident_bp.route('/incidents/add', methods=['GET', 'POST'])

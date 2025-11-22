@@ -11,6 +11,7 @@ from app.models.traffic_light import TrafficLightLog
 
 from app.services.db_queue import db_queue_service
 from app.services.tls_config_service import tls_config_service
+# from app.services.ai_optimization_controller import ai_controller
 
 class TLSDataService:
     """Comprehensive Traffic Light System data collection and analysis service"""
@@ -222,7 +223,8 @@ class TLSDataService:
                 'timestamp': current_time,
                 'scenario': scenario,
                 'signal_groups': self._analyze_signal_groups(state),
-                'optimization_metrics': self._calculate_optimization_metrics(performance, lane_data)
+                'optimization_metrics': self._calculate_optimization_metrics(performance, lane_data),
+                'data_collection_mode': 'RAW_SUMO'
             }
             
             return tl_data
@@ -512,6 +514,8 @@ class TLSDataService:
     
     def _queue_tls_log(self, tl_data: Dict, scenario: str):
         """Queue TLS data for database storage using queue service"""
+        # mode = ai_controller.get_data_collection_mode()
+        
         if not db_queue_service:
             print("❌ DB Queue Service not available")
             return
@@ -531,6 +535,8 @@ class TLSDataService:
                 'waiting_vehicles': tl_data.get('performance', {}).get('waiting_vehicles', 0),
                 'efficiency_score': tl_data.get('performance', {}).get('efficiency_score', 0),
                 'performance_grade': tl_data.get('performance', {}).get('performance_grade', 'D'),
+                'collection_mode': None,
+                'ai_enabled_during_collection': False,
                 'created_at': datetime.utcnow()
             }
 

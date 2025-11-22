@@ -14,7 +14,8 @@ from app.services.db_queue import db_queue_service
 from app.services.performance_monitor import performance_monitor
 from app.services.tls_data_service import tls_data_service
 from app.services.tls_config_service import tls_config_service
-from app.services.ai_traffic_service import ai_traffic_service
+from app.services.traffic_pattern_analyzer import traffic_pattern_analyzer
+# from app.services.ai_traffic_service import ai_traffic_service
 
 class OptimizedSumoService:
     """
@@ -28,19 +29,20 @@ class OptimizedSumoService:
         self.current_config = None
         self.traci = None
         self.simulation_step = 0
-        self.ai_optimization_enabled = True
+        self.ai_optimization_enabled = False
         self.last_ai_decision = None
-        self.ai_optimization_interval = 30  # Apply AI every 30 steps
+        self.ai_optimization_interval = 0  # Apply AI every 30 steps
+        self.last_ai_decision = None
         self._last_tls_update_step = 0  # Track last update
         
         # Performance optimization settings
         self.performance_config = {
-            'data_update_interval': 5,           # Update data every 5 steps
-            'tls_update_interval': 10, # Update TL every 10 steps  
+            'data_update_interval': 10,          # Update data every 10 steps
+            'tls_update_interval': 20,           # Update TL every 20 steps  
             'min_sleep_time': 0.001,             # Minimum sleep for headless
-            'gui_sleep_time': 0.02,              # Sleep for GUI mode
-            'max_steps': 50000,                  # Safety limit
-            'print_interval': 50                 # Print progress every 50 steps
+            'gui_sleep_time': 0.01,              # Sleep for GUI mode
+            'max_steps': 100000,                 # Safety limit
+            'print_interval': 100                # Print progress every 100 steps
         }
         
         # Monitoring data (with TLS data)
@@ -61,21 +63,15 @@ class OptimizedSumoService:
         
         # Available scenarios
         self.available_scenarios = {
-            'intersection': {
-                'config': 'intersection.sumocfg',
-                'name': 'Complex Intersection',
-                'description': 'A basic 4-way intersection scenario',
-                'complexity': 'Beginner'
-            },
             'accra': {
                 'config': 'accra_37.sumocfg',
                 'name': 'Highway Simulation',
                 'description': 'Multi-lane highway with merging',
                 'complexity': 'Advanced'
             },
-            'test': {
-                'config': 'test.sumocfg',
-                'name': 'Test Scenario',
+            'carprice': {
+                'config': 'carprice.sumocfg',
+                'name': 'Caprice Scenario',
                 'description': 'A scenario for testing purposes',
                 'complexity': 'Advanced'
             }
@@ -180,15 +176,15 @@ class OptimizedSumoService:
 
         # Initialize services with app context
         from app.services.tls_data_service import tls_data_service
-        from app.services.ai_traffic_service import ai_traffic_service
+        # from app.services.ai_traffic_service import ai_traffic_service
         from app.services.db_queue import db_queue_service
 
         if db_queue_service:
             db_queue_service.app = app
         if tls_data_service:
             tls_data_service.app = app  
-        if ai_traffic_service:
-            ai_traffic_service.app = app
+        # if ai_traffic_service:
+        #     ai_traffic_service.app = app
 
         # Now run the simulation
         self._run_optimized_simulation(config_path, scenario, gui)    
@@ -232,17 +228,26 @@ class OptimizedSumoService:
             # Initialize services
             from app.services.tls_data_service import tls_data_service
             from app.services.tls_config_service import tls_config_service
-            from app.services.emergency import emergency_service
+            # from app.services.emergency import emergency_service
 
             # Ensure services have app context
             if self.app:
                 with self.app.app_context():
+                    traffic_pattern_analyzer.init_app(self.app)
                     tls_data_service.init_app(self.app)
                     tls_config_service.init_app(self.app)
-                    ai_traffic_service.init_app(self.app)
-                    emergency_service.init_app(self.app)
+                    # ai_traffic_service.init_app(self.app)
+                    # emergency_service.init_app(self.app)
 
             print("✅ Optimized simulation running...")
+            
+            self.ai_optimization_enabled = False
+            print("🚫 AI optimization DISABLED for maximum performance")
+            
+            # Enable automatic pattern analysis
+            traffic_pattern_analyzer.auto_analysis_enabled = False
+            traffic_pattern_analyzer.stop_auto_analysis()
+            print("✅ Automatic pattern analysis ENABLED - will run every 15 simulation minutes")
             
             # STORE TLS CONFIGURATIONS AT STARTUP
             print("💾 Storing TLS configurations...")
@@ -252,7 +257,7 @@ class OptimizedSumoService:
             
             # CREATE EMERGENCY VEHICLE REGISTRY AT STARTUP
             print("🚨 Creating emergency vehicle registry...")
-            emergency_service._preload_emergency_schedule_to_db(traci)
+            # emergency_service._preload_emergency_schedule_to_db(traci)
             
             # Performance tracking
             last_data_update = 0
@@ -262,9 +267,11 @@ class OptimizedSumoService:
             
             print("✅ Optimized simulation with TLS data and configs running...")
             
-            # AI optimization tracking
-            last_ai_optimization = 0
-            ai_decision_count = 0
+            # AI optimization tracking DISABLED
+            # last_ai_optimization = 0
+            # ai_decision_count = 0
+            
+            print("✅ Optimized simulation with TLS DATA COLLECTION ONLY running...")
             
             # Main optimized simulation loop
             while self.is_running and self.simulation_step < self.performance_config['max_steps']:
@@ -314,30 +321,13 @@ class OptimizedSumoService:
                     if sleep_time > 0:
                         time.sleep(sleep_time)
                         
-                    # 7. AI OPTIMIZATION
-                    if (self.ai_optimization_enabled and 
-                        (self.simulation_step - last_ai_optimization) >= self.ai_optimization_interval):
-
-                        tls_snapshot = self.monitoring_data.get('tls_snapshot', {})
-                        if tls_snapshot:
-                            current_time = traci.simulation.getTime()
-                            ai_decision = ai_traffic_service.make_traffic_decision(tls_snapshot, current_time)
-
-                            if ai_decision:
-                                self.last_ai_decision = ai_decision
-                                ai_decision_count += 1
-
-                                # Apply AI decisions to SUMO
-                                self._apply_ai_decisions(traci, ai_decision)
-
-                                print(f"🤖 AI Decision #{ai_decision_count}: "
-                                      f"{ai_decision['system_decision']['system_action']} - "
-                                      f"{ai_decision['total_tls_optimized']} TLS optimized")
-
-                        last_ai_optimization = self.simulation_step
-                        
-                    # 8. Manage scheduled emergencies (ADD THIS)
-                    self._manage_scheduled_emergencies(traci, current_time)
+                    # 7. AUTOMATIC PATTERN ANALYSIS (every 15 simulation minutes)
+                    # analysis_result = traffic_pattern_analyzer.force_immediate_analysis(scenario)
+                    
+                    # if analysis_result:
+                    #     print(f"📊 AUTO-PATTERN: Found {analysis_result.get('patterns_found', 0)} patterns")
+                    #     # Store analysis result in monitoring data
+                    #     self.monitoring_data['last_pattern_analysis'] = analysis_result
                         
                 except Exception as step_error:
                     print(f"⚠️ Step error: {step_error}")
@@ -351,6 +341,25 @@ class OptimizedSumoService:
             # Cleanup
             self._cleanup_simulation()
     
+    def get_pattern_analysis_status(self) -> Dict[str, Any]:
+        """Get status of automatic pattern analysis"""
+        if hasattr(self, 'traci') and self.traci:
+            current_time = self.traci.simulation.getTime()
+            schedule = traffic_pattern_analyzer.get_analysis_schedule(current_time)
+            
+            return {
+                "auto_analysis_enabled": traffic_pattern_analyzer.auto_analysis_enabled,
+                "analysis_interval": schedule["analysis_interval"],
+                "current_simulation_time": current_time,
+                "next_analysis_time": schedule["next_analysis_time"],
+                "time_until_next_analysis": schedule["time_until_next_analysis"],
+                "last_analysis_time": schedule["last_analysis_time"],
+                "analysis_history_count": schedule["analysis_history_count"],
+                "last_analysis_result": self.monitoring_data.get('last_pattern_analysis')
+            }
+        else:
+            return {"error": "No active simulation"}
+    
     def get_data_collection_status(self) -> Dict[str, Any]:
         """Get status of data collection"""
         return {
@@ -362,68 +371,70 @@ class OptimizedSumoService:
             "next_tls_update_in": max(0, self.performance_config['tls_update_interval'] - 
                                      (self.simulation_step - getattr(self, '_last_tls_update_step', 0))),
             "traffic_light_count": len(self.monitoring_data.get('tls_snapshot', {}).get('traffic_lights', {})),
-            "has_traci": self.traci is not None
+            "has_traci": self.traci is not None,
+            "operation_mode": "DATA_COLLECTION_ONLY",
+            "ai_optimization_enabled": False
         }
     
     # AI FUNCTIONS - START
     # Apply AI optimization decisions to SUMO simulation
-    def _apply_ai_decisions(self, traci, ai_decision: Dict):
-        """Apply AI decisions and ensure they're stored"""
-        try:
-            applied_count = 0
+    # def _apply_ai_decisions(self, traci, ai_decision: Dict):
+    #     """Apply AI decisions and ensure they're stored"""
+    #     try:
+    #         applied_count = 0
             
-            # STORE THE DECISION FIRST - WITH PROPER ERROR HANDLING
-            decision_stored = False
-            try:
-                from app.services.ai_traffic_service import ai_traffic_service
-                if hasattr(ai_traffic_service, '_store_ai_decision'):
-                    ai_traffic_service._store_ai_decision(ai_decision, self.current_config)
-                    decision_stored = True
-                    print("💾 AI decision stored successfully")
-            except Exception as store_error:
-                print(f"⚠️ Could not store AI decision: {store_error}")
+    #         # STORE THE DECISION FIRST - WITH PROPER ERROR HANDLING
+    #         decision_stored = False
+    #         try:
+    #             # from app.services.ai_traffic_service import ai_traffic_service
+    #             if hasattr(ai_traffic_service, '_store_ai_decision'):
+    #                 ai_traffic_service._store_ai_decision(ai_decision, self.current_config)
+    #                 decision_stored = True
+    #                 print("💾 AI decision stored successfully")
+    #         except Exception as store_error:
+    #             print(f"⚠️ Could not store AI decision: {store_error}")
             
-            if not decision_stored:
-                print("📝 Fallback: Logging AI decision locally")
-                # Fallback storage - log to file or local variable
-                self._fallback_store_decision(ai_decision)
+    #         if not decision_stored:
+    #             print("📝 Fallback: Logging AI decision locally")
+    #             # Fallback storage - log to file or local variable
+    #             self._fallback_store_decision(ai_decision)
             
-            # Then apply safe actions
-            for decision in ai_decision.get('decisions', []):
-                tl_id = decision['traffic_light_id']
-                action = decision['action']
+    #         # Then apply safe actions
+    #         for decision in ai_decision.get('decisions', []):
+    #             tl_id = decision['traffic_light_id']
+    #             action = decision['action']
                 
-                try:
-                    if action == 'EXTEND_GREEN':
-                        current_duration = traci.trafficlight.getPhaseDuration(tl_id)
-                        new_duration = current_duration + 5
-                        traci.trafficlight.setPhaseDuration(tl_id, new_duration)
-                        applied_count += 1
-                        print(f"🟢 Extended {tl_id} green phase to {new_duration}s")
+    #             try:
+    #                 if action == 'EXTEND_GREEN':
+    #                     current_duration = traci.trafficlight.getPhaseDuration(tl_id)
+    #                     new_duration = current_duration + 5
+    #                     traci.trafficlight.setPhaseDuration(tl_id, new_duration)
+    #                     applied_count += 1
+    #                     print(f"🟢 Extended {tl_id} green phase to {new_duration}s")
                         
-                    elif action == 'REDUCE_GREEN':
-                        current_duration = traci.trafficlight.getPhaseDuration(tl_id)
-                        new_duration = max(10, current_duration - 5)
-                        traci.trafficlight.setPhaseDuration(tl_id, new_duration)
-                        applied_count += 1
-                        print(f"🟡 Reduced {tl_id} green phase to {new_duration}s")
+    #                 elif action == 'REDUCE_GREEN':
+    #                     current_duration = traci.trafficlight.getPhaseDuration(tl_id)
+    #                     new_duration = max(10, current_duration - 5)
+    #                     traci.trafficlight.setPhaseDuration(tl_id, new_duration)
+    #                     applied_count += 1
+    #                     print(f"🟡 Reduced {tl_id} green phase to {new_duration}s")
                         
-                    elif action == 'MAINTAIN':
-                        # Do nothing - this is safe
-                        print(f"⏸️  Maintaining {tl_id} current state")
-                        applied_count += 1
+    #                 elif action == 'MAINTAIN':
+    #                     # Do nothing - this is safe
+    #                     print(f"⏸️  Maintaining {tl_id} current state")
+    #                     applied_count += 1
                         
-                    else:
-                        print(f"⏭️ Skipped {action} on {tl_id} (unsafe)")
+    #                 else:
+    #                     print(f"⏭️ Skipped {action} on {tl_id} (unsafe)")
                         
-                except Exception as tl_error:
-                    print(f"❌ Failed to apply {action} to {tl_id}: {tl_error}")
-                    continue
+    #             except Exception as tl_error:
+    #                 print(f"❌ Failed to apply {action} to {tl_id}: {tl_error}")
+    #                 continue
                 
-            print(f"✅ Applied {applied_count}/{len(ai_decision.get('decisions', []))} AI decisions")
+    #         print(f"✅ Applied {applied_count}/{len(ai_decision.get('decisions', []))} AI decisions")
             
-        except Exception as e:
-            print(f"❌ Error in AI decision application: {e}")
+    #     except Exception as e:
+    #         print(f"❌ Error in AI decision application: {e}")
 
     def _fallback_store_decision(self, ai_decision: Dict):
         """Fallback method to store decisions when primary storage fails"""
@@ -447,30 +458,20 @@ class OptimizedSumoService:
     
     def enable_ai_optimization(self):
         """Enable AI optimization"""
-        self.ai_optimization_enabled = True
+        self.ai_optimization_enabled = False
         print("✅ AI optimization enabled")
     
     def disable_ai_optimization(self):
         """Disable AI optimization"""
         self.ai_optimization_enabled = False
-        print("✅ AI optimization disabled")
+        print("✅ Confirmed: AI optimization disabled - DATA COLLECTION ONLY mode")
     
     def set_ai_optimization_interval(self, interval: int):
         """Set AI optimization interval (in simulation steps)"""
-        self.ai_optimization_interval = max(5, interval)
-        print(f"✅ AI optimization interval set to {self.ai_optimization_interval} steps")
+        self.ai_optimization_interval = 0
+        print("❌ AI optimization disabled - running in DATA COLLECTION ONLY mode")
         
-    def get_ai_status(self) -> Dict[str, Any]:
-        """Get AI optimization status"""
-        ai_status = ai_traffic_service.get_ai_status()
-        ai_status.update({
-            'optimization_enabled': self.ai_optimization_enabled,
-            'optimization_interval': self.ai_optimization_interval,
-            'last_decision': self.last_ai_decision
-        })
-        return ai_status
-    
-    # AI FUNCTIONS - END
+
     
     def _collect_basic_data(self, traci, current_time: float):
         """Collect only essential basic data including emergency vehicles"""
@@ -493,7 +494,7 @@ class OptimizedSumoService:
                     self.monitoring_data['average_speed'] = 0
             
             # SIMPLE EMERGENCY VEHICLE DETECTION AND MANAGEMENT
-            self._manage_emergency_vehicles_simple(traci, current_time)
+            # self._manage_emergency_vehicles_simple(traci, current_time)
             
             # Update performance stats
             perf_stats = performance_monitor.get_current_performance()
@@ -504,72 +505,72 @@ class OptimizedSumoService:
             # Silent error for data collection
             pass
     
-    def _manage_scheduled_green_waves(self, traci, current_time: float):
-        """Manage manually scheduled green waves"""
-        try:
-            if not hasattr(self, 'emergency_scheduler'):
-                from app.services.emergency_scheduler import emergency_scheduler
-                self.emergency_scheduler = emergency_scheduler
-                self.emergency_scheduler.init_app(self.app)
+    # def _manage_scheduled_green_waves(self, traci, current_time: float):
+    #     """Manage manually scheduled green waves"""
+    #     try:
+    #         if not hasattr(self, 'emergency_scheduler'):
+    #             from app.services.emergency_scheduler import emergency_scheduler
+    #             self.emergency_scheduler = emergency_scheduler
+    #             self.emergency_scheduler.init_app(self.app)
 
-            # Get pending green waves
-            pending_waves = self.emergency_scheduler.get_pending_green_waves(current_time)
+    #         # Get pending green waves
+    #         pending_waves = self.emergency_scheduler.get_pending_green_waves(current_time)
 
-            # Activate green waves
-            activated_count = 0
-            for wave in pending_waves:
-                if self._activate_manual_green_wave(traci, wave, current_time):
-                    activated_count += 1
+    #         # Activate green waves
+    #         activated_count = 0
+    #         for wave in pending_waves:
+    #             if self._activate_manual_green_wave(traci, wave, current_time):
+    #                 activated_count += 1
 
-            if activated_count > 0:
-                print(f"🟢 Activated {activated_count} manual green waves")
+    #         if activated_count > 0:
+    #             print(f"🟢 Activated {activated_count} manual green waves")
                 
-            # Update monitoring data
-            active_emergencies = self.emergency_scheduler.get_active_emergencies()
-            active_green_waves = self.emergency_scheduler.get_active_green_waves()
+    #         # Update monitoring data
+    #         active_emergencies = self.emergency_scheduler.get_active_emergencies()
+    #         active_green_waves = self.emergency_scheduler.get_active_green_waves()
 
-            self.monitoring_data['manual_scheduling'] = {
-                'active_emergencies': active_emergencies,
-                'active_green_waves': active_green_waves,
-                'pending_green_waves': pending_waves,
-                'activated_count': activated_count,
-                'timestamp': time.time()
-            }
+    #         self.monitoring_data['manual_scheduling'] = {
+    #             'active_emergencies': active_emergencies,
+    #             'active_green_waves': active_green_waves,
+    #             'pending_green_waves': pending_waves,
+    #             'activated_count': activated_count,
+    #             'timestamp': time.time()
+    #         }
 
-        except Exception as e:
-            print(f"⚠️ Manual green wave management error: {e}")
+    #     except Exception as e:
+    #         print(f"⚠️ Manual green wave management error: {e}")
     
-    def _manage_scheduled_emergencies(self, traci, current_time: float):
-        """Manage scheduled emergencies and green waves"""
-        try:
-            if not hasattr(self, 'emergency_scheduler'):
-                from app.services.emergency_scheduler import emergency_scheduler
-                self.emergency_scheduler = emergency_scheduler
-                self.emergency_scheduler.init_app(self.app)
+    # def _manage_scheduled_emergencies(self, traci, current_time: float):
+    #     """Manage scheduled emergencies and green waves"""
+    #     try:
+    #         if not hasattr(self, 'emergency_scheduler'):
+    #             from app.services.emergency_scheduler import emergency_scheduler
+    #             self.emergency_scheduler = emergency_scheduler
+    #             self.emergency_scheduler.init_app(self.app)
 
-            # Get pending green waves
-            pending_waves = self.emergency_scheduler.get_pending_green_waves(current_time)
+    #         # Get pending green waves
+    #         pending_waves = self.emergency_scheduler.get_pending_green_waves(current_time)
 
-            # Activate green waves
-            activated_count = 0
-            for wave in pending_waves:
-                if self._activate_scheduled_green_wave(traci, wave, current_time):
-                    activated_count += 1
+    #         # Activate green waves
+    #         activated_count = 0
+    #         for wave in pending_waves:
+    #             if self._activate_scheduled_green_wave(traci, wave, current_time):
+    #                 activated_count += 1
 
-            if activated_count > 0:
-                print(f"🟢 Activated {activated_count} scheduled green waves")
+    #         if activated_count > 0:
+    #             print(f"🟢 Activated {activated_count} scheduled green waves")
 
-            # Update monitoring data
-            active_emergencies = self.emergency_scheduler.get_active_emergencies()
-            self.monitoring_data['scheduled_emergencies'] = {
-                'active_emergencies': active_emergencies,
-                'pending_green_waves': pending_waves,
-                'activated_count': activated_count,
-                'timestamp': time.time()
-            }
+    #         # Update monitoring data
+    #         active_emergencies = self.emergency_scheduler.get_active_emergencies()
+    #         self.monitoring_data['scheduled_emergencies'] = {
+    #             'active_emergencies': active_emergencies,
+    #             'pending_green_waves': pending_waves,
+    #             'activated_count': activated_count,
+    #             'timestamp': time.time()
+    #         }
 
-        except Exception as e:
-            print(f"⚠️ Scheduled emergency management error: {e}")
+    #     except Exception as e:
+    #         print(f"⚠️ Scheduled emergency management error: {e}")
 
     def _activate_manual_green_wave(self, traci, green_wave: Dict, current_time: float) -> bool:
         """Activate a manually scheduled green wave"""
@@ -595,20 +596,20 @@ class OptimizedSumoService:
             print(f"❌ Failed to activate manual green wave: {e}")
             return False
 
-    def _update_green_wave_status(self, wave_id: str, status: str, timestamp: float):
-        """Update green wave status in database"""
-        try:
-            if hasattr(self, 'emergency_scheduler') and self.app:
-                with self.app.app_context():
-                    from app.models.emergency_veh import GreenWaveSchedule
-                    wave = GreenWaveSchedule.query.get(wave_id)
-                    if wave:
-                        wave.status = status
-                        if status == 'ACTIVE':
-                            wave.activated_at = timestamp
-                        db.session.commit()
-        except Exception as e:
-            print(f"⚠️ Error updating green wave status: {e}")
+    # def _update_green_wave_status(self, wave_id: str, status: str, timestamp: float):
+    #     """Update green wave status in database"""
+    #     try:
+    #         if hasattr(self, 'emergency_scheduler') and self.app:
+    #             with self.app.app_context():
+    #                 from app.models.emergency_veh import GreenWaveSchedule
+    #                 wave = GreenWaveSchedule.query.get(wave_id)
+    #                 if wave:
+    #                     wave.status = status
+    #                     if status == 'ACTIVE':
+    #                         wave.activated_at = timestamp
+    #                     db.session.commit()
+    #     except Exception as e:
+    #         print(f"⚠️ Error updating green wave status: {e}")
     
     def _manage_emergency_vehicles_simple(self, traci, current_time: float):
         """Simple emergency vehicle management"""

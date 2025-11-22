@@ -6,12 +6,12 @@
     <nav class="mt-6 px-4">
         <div class="space-y-1"></div>
             {% if user.is_admin == true %}
-            <a href="{{ url_for('main.dashboard') }}"
-               class="flex items-center px-4 py-3 rounded-button {% if request.endpoint == 'main.dashboard' %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
+            <a href="{{ url_for('signal.signals') }}"
+               class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('signal') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                 <div class="w-5 h-5 flex items-center justify-center mr-3">
-                    <i class="ri-dashboard-line"></i>
+                    <i class="ri-traffic-light-line"></i>
                 </div>
-                <span>Dashboard</span>
+                <span>Signal</span>
             </a>
             <a href="{{ url_for('location.location') }}"
                class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('location') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
@@ -19,13 +19,6 @@
                     <i class="ri-map-pin-line"></i>
                 </div>
                 <span>Location</span>
-            </a>
-            <a href="{{ url_for('signal.signals') }}"
-               class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('signal') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
-                <div class="w-5 h-5 flex items-center justify-center mr-3">
-                    <i class="ri-traffic-light-line"></i>
-                </div>
-                <span>Signal</span>
             </a>
             <a href="{{ url_for('report.report') }}"
                class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('report') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">

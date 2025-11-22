@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2025-11-13 21:49:37 by Eclipse SUMO sumo Version 1.24.0
+-->
+
+<sumoConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="../../../SUMO%20Settings/carprice.net.xml"/>
+        <route-files value="carprice.rou.xml"/>
+        <additional-files value="carprice_busStop.add.xml"/>
+    </input>
+
+    <time>
+        <step-length value="0.06"/>
+    </time>
+
+    <processing>
+        <lateral-resolution value="0.2"/>
+    </processing>
+
+    <gui_only>
+        <delay value="500"/>
+    </gui_only>
+
+</sumoConfiguration>

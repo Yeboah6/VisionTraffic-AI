@@ -273,22 +273,3 @@ def get_config_stats():
             "success": False,
             "error": str(e)
         }), 500
-
-# @tls_bp.route('/api/tls/collection-status', methods=['GET'])
-# def get_collection_status():
-#     """Get TLS data collection status"""
-#     try:
-#         from app.services.optimized_sumo_service import optimized_sumo_service
-        
-#         status = optimized_sumo_service.get_data_collection_status()
-        
-#         return jsonify({
-#             "success": True,
-#             "collection_status": status
-#         })
-        
-#     except Exception as e:
-#         return jsonify({
-#             "success": False,
-#             "error": str(e)
-#         }), 500

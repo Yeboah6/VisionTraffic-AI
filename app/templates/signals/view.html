@@ -12,7 +12,7 @@
         <div class="px-6 py-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4">
-                    <a href="{{ url_for('signal.dashboard') }}" class="text-slate-400 hover:text-slate-600">
+                    <a href="{{ url_for('signal.list') }}" class="text-slate-400 hover:text-slate-600">
                         <i class="ri-arrow-left-line text-xl"></i>
                     </a>
                     <div>
@@ -313,7 +313,7 @@ async function loadSignalSnapshot() {
         
         if (data.success && data.data && data.data.tls_snapshot) {
             const trafficLights = data.data.tls_snapshot.traffic_lights || {};
-            const signalData = trafficLights[signalId];
+            const signalData = trafficLights[traffic_light_id];
             
             if (signalData) {
                 updateSignalState(signalData);

@@ -34,7 +34,7 @@
                         <div class="flex flex-wrap gap-4 text-sm text-slate-500">
                             <div class="flex items-center">
                                 <i class="ri-time-line mr-2"></i>
-                                <span>Reported: {{ incident.created_at|time_ago }}</span>
+                                <span>Reported on: {{ incident.created_at|time_ago }}</span>
                             </div>
                             <div class="flex items-center">
                                 <i class="ri-user-line mr-2"></i>
@@ -49,10 +49,10 @@
                     
                     <div class="mt-4 lg:mt-0 lg:ml-6">
                         <div class="flex space-x-3">
-                            <button class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center transition-all hover:bg-primary-dark">
+                            <a href="{{ url_for('incident.edit_incident', id=incident.id) }}" class="px-4 py-2 border bg-primary text-black rounded-lg font-medium flex items-center transition-all hover:bg-primary-dark">
                                 <i class="ri-edit-line mr-2"></i>
-                                Update
-                            </button>
+                                Edit
+                            </a>
                         </div>
                     </div>
                 </div>

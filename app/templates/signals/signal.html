@@ -197,7 +197,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-slate-500">Active Incidents</p>
-                        <h3 class="text-2xl font-semibold mt-1" id="active-incidents">{{incidents|length}}</h3>
+                        <h3 class="text-2xl font-semibold mt-1" id="active-incidents">{{incidentsCount}}</h3>
                         <p class="text-xs text-slate-500 mt-1 flex items-center">
                             <span class="w-4 h-4 flex items-center justify-center mr-1">
                                 <i class="ri-error-warning-line"></i>
@@ -313,16 +313,72 @@
                 <div class="p-4 border-b flex items-center justify-between">
                     <div class="flex items-center space-x-2">
                         <h2 class="font-semibold">Current Incidents</h2>
-                        <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full" id="incident-count">0 Active</span>
+                        <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full" id="incident-count">
+                            {{ incidents|length }} Active
+                        </span>
                     </div>
                     <button class="toggle-card-btn p-1 hover:bg-slate-100 rounded" data-target="incidents-container">
                         <i class="ri-subtract-line"></i>
                     </button>
                 </div>
                 <div class="p-2 card-collapsible-content" id="incidents-container">
-                    <div class="text-sm text-slate-500 text-center py-8">
-                        Loading incidents...
-                    </div>
+                    {% if incidents %}
+                        {% for incident in incidents %}
+                        <div class="incident-item p-3 mb-2 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <span class="incident-badge incident-badge-{{ incident.severity|lower }}">
+                                            {{ incident.severity|upper }}
+                                        </span>
+                                        <span class="incident-badge incident-badge-{{ incident.status|lower|replace('_', '-') }}">
+                                            {{ incident.status|replace('_', ' ')|title }}
+                                        </span>
+                                    </div>
+                                    <h4 class="font-medium text-slate-900 text-sm mb-1">
+                                        {{ incident.type|replace('_', ' ')|title }}
+                                    </h4>
+                                    <p class="text-xs text-slate-600 mb-2">
+                                        <i class="ri-map-pin-line"></i>
+                                        {{ incident.location_rel.name }}
+                                    </p>
+                                    <div class="flex items-center justify-between text-xs text-slate-500">
+                                        <span>
+                                            <i class="ri-time-line"></i>
+                                            {{ incident.created_at.strftime('%I:%M %p') if incident.created_at else 'N/A' }}
+                                        </span>
+                                        <span>
+                                            <i class="ri-calendar-line"></i>
+                                            {{ incident.created_at.strftime('%b %d, %Y') if incident.created_at else 'N/A' }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="ml-3 text-primary hover:text-primary-dark transition-colors" 
+                                        onclick="viewIncidentDetails({{ incident.id }})">
+                                    <i class="ri-eye-line text-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        {% if incidents|length >= 5 %}
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('incident.incidents') }}" 
+                               class="text-sm text-primary hover:text-primary-dark font-medium inline-flex items-center">
+                                View All Incidents
+                                <i class="ri-arrow-right-line ml-1"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-sm text-slate-500 text-center py-8">
+                            <div class="mb-2">
+                                <i class="ri-checkbox-circle-line text-3xl text-green-500"></i>
+                            </div>
+                            <p class="font-medium">No Active Incidents</p>
+                            <p class="text-xs mt-1">All systems operating normally</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -349,17 +405,6 @@
                         
                         <div class="flex items-center justify-between">
                             <div>
-                                <h4 class="text-sm font-medium">Pedestrian Priority</h4>
-                                <p class="text-xs text-slate-500 mt-0.5">Extend crossing times in busy areas</p>
-                            </div>
-                            <label class="custom-switch">
-                                <input type="checkbox" id="pedestrian-priority">
-                                <span class="switch-slider"></span>
-                            </label>
-                        </div>
-                        
-                        <div class="flex items-center justify-between">
-                            <div>
                                 <h4 class="text-sm font-medium">Emergency Vehicle Detection</h4>
                                 <p class="text-xs text-slate-500 mt-0.5">Auto-clear routes for emergency vehicles</p>
                             </div>
@@ -372,7 +417,7 @@
                 </div>
             </div>
         </div>
-
+<!-- <br> -->
         <!-- Real-time Data Section -->
         <div class="card">
             <div class="p-4 border-b flex items-center justify-between">
@@ -387,6 +432,78 @@
             <div class="p-4 card-collapsible-content" id="real-time-content">
                 <div id="realtime-data" class="space-y-2">
                     <div class="text-sm text-slate-500 text-center py-4">Loading real-time data...</div>
+                </div>
+            </div>
+        </div>
+<br>
+        <div class="card shadow-sm">
+            <div class="p-4 border-b bg-gradient-to-r from-purple-50 to-white">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-semibold text-slate-800 flex items-center">
+                        <i class="ri-robot-line text-purple-600 mr-2 text-xl"></i>
+                        AI Traffic Recommendations
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
+                            Pattern-Based Learning
+                        </span>
+                        <button onclick="refreshAIRecommendations()" 
+                                class="text-xs px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-50">
+                            <i class="ri-refresh-line"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="p-4">
+                <!-- AI Statistics -->
+                <div id="aiStats" class="grid grid-cols-4 gap-4 mb-4 pb-4 border-b">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-purple-600" id="totalRecommendations">0</div>
+                        <div class="text-xs text-slate-500">Total Recommendations</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600" id="patternMatchRate">0%</div>
+                        <div class="text-xs text-slate-500">Pattern Match Rate</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="patternsInCache">0</div>
+                        <div class="text-xs text-slate-500">Patterns Learned</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-orange-600" id="avgConfidence">0%</div>
+                        <div class="text-xs text-slate-500">Avg Confidence</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-4 mb-4 pb-4 border-b">
+                    <div class="text-center">
+                <div class="text-xl font-bold text-purple-600" id="qTableSize">0</div>
+                <div class="text-xs text-slate-500">States Learned</div>
+            </div>
+            <div class="text-center">
+                <div class="text-xl font-bold text-blue-600" id="episodesProcessed">0</div>
+                <div class="text-xs text-slate-500">Episodes Trained</div>
+            </div>
+            <div class="text-center">
+                <div class="text-xl font-bold text-green-600" id="convergenceRate">0%</div>
+                <div class="text-xs text-slate-500">Convergence</div>
+            </div>
+            <div class="text-center">
+                <div class="flex items-center justify-center">
+                    <div class="w-3 h-3 rounded-full mr-2" id="learningStatusDot"></div>
+                    <span class="text-sm font-medium" id="learningStatusText">-</span>
+                </div>
+                <div class="text-xs text-slate-500">Learning Status</div>
+            </div>
+                </div>
+
+                <!-- Recommendations List -->
+                <div id="aiRecommendationsList" class="space-y-3 max-h-[500px] overflow-y-auto">
+                    <div class="text-center text-slate-400 py-8">
+                        <i class="ri-robot-line text-4xl mb-2 block"></i>
+                        <p>Loading AI recommendations...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1069,9 +1186,1455 @@ window.addEventListener('beforeunload', () => {
         clearInterval(refreshInterval);
     }
 });
+
+</script>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    const incidentsContainer = document.getElementById('incidents-container');
+    const incidentCount = document.getElementById('incident-count');
+    
+    // Function to fetch and update incidents
+    async function refreshIncidents() {
+        try {
+            const response = await fetch('/api/incidents/active?limit=5');
+            if (!response.ok) throw new Error('Failed to fetch incidents');
+            
+            const data = await response.json();
+            
+            // Update count
+            if (incidentCount) {
+                incidentCount.textContent = `${data.count} Active`;
+            }
+            
+            // Update incidents list
+            if (incidentsContainer && data.incidents) {
+                updateIncidentsList(data.incidents);
+            }
+            
+        } catch (error) {
+            console.error('Error refreshing incidents:', error);
+        }
+    }
+    
+    // Function to update the incidents list
+    function updateIncidentsList(incidents) {
+        if (incidents.length === 0) {
+            incidentsContainer.innerHTML = `
+                <div class="text-sm text-slate-500 text-center py-8">
+                    <div class="mb-2">
+                        <i class="ri-checkbox-circle-line text-3xl text-green-500"></i>
+                    </div>
+                    <p class="font-medium">No Active Incidents</p>
+                    <p class="text-xs mt-1">All systems operating normally</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        incidents.forEach(incident => {
+            html += createIncidentCard(incident);
+        });
+        
+        // Add "View All" link if there are 5 or more incidents
+        if (incidents.length >= 5) {
+            html += `
+                <div class="text-center mt-3">
+                    <a href="/incidents" 
+                       class="text-sm text-primary hover:text-primary-dark font-medium inline-flex items-center">
+                        View All Incidents
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </a>
+                </div>
+            `;
+        }
+        
+        incidentsContainer.innerHTML = html;
+    }
+    
+    // Function to create incident card HTML
+    function createIncidentCard(incident) {
+        const statusClass = incident.status.toLowerCase().replace('_', '-');
+        const severityClass = incident.severity.toLowerCase();
+        
+        return `
+            <div class="incident-item p-3 mb-2 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="incident-badge incident-badge-${severityClass}">
+                                ${incident.severity.toUpperCase()}
+                            </span>
+                            <span class="incident-badge incident-badge-${statusClass}">
+                                ${incident.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </span>
+                        </div>
+                        <h4 class="font-medium text-slate-900 text-sm mb-1">
+                            ${incident.incident_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </h4>
+                        <p class="text-xs text-slate-600 mb-2">
+                            <i class="ri-map-pin-line"></i>
+                            ${incident.location}
+                        </p>
+                        <div class="flex items-center justify-between text-xs text-slate-500">
+                            <span>
+                                <i class="ri-time-line"></i>
+                                ${formatTime(incident.created_at)}
+                            </span>
+                            <span>
+                                <i class="ri-calendar-line"></i>
+                                ${formatDate(incident.created_at)}
+                            </span>
+                        </div>
+                    </div>
+                    <button class="ml-3 text-primary hover:text-primary-dark transition-colors" 
+                            onclick="viewIncidentDetails(${incident.id})">
+                        <i class="ri-eye-line text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Helper function to format time
+    function formatTime(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+        });
+    }
+    
+    // Helper function to format date
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            year: 'numeric'
+        });
+    }
+    
+    // Auto-refresh every 30 seconds
+    setInterval(refreshIncidents, 30000);
+    
+    // Initial load
+    // refreshIncidents(); // Uncomment if you want immediate AJAX load
+});
+
+// Global function for viewing incident details
+function viewIncidentDetails(incidentId) {
+    window.location.href = `/incidents/${incidentId}`;
+}
+
+</script>
+
+<script>
+/**
+ * AI Optimization Toggle Integration
+ * Adds working toggle functionality with visual feedback
+ */
+
+class AIOptimizationController {
+    constructor() {
+        this.toggle = document.getElementById('ai-optimization');
+        this.emergencyToggle = document.getElementById('emergency-detection');
+        this.statusContainer = null;
+        this.isInitialized = false;
+        
+        this.init();
+    }
+    
+    async init() {
+        if (!this.toggle) {
+            console.error('❌ AI optimization toggle not found');
+            return;
+        }
+        
+        console.log('🤖 Initializing AI Optimization Controller...');
+        
+        // Create status indicators
+        this.createStatusIndicators();
+        
+        // Load current status
+        await this.loadCurrentStatus();
+        
+        // Setup event listeners
+        this.setupEventListeners();
+        
+        this.isInitialized = true;
+        console.log('✅ AI Optimization Controller initialized');
+    }
+    
+    createStatusIndicators() {
+        // Find the AI optimization container
+        const aiContainer = this.toggle.closest('.flex.items-center.justify-between');
+        if (!aiContainer) return;
+        
+        // Create status indicator element
+        const statusDiv = document.createElement('div');
+        statusDiv.id = 'ai-optimization-status';
+        statusDiv.className = 'mt-2';
+        statusDiv.innerHTML = `
+            <div class="flex items-center space-x-2 text-xs">
+                <div class="flex items-center space-x-1">
+                    <div class="w-2 h-2 rounded-full bg-slate-400" id="ai-status-dot"></div>
+                    <span class="text-slate-600" id="ai-status-text">Checking...</span>
+                </div>
+                <span class="text-slate-400">|</span>
+                <span class="text-slate-500" id="ai-stats-text">0 decisions</span>
+            </div>
+        `;
+        
+        // Insert after the toggle's parent description
+        const descriptionP = aiContainer.querySelector('p.text-xs.text-slate-500');
+        if (descriptionP && descriptionP.parentNode) {
+            descriptionP.parentNode.insertBefore(statusDiv, descriptionP.nextSibling);
+        }
+        
+        this.statusContainer = statusDiv;
+    }
+    
+    setupEventListeners() {
+        // AI Optimization toggle
+        this.toggle.addEventListener('change', async (e) => {
+            await this.handleToggle(e.target.checked);
+        });
+        
+        // Emergency detection toggle (bonus feature)
+        if (this.emergencyToggle) {
+            this.emergencyToggle.addEventListener('change', async (e) => {
+                await this.handleEmergencyToggle(e.target.checked);
+            });
+        }
+    }
+    
+    async loadCurrentStatus() {
+        try {
+            const response = await fetch('/ai/status');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update toggle state
+                this.toggle.checked = data.ai_enabled;
+                
+                // Update status display
+                this.updateStatusDisplay(data);
+                
+                console.log('📊 AI Status loaded:', data);
+            } else {
+                throw new Error(data.error || 'Failed to load status');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error loading AI status:', error);
+            this.updateStatusDisplay({
+                ai_enabled: false,
+                mode: 'ERROR',
+                stats: { total_decisions: 0 }
+            });
+            
+            // Show error toast
+            this.showToast('Failed to load AI status. Using default settings.', 'warning');
+        }
+    }
+    
+    async handleToggle(enabled) {
+        console.log(`🔄 Toggling AI optimization: ${enabled ? 'ON' : 'OFF'}`);
+        
+        // Show loading state
+        this.setLoadingState(true);
+        
+        try {
+            const response = await fetch('/ai/toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ enabled })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Update status display
+                this.updateStatusDisplay(result);
+                
+                // Show success message with implications
+                this.showSuccessMessage(result);
+                
+                // Log the change
+                console.log('✅ AI optimization toggled:', result);
+                
+                // Refresh data after a short delay
+                setTimeout(() => {
+                    if (typeof refreshAllData === 'function') {
+                        refreshAllData();
+                    }
+                }, 1000);
+                
+            } else {
+                throw new Error(result.error || 'Toggle failed');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error toggling AI:', error);
+            this.showToast('Failed to toggle AI optimization: ' + error.message, 'error');
+            
+            // Revert toggle state
+            this.toggle.checked = !enabled;
+            
+        } finally {
+            this.setLoadingState(false);
+        }
+    }
+    
+    async handleEmergencyToggle(enabled) {
+        console.log(`🚨 Toggling emergency detection: ${enabled ? 'ON' : 'OFF'}`);
+        
+        try {
+            // You can implement emergency detection toggle here
+            this.showToast(
+                `Emergency vehicle detection ${enabled ? 'enabled' : 'disabled'}`, 
+                'info'
+            );
+        } catch (error) {
+            console.error('❌ Error toggling emergency detection:', error);
+        }
+    }
+    
+    updateStatusDisplay(data) {
+        if (!this.statusContainer) return;
+        
+        const dot = document.getElementById('ai-status-dot');
+        const text = document.getElementById('ai-status-text');
+        const stats = document.getElementById('ai-stats-text');
+        
+        if (!dot || !text || !stats) return;
+        
+        const isEnabled = data.ai_enabled || data.current_state;
+        const mode = data.mode || 'UNKNOWN';
+        
+        // Update status dot and text
+        if (isEnabled) {
+            dot.className = 'w-2 h-2 rounded-full bg-green-500 animate-pulse';
+            text.textContent = 'Active';
+            text.className = 'text-green-600 font-medium';
+        } else {
+            dot.className = 'w-2 h-2 rounded-full bg-orange-500';
+            text.textContent = 'Baseline Mode';
+            text.className = 'text-orange-600 font-medium';
+        }
+        
+        // Update stats
+        if (data.stats) {
+            const totalDecisions = data.stats.total_decisions || 0;
+            const appliedOptimizations = data.stats.applied_optimizations || 0;
+            
+            if (isEnabled) {
+                stats.textContent = `${appliedOptimizations} optimizations applied`;
+            } else {
+                stats.textContent = `${data.stats.baseline_collections || 0} baseline samples`;
+            }
+            stats.className = 'text-slate-600 font-medium';
+        }
+    }
+    
+    showSuccessMessage(result) {
+        const isEnabled = result.current_state;
+        const message = isEnabled 
+            ? '🤖 AI Optimization Enabled' 
+            : '📊 Baseline Collection Mode';
+        
+        const description = isEnabled
+            ? 'AI will now optimize traffic light timings based on real-time conditions.'
+            : 'Collecting baseline data without AI intervention for comparison.';
+        
+        // Show detailed toast with implications
+        this.showToast(message, 'success', [description, ...result.implications.slice(0, 2)]);
+    }
+    
+    showToast(message, type = 'info', details = []) {
+        // Create toast container if it doesn't exist
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'fixed top-20 right-4 z-50 space-y-2 max-w-md';
+            document.body.appendChild(container);
+        }
+        
+        // Create toast element
+        const toast = document.createElement('div');
+        const toastId = 'toast-' + Date.now();
+        toast.id = toastId;
+        
+        // Determine styling based on type
+        let borderColor, bgColor, iconColor, icon;
+        switch (type) {
+            case 'success':
+                borderColor = 'border-green-500';
+                bgColor = 'bg-green-50';
+                iconColor = 'text-green-600';
+                icon = 'ri-checkbox-circle-line';
+                break;
+            case 'error':
+                borderColor = 'border-red-500';
+                bgColor = 'bg-red-50';
+                iconColor = 'text-red-600';
+                icon = 'ri-error-warning-line';
+                break;
+            case 'warning':
+                borderColor = 'border-yellow-500';
+                bgColor = 'bg-yellow-50';
+                iconColor = 'text-yellow-600';
+                icon = 'ri-alert-line';
+                break;
+            default:
+                borderColor = 'border-blue-500';
+                bgColor = 'bg-blue-50';
+                iconColor = 'text-blue-600';
+                icon = 'ri-information-line';
+        }
+        
+        toast.className = `
+            ${bgColor} border-l-4 ${borderColor} p-4 rounded-lg shadow-lg
+            transform transition-all duration-300 ease-in-out
+            animate-slide-in
+        `;
+        
+        // Build details HTML
+        let detailsHTML = '';
+        if (details && details.length > 0) {
+            detailsHTML = `
+                <ul class="mt-2 text-xs space-y-1 text-slate-700">
+                    ${details.map(d => `<li class="flex items-start">
+                        <span class="mr-1">•</span>
+                        <span>${d}</span>
+                    </li>`).join('')}
+                </ul>
+            `;
+        }
+        
+        toast.innerHTML = `
+            <div class="flex items-start">
+                <i class="${icon} ${iconColor} text-xl mr-3 flex-shrink-0"></i>
+                <div class="flex-1 min-w-0">
+                    <div class="font-semibold text-sm ${iconColor} mb-1">${message}</div>
+                    ${detailsHTML}
+                </div>
+                <button onclick="document.getElementById('${toastId}').remove()" 
+                        class="ml-3 text-slate-400 hover:text-slate-600 flex-shrink-0">
+                    <i class="ri-close-line text-lg"></i>
+                </button>
+            </div>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Auto-remove after 6 seconds
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => toast.remove(), 300);
+        }, 6000);
+    }
+    
+    setLoadingState(loading) {
+        this.toggle.disabled = loading;
+        
+        if (this.statusContainer) {
+            const text = document.getElementById('ai-status-text');
+            if (text) {
+                if (loading) {
+                    text.textContent = 'Updating...';
+                    text.className = 'text-blue-600 animate-pulse';
+                }
+            }
+        }
+        
+        // Show loading cursor
+        if (loading) {
+            document.body.style.cursor = 'wait';
+        } else {
+            document.body.style.cursor = 'default';
+        }
+    }
+}
+
+// Add animation styles
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slide-in {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .animate-slide-in {
+        animation: slide-in 0.3s ease-out;
+    }
+`;
+document.head.appendChild(style);
+
+// Initialize AI Controller when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait a bit to ensure other scripts are loaded
+    setTimeout(() => {
+        window.aiOptimizationController = new AIOptimizationController();
+    }, 500);
+});
+
+// Add to existing refresh function
+const originalRefreshAllData = refreshAllData;
+refreshAllData = async function() {
+    if (typeof originalRefreshAllData === 'function') {
+        await originalRefreshAllData();
+    }
+    
+    // Also refresh AI status
+    if (window.aiOptimizationController && window.aiOptimizationController.isInitialized) {
+        await window.aiOptimizationController.loadCurrentStatus();
+    }
+};
+
+// Export for use in other scripts
+window.AIOptimizationController = AIOptimizationController;
+
+</script>
+
+<script>
+// AI Recommendations Management
+let aiRecommendationsRefreshInterval;
+
+// Initialize AI recommendations on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadAIRecommendations();
+    
+    // Auto-refresh every 30 seconds
+    aiRecommendationsRefreshInterval = setInterval(() => {
+        loadAIRecommendations();
+    }, 30000);
+});
+
+async function loadAIRecommendations() {
+    try {
+        const scenario = getCurrentScenario(); // Your function to get current scenario
+        const response = await fetch(`/ai/recommendations?scenario=${scenario}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            displayAIStatistics(result.statistics);
+            displayAIRecommendations(result.recommendations);
+        } else {
+            showAIError(result.message || 'Failed to load recommendations');
+        }
+    } catch (error) {
+        console.error('❌ Error loading AI recommendations:', error);
+        showAIError('Failed to load AI recommendations');
+    }
+}
+
+function displayAIStatistics(stats) {
+    document.getElementById('totalRecommendations').textContent = stats.total_decisions || 0;
+    document.getElementById('patternMatchRate').textContent = `${stats.pattern_match_rate || 0}%`;
+    document.getElementById('patternsInCache').textContent = stats.patterns_in_cache || 0;
+    document.getElementById('avgConfidence').textContent = `${stats.avg_confidence || 0}%`;
+}
+
+function displayAIRecommendations(recommendations) {
+    const container = document.getElementById('aiRecommendationsList');
+    
+    if (!recommendations || recommendations.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-slate-400 py-8">
+                <i class="ri-lightbulb-line text-4xl mb-2 block"></i>
+                <p class="font-medium">No active recommendations</p>
+                <p class="text-xs mt-1">AI is analyzing traffic patterns...</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = recommendations.map(rec => {
+        const priority = rec.display_priority || 'MEDIUM';
+        const priorityClass = getPriorityClass(priority);
+        const actionClass = getAIActionClass(rec.action);
+        const confidenceClass = getConfidenceClass(rec.confidence * 100);
+        
+        return `
+            <div class="p-4 rounded-lg border-l-4 ${priorityClass.border} bg-white hover:shadow-md transition-all">
+                <!-- Header -->
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="ri-traffic-light-line text-slate-600"></i>
+                            <span class="font-semibold text-slate-800">${rec.tl_id}</span>
+                            ${rec.pattern_matched ? `
+                                <span class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                                    <i class="ri-check-line"></i> Pattern Match
+                                </span>
+                            ` : `
+                                <span class="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
+                                    Heuristic
+                                </span>
+                            `}
+                        </div>
+                        <div class="text-xs text-slate-500">
+                            ${formatTimeAgo(rec.timestamp)}
+                        </div>
+                    </div>
+                    
+                    <div class="text-right">
+                        <div class="text-xs px-2 py-1 ${confidenceClass} rounded-full font-medium mb-1">
+                            ${(rec.confidence * 100).toFixed(0)}% confident
+                        </div>
+                        <div class="text-xs text-slate-500">
+                            ${(rec.success_rate * 100).toFixed(0)}% success rate
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recommended Action -->
+                <div class="mb-3 p-3 rounded-lg ${actionClass.bg}">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="${actionClass.icon} ${actionClass.text} text-lg"></i>
+                            <div>
+                                <div class="font-semibold ${actionClass.text}">
+                                    ${formatActionName(rec.action)}
+                                </div>
+                                <div class="text-xs ${actionClass.text} opacity-75">
+                                    ${rec.action_type.replace('_', ' ')}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${rec.parameters && Object.keys(rec.parameters).length > 0 ? `
+                            <div class="text-xs ${actionClass.text} text-right">
+                                ${formatActionParameters(rec.parameters)}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                <!-- Reasoning -->
+                <div class="mb-3 p-2 bg-slate-50 rounded text-xs text-slate-700">
+                    <i class="ri-information-line mr-1"></i>
+                    ${rec.reasoning}
+                </div>
+                
+                <!-- Expected Impact -->
+                ${rec.expected_impact && rec.expected_impact.efficiency_change ? `
+                    <div class="grid grid-cols-3 gap-2 mb-3 text-xs">
+                        <div class="p-2 bg-blue-50 rounded text-center">
+                            <div class="text-slate-600 mb-1">Efficiency</div>
+                            <div class="font-semibold text-blue-700">
+                                ${rec.expected_impact.efficiency_change}
+                            </div>
+                        </div>
+                        <div class="p-2 bg-green-50 rounded text-center">
+                            <div class="text-slate-600 mb-1">Waiting</div>
+                            <div class="font-semibold text-green-700">
+                                ${rec.expected_impact.waiting_change}
+                            </div>
+                        </div>
+                        <div class="p-2 bg-purple-50 rounded text-center">
+                            <div class="text-slate-600 mb-1">Congestion</div>
+                            <div class="font-semibold text-purple-700">
+                                ${rec.expected_impact.congestion_change}
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <!-- Recommendations List -->
+                ${rec.recommendations && rec.recommendations.length > 0 ? `
+                    <div class="space-y-1">
+                        ${rec.recommendations.map(r => `
+                            <div class="text-xs text-slate-600 flex items-start">
+                                <i class="ri-arrow-right-s-line text-slate-400 mt-0.5"></i>
+                                <span>${r}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+                
+                <!-- Action Buttons (for future implementation) -->
+                <div class="mt-3 pt-3 border-t flex gap-2">
+                    <button class="flex-1 px-3 py-2 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
+                            onclick="viewRecommendationDetails('${rec.tl_id}')">
+                        <i class="ri-eye-line mr-1"></i>
+                        View Details
+                    </button>
+                    <button class="flex-1 px-3 py-2 text-xs bg-slate-100 text-slate-700 rounded hover:bg-slate-200 transition-colors"
+                            onclick="dismissRecommendation('${rec.tl_id}')">
+                        <i class="ri-close-line mr-1"></i>
+                        Dismiss
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function getPriorityClass(priority) {
+    const classes = {
+        'HIGH': { border: 'border-red-500', bg: 'bg-red-50' },
+        'MEDIUM': { border: 'border-yellow-500', bg: 'bg-yellow-50' },
+        'LOW': { border: 'border-slate-300', bg: 'bg-slate-50' }
+    };
+    return classes[priority] || classes['MEDIUM'];
+}
+
+function getAIActionClass(action) {
+    const classes = {
+        'EXTEND_GREEN': {
+            bg: 'bg-green-50',
+            text: 'text-green-700',
+            icon: 'ri-time-line'
+        },
+        'REDUCE_GREEN': {
+            bg: 'bg-yellow-50',
+            text: 'text-yellow-700',
+            icon: 'ri-speed-line'
+        },
+        'OPTIMIZE_TIMING': {
+            bg: 'bg-blue-50',
+            text: 'text-blue-700',
+            icon: 'ri-settings-3-line'
+        },
+        'MAINTAIN': {
+            bg: 'bg-slate-50',
+            text: 'text-slate-700',
+            icon: 'ri-check-line'
+        }
+    };
+    return classes[action] || classes['MAINTAIN'];
+}
+
+function getConfidenceClass(confidence) {
+    if (confidence >= 80) return 'bg-green-100 text-green-700';
+    if (confidence >= 60) return 'bg-yellow-100 text-yellow-700';
+    return 'bg-red-100 text-red-700';
+}
+
+function formatActionName(action) {
+    const names = {
+        'EXTEND_GREEN': '⏱️ Extend Green Phase',
+        'REDUCE_GREEN': '⏩ Reduce Green Phase',
+        'OPTIMIZE_TIMING': '⚙️ Optimize Timing',
+        'MAINTAIN': '✓ Maintain Current'
+    };
+    return names[action] || action;
+}
+
+function formatActionParameters(params) {
+    if (params.duration_change) {
+        const sign = params.duration_change > 0 ? '+' : '';
+        return `${sign}${params.duration_change}s`;
+    }
+    if (params.optimization_type) {
+        return params.optimization_type;
+    }
+    return 'No change';
+}
+
+function formatTimeAgo(timestamp) {
+    if (!timestamp) return 'Just now';
+    try {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
+        return date.toLocaleDateString();
+    } catch {
+        return 'Recently';
+    }
+}
+
+function refreshAIRecommendations() {
+    loadAIRecommendations();
+}
+
+function viewRecommendationDetails(tlId) {
+    // Navigate to detailed view or open modal
+    console.log('View details for:', tlId);
+    // TODO: Implement detailed view
+}
+
+function dismissRecommendation(tlId) {
+    // Mark recommendation as dismissed
+    console.log('Dismiss recommendation for:', tlId);
+    // TODO: Implement dismissal logic
+}
+
+function showAIError(message) {
+    const container = document.getElementById('aiRecommendationsList');
+    container.innerHTML = `
+        <div class="text-center text-red-500 py-8">
+            <i class="ri-error-warning-line text-4xl mb-2 block"></i>
+            <p class="font-medium">${message}</p>
+        </div>
+    `;
+}
+
+// Helper function - implement based on your app structure
+function getCurrentScenario() {
+    // Return the currently selected scenario
+    return document.getElementById('scenarioFilter')?.value || 'accra';
+}
 </script>
 
 <style>
+.animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+</style>
+
+<script>
+/**
+ * Q-Learning AI Integration
+ * Adds Q-learning AI mode selection and status monitoring
+ */
+
+class QLearningAIController {
+    constructor() {
+        this.modeSelector = null;
+        this.statusContainer = null;
+        this.isInitialized = false;
+        this.refreshInterval = null;
+        
+        this.aiModes = {
+            'PATTERN_ONLY': { 
+                name: 'Pattern Only', 
+                desc: 'Uses historical patterns only',
+                icon: 'ri-history-line',
+                color: 'blue'
+            },
+            'Q_LEARNING': { 
+                name: 'Q-Learning AI', 
+                desc: 'Uses reinforcement learning',
+                icon: 'ri-robot-line',
+                color: 'purple'
+            },
+            'HYBRID': { 
+                name: 'Hybrid AI', 
+                desc: 'Combines patterns and Q-learning (Recommended)',
+                icon: 'ri-brain-line',
+                color: 'green'
+            },
+            'DISABLED': { 
+                name: 'AI Disabled', 
+                desc: 'No AI optimization',
+                icon: 'ri-close-circle-line',
+                color: 'gray'
+            }
+        };
+        
+        this.init();
+    }
+    
+    async init() {
+        console.log('🧠 Initializing Q-Learning AI Controller...');
+        
+        // Wait for DOM
+        await this.waitForElement('#ai-optimization');
+        
+        // Create UI components
+        this.createModeSelector();
+        this.createStatusDisplay();
+        this.createControlPanel();
+        
+        // Load current status
+        await this.loadAIStatus();
+        
+        // Start auto-refresh (every 30 seconds)
+        this.refreshInterval = setInterval(() => this.loadAIStatus(), 30000);
+        
+        this.isInitialized = true;
+        console.log('✅ Q-Learning AI Controller initialized');
+    }
+    
+    waitForElement(selector, timeout = 5000) {
+        return new Promise((resolve, reject) => {
+            const element = document.querySelector(selector);
+            if (element) {
+                resolve(element);
+                return;
+            }
+            
+            const observer = new MutationObserver(() => {
+                const el = document.querySelector(selector);
+                if (el) {
+                    observer.disconnect();
+                    resolve(el);
+                }
+            });
+            
+            observer.observe(document.body, { childList: true, subtree: true });
+            
+            setTimeout(() => {
+                observer.disconnect();
+                reject(new Error(`Element ${selector} not found`));
+            }, timeout);
+        });
+    }
+    
+    createModeSelector() {
+        const aiContainer = document.getElementById('ai-optimization')?.closest('.flex.items-center.justify-between');
+        if (!aiContainer) {
+            console.error('❌ AI optimization container not found');
+            return;
+        }
+        
+        const modeSelectorContainer = document.createElement('div');
+        modeSelectorContainer.className = 'mt-3 w-full';
+        modeSelectorContainer.innerHTML = `
+            <div class="flex items-center justify-between mb-2">
+                <label class="text-xs font-medium text-slate-700 flex items-center">
+                    <i class="ri-settings-3-line mr-1"></i>
+                    AI Mode:
+                </label>
+                <span class="text-xs text-slate-400">(affects recommendations)</span>
+            </div>
+            <select id="ai-mode-selector" 
+                    class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white 
+                           focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
+                           cursor-pointer transition-all">
+                <option value="HYBRID">🧠 Hybrid AI (Recommended)</option>
+                <option value="Q_LEARNING">🤖 Q-Learning AI</option>
+                <option value="PATTERN_ONLY">📊 Pattern Only</option>
+                <option value="DISABLED">⏸️ AI Disabled</option>
+            </select>
+            <div id="ai-mode-description" class="text-xs text-slate-500 mt-2 p-2 bg-slate-50 rounded">
+                Combines patterns and Q-learning for best results
+            </div>
+        `;
+        
+        aiContainer.parentNode.insertBefore(modeSelectorContainer, aiContainer.nextSibling);
+        
+        this.modeSelector = document.getElementById('ai-mode-selector');
+        this.modeDescription = document.getElementById('ai-mode-description');
+        
+        this.modeSelector.addEventListener('change', (e) => {
+            this.handleModeChange(e.target.value);
+        });
+    }
+    
+    createStatusDisplay() {
+        const aiStatsSection = document.getElementById('aiStats');
+        if (!aiStatsSection) return;
+        
+        // Add Q-learning specific stats
+        const qLearningStats = document.createElement('div');
+        qLearningStats.id = 'q-learning-stats';
+        // qLearningStats.className = 'grid grid-cols-4 gap-4 mb-4 pb-4 border-b';
+        // qLearningStats.innerHTML = `
+        //     <div class="text-center">
+        //         <div class="text-xl font-bold text-purple-600" id="qTableSize">0</div>
+        //         <div class="text-xs text-slate-500">States Learned</div>
+        //     </div>
+        //     <div class="text-center">
+        //         <div class="text-xl font-bold text-blue-600" id="episodesProcessed">0</div>
+        //         <div class="text-xs text-slate-500">Episodes Trained</div>
+        //     </div>
+        //     <div class="text-center">
+        //         <div class="text-xl font-bold text-green-600" id="convergenceRate">0%</div>
+        //         <div class="text-xs text-slate-500">Convergence</div>
+        //     </div>
+        //     <div class="text-center">
+        //         <div class="flex items-center justify-center">
+        //             <div class="w-3 h-3 rounded-full mr-2" id="learningStatusDot"></div>
+        //             <span class="text-sm font-medium" id="learningStatusText">-</span>
+        //         </div>
+        //         <div class="text-xs text-slate-500">Learning Status</div>
+        //     </div>
+        // `;
+        
+        aiStatsSection.appendChild(qLearningStats);
+    }
+    
+    createControlPanel() {
+        const trafficControlContent = document.getElementById('traffic-control-content');
+        if (!trafficControlContent) return;
+        
+        const qLearningControls = document.createElement('div');
+        qLearningControls.className = 'mt-4 pt-4 border-t space-y-3';
+        qLearningControls.innerHTML = `
+            <h4 class="text-sm font-semibold text-slate-700 flex items-center">
+                <i class="ri-brain-line text-purple-600 mr-2"></i>
+                Q-Learning Controls
+            </h4>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <button id="btn-start-learning" 
+                        class="px-3 py-2 text-xs bg-green-100 text-green-700 rounded-lg
+                               hover:bg-green-200 transition-colors flex items-center justify-center">
+                    <i class="ri-play-line mr-1"></i> Start Learning
+                </button>
+                <button id="btn-pause-learning" 
+                        class="px-3 py-2 text-xs bg-yellow-100 text-yellow-700 rounded-lg
+                               hover:bg-yellow-200 transition-colors flex items-center justify-center">
+                    <i class="ri-pause-line mr-1"></i> Pause
+                </button>
+            </div>
+            
+            <div class="bg-slate-50 rounded-lg p-3">
+                <div class="text-xs text-slate-600 mb-2">Learning Parameters</div>
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span>Learning Rate (α):</span>
+                        <span class="font-mono font-medium" id="param-learning-rate">0.1</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>Discount Factor (γ):</span>
+                        <span class="font-mono font-medium" id="param-discount-factor">0.95</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>Exploration Rate (ε):</span>
+                        <span class="font-mono font-medium" id="param-exploration-rate">1.0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="btn-reset-learning" 
+                    class="w-full px-3 py-2 text-xs bg-red-50 text-red-600 rounded-lg
+                           hover:bg-red-100 transition-colors flex items-center justify-center">
+                <i class="ri-refresh-line mr-1"></i> Reset Q-Learning
+            </button>
+        `;
+        
+        trafficControlContent.appendChild(qLearningControls);
+        
+        // Add event listeners
+        document.getElementById('btn-start-learning').addEventListener('click', () => this.startLearning());
+        document.getElementById('btn-pause-learning').addEventListener('click', () => this.pauseLearning());
+        document.getElementById('btn-reset-learning').addEventListener('click', () => this.resetLearning());
+    }
+    
+    async handleModeChange(mode) {
+        console.log(`🔄 Changing AI mode to: ${mode}`);
+        
+        this.modeSelector.disabled = true;
+        
+        try {
+            const response = await fetch('/ai/set-mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode })
+            });
+            
+            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.updateModeDescription(mode);
+                this.showToast(`AI Mode: ${this.aiModes[mode].name}`, 'success', [
+                    this.aiModes[mode].desc
+                ]);
+                
+                await this.loadAIStatus();
+                
+                if (typeof refreshAIRecommendations === 'function') {
+                    refreshAIRecommendations();
+                }
+            } else {
+                throw new Error(result.error || 'Mode change failed');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error changing AI mode:', error);
+            this.showToast('Failed to change AI mode', 'error', [error.message]);
+        } finally {
+            this.modeSelector.disabled = false;
+        }
+    }
+    
+    updateModeDescription(mode) {
+        const modeInfo = this.aiModes[mode] || this.aiModes['HYBRID'];
+        
+        if (this.modeDescription) {
+            this.modeDescription.innerHTML = `
+                <i class="${modeInfo.icon} mr-1"></i>
+                ${modeInfo.desc}
+            `;
+        }
+    }
+    
+    async loadAIStatus() {
+        try {
+            const response = await fetch('/ai/status');
+            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateStatusDisplay(data);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error loading AI status:', error);
+        }
+    }
+    
+    updateStatusDisplay(data) {
+        const qLearning = data.q_learning || {};
+        const learningStats = qLearning.learning_stats || {};
+        
+        // Update Q-learning stats
+        const qTableSize = document.getElementById('qTableSize');
+        const episodesProcessed = document.getElementById('episodesProcessed');
+        const convergenceRate = document.getElementById('convergenceRate');
+        const learningStatusDot = document.getElementById('learningStatusDot');
+        const learningStatusText = document.getElementById('learningStatusText');
+        
+        if (qTableSize) {
+            qTableSize.textContent = qLearning.q_table_size || 0;
+        }
+        
+        if (episodesProcessed) {
+            episodesProcessed.textContent = learningStats.episodes_processed || 0;
+        }
+        
+        if (convergenceRate) {
+            const rate = (learningStats.convergence_rate || 0) * 100;
+            convergenceRate.textContent = `${rate.toFixed(1)}%`;
+            
+            // Color based on convergence
+            if (rate >= 70) {
+                convergenceRate.className = 'text-xl font-bold text-green-600';
+            } else if (rate >= 40) {
+                convergenceRate.className = 'text-xl font-bold text-yellow-600';
+            } else {
+                convergenceRate.className = 'text-xl font-bold text-red-600';
+            }
+        }
+        
+        if (learningStatusDot && learningStatusText) {
+            if (qLearning.learning_running && qLearning.is_learning) {
+                learningStatusDot.className = 'w-3 h-3 rounded-full mr-2 bg-green-500 animate-pulse';
+                learningStatusText.textContent = 'Active';
+                learningStatusText.className = 'text-sm font-medium text-green-600';
+            } else if (qLearning.learning_running) {
+                learningStatusDot.className = 'w-3 h-3 rounded-full mr-2 bg-yellow-500';
+                learningStatusText.textContent = 'Paused';
+                learningStatusText.className = 'text-sm font-medium text-yellow-600';
+            } else {
+                learningStatusDot.className = 'w-3 h-3 rounded-full mr-2 bg-gray-400';
+                learningStatusText.textContent = 'Stopped';
+                learningStatusText.className = 'text-sm font-medium text-gray-600';
+            }
+        }
+        
+        // Update mode selector
+        if (this.modeSelector && data.current_mode) {
+            this.modeSelector.value = data.current_mode;
+            this.updateModeDescription(data.current_mode);
+        }
+        
+        // Update parameters display
+        if (qLearning.exploration_rate !== undefined) {
+            const expRate = document.getElementById('param-exploration-rate');
+            if (expRate) expRate.textContent = qLearning.exploration_rate.toFixed(4);
+        }
+    }
+    
+    async startLearning() {
+        try {
+            const response = await fetch('/ai/q-learning/resume', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showToast('Q-Learning Started', 'success', ['Background training resumed']);
+                await this.loadAIStatus();
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error) {
+            this.showToast('Failed to start learning', 'error', [error.message]);
+        }
+    }
+    
+    async pauseLearning() {
+        try {
+            const response = await fetch('/ai/q-learning/pause', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showToast('Q-Learning Paused', 'warning', ['Training paused, Q-table preserved']);
+                await this.loadAIStatus();
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error) {
+            this.showToast('Failed to pause learning', 'error', [error.message]);
+        }
+    }
+    
+    async resetLearning() {
+        if (!confirm('⚠️ This will delete all learned Q-values!\n\nAre you sure you want to reset?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/ai/q-learning/reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ confirm: true })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showToast('Q-Learning Reset', 'info', ['All learned values cleared', 'Starting fresh']);
+                await this.loadAIStatus();
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error) {
+            this.showToast('Failed to reset', 'error', [error.message]);
+        }
+    }
+    
+    showToast(message, type = 'info', details = []) {
+        // Use existing toast function if available
+        if (window.aiOptimizationController?.showToast) {
+            window.aiOptimizationController.showToast(message, type, details);
+            return;
+        }
+        
+        // Fallback toast
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'fixed top-20 right-4 z-50 space-y-2 max-w-md';
+            document.body.appendChild(container);
+        }
+        
+        const toast = document.createElement('div');
+        const colors = {
+            success: 'bg-green-50 border-green-500 text-green-700',
+            error: 'bg-red-50 border-red-500 text-red-700',
+            warning: 'bg-yellow-50 border-yellow-500 text-yellow-700',
+            info: 'bg-blue-50 border-blue-500 text-blue-700'
+        };
+        
+        toast.className = `p-4 rounded-lg shadow-lg border-l-4 ${colors[type] || colors.info}`;
+        toast.innerHTML = `
+            <div class="font-semibold">${message}</div>
+            ${details.length > 0 ? `
+                <ul class="mt-1 text-sm opacity-75">
+                    ${details.map(d => `<li>• ${d}</li>`).join('')}
+                </ul>
+            ` : ''}
+        `;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => toast.remove(), 5000);
+    }
+    
+    destroy() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+        }
+    }
+}
+
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        window.qLearningAIController = new QLearningAIController();
+    }, 1000);
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    if (window.qLearningAIController) {
+        window.qLearningAIController.destroy();
+    }
+});
+
+// Update AI statistics display to include Q-learning info
+function updateAIStatisticsWithQLearning(stats) {
+    // Update existing statistics
+    document.getElementById('totalRecommendations').textContent = 
+        stats.total_decisions || 0;
+    document.getElementById('patternMatchRate').textContent = 
+        `${stats.pattern_match_rate || 0}%`;
+    document.getElementById('patternsInCache').textContent = 
+        stats.patterns_in_cache || 0;
+    
+    // Add Q-learning specific stats if available
+    if (stats.q_learning_decisions) {
+        const qLearningTotal = Object.values(stats.q_learning_decisions).reduce((sum, val) => sum + val, 0);
+        const qLearningRate = stats.total_decisions > 0 ? (qLearningTotal / stats.total_decisions * 100) : 0;
+        
+        // You could add this to the statistics display
+        console.log(`Q-Learning decisions: ${qLearningTotal} (${qLearningRate.toFixed(1)}%)`);
+    }
+}
+
+</script>
+
+<style>
+/* Additional styles for Q-learning AI components */
+#ai-mode-selector:focus {
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+#q-learning-status {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Animation for learning status */
+.learning-pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes learning-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+</style>
+
+<style>
+    /* Incident Item Styles */
+.incident-item {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Incident Badges */
+.incident-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Severity Badges */
+.incident-badge-low {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.incident-badge-medium {
+    background-color: #fef3c7;
+    color: #b45309;
+}
+
+.incident-badge-high {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.incident-badge-critical {
+    background-color: #fecaca;
+    color: #991b1b;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Status Badges */
+.incident-badge-reported {
+    background-color: #e0e7ff;
+    color: #4338ca;
+}
+
+.incident-badge-investigating {
+    background-color: #fef3c7;
+    color: #ca8a04;
+}
+
+.incident-badge-in-progress {
+    background-color: #dbeafe;
+    color: #0284c7;
+}
+
+.incident-badge-resolved {
+    background-color: #dcfce7;
+    color: #16a34a;
+}
+
+.incident-badge-closed {
+    background-color: #f1f5f9;
+    color: #64748b;
+}
+
+/* Pulse animation for critical incidents */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Icon colors */
+.incident-item i {
+    vertical-align: middle;
+}
+
+.ri-map-pin-line {
+    color: #ef4444;
+}
+
+.ri-time-line,
+.ri-calendar-line {
+    color: #64748b;
+}
+
 .signal-status-card.optimal {
     border-left: 4px solid #10b981;
 }
@@ -1099,6 +2662,81 @@ window.addEventListener('beforeunload', () => {
 
 .toggle-card-btn {
     transition: background-color 0.2s ease-in-out;
+}
+
+.custom-switch input:checked + .switch-slider {
+    background-color: #22c55e;
+}
+
+.custom-switch input:checked + .switch-slider:before {
+    transform: translateX(20px);
+}
+
+.custom-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.custom-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.custom-switch input:disabled + .switch-slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Comparison dashboard link button */
+.comparison-dashboard-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.comparison-dashboard-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.comparison-dashboard-btn i {
+    margin-right: 0.5rem;
 }
 
 </style>

@@ -19,6 +19,8 @@ class TrafficLightLog(db.Model):
     waiting_vehicles = db.Column(db.Integer, default=0)
     efficiency_score = db.Column(db.Integer, default=0)
     performance_grade = db.Column(db.String(50))
+    collection_mode = db.Column(db.String(50), default='BASELINE')
+    ai_enabled_during_collection = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
@@ -78,8 +80,8 @@ class TrafficPattern(db.Model):
     id = db.Column(db.String, primary_key=True)
     traffic_light_id = db.Column(db.String(100), nullable=False, index=True)
     scenario = db.Column(db.String(100), nullable=False)
-    interval_start = db.Column(db.DateTime, nullable=False, index=True)
-    interval_end = db.Column(db.DateTime, nullable=False)
+    interval_start = db.Column(db.Integer, nullable=False, index=True)
+    interval_end = db.Column(db.Integer, nullable=False)
     pattern_type = db.Column(db.String(100), nullable=False)
     confidence_score = db.Column(db.Float, default=0.0)
     
@@ -87,6 +89,11 @@ class TrafficPattern(db.Model):
     pattern_metrics = db.Column(db.JSON, default=dict)
     phase_patterns = db.Column(db.JSON, default=dict)
     recommendations = db.Column(db.JSON, default=list)
+    
+    sample_size = db.Column(db.Float, nullable=False)  # Number of logs analyzed
+    
+    best_action = db.Column(db.String(50), nullable=True)  # EXTEND_GREEN, REDUCE_GREEN, etc.
+    action_success_rate = db.Column(db.Float, default=0.5)  # 0-1 score from AI outcomes
     
     created_at = db.Column(db.DateTime, default=db.func.now())
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())

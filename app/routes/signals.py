@@ -16,6 +16,8 @@ def signals():
     user = current_user
     signals = TrafficLightConfig.query.all()
     
+    incidentsCount = Incident.query.all()
+    
     incidents = Incident.query.filter(
     Incident.status.in_(['reported', 'investigating', 'in_progress'])
     ).order_by(Incident.created_at.desc()).limit(5).all()
@@ -26,6 +28,7 @@ def signals():
                            current_time = now.strftime("%I:%M %p"),
                            signals=signals,
                            incidents=incidents,
+                            incidentsCount=len(incidentsCount)
                         )
 
 @signal_bp.route('/signals/list')

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2025-11-13 20:48:12 by Eclipse SUMO netedit Version 1.24.0
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <!-- VTypes -->
+    <vType id="ambulance" vClass="emergency" emissionClass="HBEFA4/RT_le7.5t_Euro-VI_A-C" guiShape="emergency" width="2.40" height="2.40"/>
+    <vType id="bus" vClass="bus" guiShape="passenger/van"/>
+    <vType id="t_0"/>
+    <vType id="t_1"/>
+    <vType id="t_2"/>
+    <vType id="truck" vClass="truck" guiShape="truck/trailer" color="0,128,128"/>
+    <!-- Vehicles, persons and containers (sorted by depart) -->
+    <trip id="ambulance" type="ambulance" depart="0.00" departLane="2" from="E0" to="E0.438" via="E0.114 E0.159"/>
+    <trip id="t_0" type="ambulance" depart="0.00" departLane="2" from="E1" to="-E3.61" via="E1.59 -E3"/>
+    <flow id="blue-car" begin="0.00" color="0,31,255" from="E0" to="E0.438" via="E0.104 E0.114 E0.159" end="3600.00" vehsPerHour="1800"/>
+    <flow id="bus" type="bus" begin="0.00" departLane="3" color="0,3,255" from="E1" to="E1.261" via="E9 E1.103 E1.112" end="3600.00" vehsPerHour="1800"/>
+    <flow id="green-car" begin="0.00" color="0,128,0" from="E1" to="E1.261" via="E1.77 E1.75 E1.103 E1.59 E1.112" end="3600.00" vehsPerHour="1800"/>
+    <flow id="purple-car" begin="0.00" departLane="1" color="magenta" from="E3" to="E0.438" via="E0.159 E8 E12" end="3600.00" vehsPerHour="1800"/>
+    <flow id="red-car" begin="0.00" color="red" from="E3" to="E0.438" via="E3.51 E0.304 E8 E11" end="3600.00" vehsPerHour="1800"/>
+    <flow id="truck" type="truck" begin="0.00" departLane="3" color="0,128,128" from="E0" to="E0.438" via="E0.159 E0.352" end="3600.00" vehsPerHour="1800"/>
+</routes>

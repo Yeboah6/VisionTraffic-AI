@@ -47,23 +47,20 @@ def create_app():
     from app.services.tls_config_service import init_tls_config_service
     init_tls_config_service(app)
     
-    from app.services.ai_traffic_service import ai_traffic_service
-    ai_traffic_service.init_app(app)
+    # from app.services.ai_traffic_service import ai_traffic_service
+    # ai_traffic_service.init_app(app)
     
-    from app.services.ai_decision import ai_decision_service
-    ai_decision_service.init_app(app)
+    from app.services.ai_decision import enhanced_ai_decision_service
+    enhanced_ai_decision_service.init_app(app)
+    
+    from app.services.q_learning import q_learning
+    q_learning.init_app(app)
     
     from app.services.emergency import emergency_service
     emergency_service.init_app(app)
 
-    from app.services.traffic_pattern_analyzer import init_traffic_pattern_analyzer
-    init_traffic_pattern_analyzer(app)
-    
-    from app.services.emergency_scheduler import emergency_scheduler
-    emergency_scheduler.init_app(app)
-    
-    from app.services.green_wave_service import green_wave_service
-    green_wave_service.init_app(app)
+    from app.services.traffic_pattern_analyzer import traffic_pattern_analyzer
+    traffic_pattern_analyzer.init_app(app)
     
     from app.services.performance_monitor import performance_monitor
 

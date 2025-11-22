@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2025-10-27 04:02:32 by Eclipse SUMO netedit Version 1.24.0
+<!-- generated on 2025-11-11 15:50:54 by Eclipse SUMO netedit Version 1.24.0
 -->
 
 <routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
@@ -14,11 +14,10 @@
     <trip id="ambulance" type="emergency" depart="0.00" departLane="1" departPos="1.00" from="E4" to="E17"/>
     <trip id="ambulance-1" type="emergency" depart="0.00" from="E5" to="E17"/>
     <flow id="blue_car" begin="0.00" departLane="2" color="0,228,255" from="E4" to="E10.28" via="E4.67 E15" end="3600.00" vehsPerHour="1800"/>
-    <flow id="dark_blue_car" begin="0.00" color="0,128,128" from="E3" to="E4.167" end="3600.00" vehsPerHour="1800"/>
-    <flow id="f_0" begin="0.00" from="E4" to="E17" via="E4.61 E15 E7.157" end="3600.00" vehsPerHour="1800"/>
-    <flow id="green_car" begin="0.00" departLane="1" color="0,255,16" from="E7" to="E10.28" via="E12" end="3600.00" vehsPerHour="1800"/>
-    <flow id="purple_car" begin="0.00" color="magenta" from="E7" to="E7.292" end="3600.00" vehsPerHour="1800"/>
-    <flow id="purple_car_2" begin="0.00" departLane="1" color="159,23,254" from="E3" to="E8.37" end="3600.00" vehsPerHour="1800"/>
+    <flow id="f_0" begin="0.00" from="E3" to="E8.37" end="3600.00" vehsPerHour="1800"/>
+    <flow id="f_1" begin="0.00" from="E3" to="E7.292" via="E7.188" end="3600.00" vehsPerHour="1800"/>
+    <flow id="f_2" begin="0.00" from="E7" to="E10.28" end="3600.00" vehsPerHour="1800"/>
+    <flow id="f_3" begin="0.00" from="E7" to="E7.292" end="3600.00" vehsPerHour="1800"/>
     <flow id="yellow_car" begin="0.00" color="255,4,0" from="E4" to="E8.37" end="3600.00" vehsPerHour="1800"/>
     <flow id="yellow_car_2" begin="0.00" departLane="1" from="E5" to="E10.28" end="3600.00" vehsPerHour="1800"/>
 </routes>

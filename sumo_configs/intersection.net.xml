@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2025-10-06 14:08:42 by Eclipse SUMO netedit Version 1.24.0
+<!-- generated on 2025-11-13 12:47:38 by Eclipse SUMO netedit Version 1.24.0
 <neteditConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/neteditConfiguration.xsd">
 
     <input>
         <sumocfg-file value="C:\Users\JHOKER\Desktop\Vision_Traffic_AI_Main\sumo_configs\intersection.sumocfg"/>
+        <additional-files value="C:\Users\JHOKER\Desktop\Vision_Traffic_AI_Main\sumo_configs\intersection_busStop.add.xml"/>
         <route-files value="C:\Users\JHOKER\Desktop\Vision_Traffic_AI_Main\sumo_configs\intersection.rou.xml"/>
         <sumo-net-file value="C:\Users\JHOKER\Desktop\Vision_Traffic_AI_Main\sumo_configs\intersection.net.xml"/>
     </input>
 
     <output>
+        <human-readable-time value="0"/>
         <output-file value="C:\Users\JHOKER\Desktop\Vision_Traffic_AI_Main\sumo_configs\intersection.net.xml"/>
         <output.street-names value="true"/>
     </output>
@@ -23,6 +25,7 @@
     </processing>
 
     <junctions>
+        <no-internal-links value="false"/>
         <no-turnarounds value="true"/>
         <junctions.corner-detail value="5"/>
         <junctions.limit-turn-speed value="5.50"/>
@@ -30,7 +33,7 @@
     </junctions>
 
     <pedestrian>
-        <walkingareas value="0"/>
+        <walkingareas value="1"/>
     </pedestrian>
 
     <netedit>
@@ -42,10 +45,28 @@
 </neteditConfiguration>
 -->
 
-<net version="1.20" junctionCornerDetail="5" limitTurnSpeed="5.50" avoidOverlap="0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+<net version="1.20" junctionCornerDetail="5" walkingareas="true" limitTurnSpeed="5.50" avoidOverlap="0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
 
     <location netOffset="0.00,0.00" convBoundary="-301.84,-64.10,392.06,112.31" origBoundary="-10000000000.00,-10000000000.00,10000000000.00,10000000000.00" projParameter="!"/>
 
+    <edge id=":J15_w0" function="walkingarea">
+        <lane id=":J15_w0_0" index="0" allow="pedestrian" speed="2.78" length="15.70" width="3.20" shape="-301.67,0.34 -301.77,-9.26 -301.64,9.64 -301.67,0.04"/>
+    </edge>
+    <edge id=":J16_w0" function="walkingarea">
+        <lane id=":J16_w0_0" index="0" allow="pedestrian" speed="2.78" length="16.00" width="3.20" shape="280.40,-1.76 280.40,7.84 280.41,-11.36 280.40,-1.76"/>
+    </edge>
+    <edge id=":J18_w0" function="walkingarea">
+        <lane id=":J18_w0_0" index="0" allow="pedestrian" speed="2.78" length="9.37" width="12.80" shape="34.63,101.28 28.23,101.25 40.80,101.28 34.40,101.28"/>
+    </edge>
+    <edge id=":J25_w0" function="walkingarea">
+        <lane id=":J25_w0_0" index="0" allow="pedestrian" speed="2.78" length="3.20" width="6.40" shape="217.00,103.77 213.80,103.77 220.20,103.77 217.00,103.77"/>
+    </edge>
+    <edge id=":J27_w0" function="walkingarea">
+        <lane id=":J27_w0_0" index="0" allow="pedestrian" speed="2.78" length="3.20" width="6.40" shape="392.06,44.37 392.06,47.57 392.06,41.17 392.06,44.37"/>
+    </edge>
+    <edge id=":J74_w0" function="walkingarea">
+        <lane id=":J74_w0_0" index="0" allow="pedestrian" speed="2.78" length="0.10" width="3.20" shape="-260.54,47.95 -264.50,42.92"/>
+    </edge>
     <edge id=":alajo_jun_01_0" function="internal">
         <lane id=":alajo_jun_01_0_0" index="0" speed="9.51" length="9.85" shape="-255.15,13.89 -257.45,11.27 -259.48,9.40 -261.23,8.28 -262.70,7.91"/>
         <lane id=":alajo_jun_01_0_1" index="1" speed="10.73" length="12.67" shape="-252.66,11.87 -255.49,8.73 -258.10,6.49 -260.51,5.15 -262.71,4.71"/>
@@ -54,6 +75,9 @@
         <lane id=":alajo_jun_01_2_0" index="0" speed="13.89" length="11.97" shape="-250.73,7.77 -262.70,7.91"/>
         <lane id=":alajo_jun_01_2_1" index="1" speed="13.89" length="11.97" shape="-250.75,4.57 -262.71,4.71"/>
         <lane id=":alajo_jun_01_2_2" index="2" speed="13.89" length="11.97" shape="-250.76,1.37 -262.72,1.51"/>
+    </edge>
+    <edge id=":alajo_jun_01_w0" function="walkingarea">
+        <lane id=":alajo_jun_01_w0_0" index="0" allow="pedestrian" speed="2.78" length="9.72" width="3.20" shape="-256.39,14.90 -251.42,10.86 -251.88,10.04 -251.85,9.75 -251.65,9.54 -251.27,9.42 -250.72,9.37 -250.77,-0.23 -262.73,-0.09 -262.70,9.51 -261.15,10.10 -260.16,10.85 -259.04,11.90 -257.78,13.25"/>
     </edge>
     <edge id=":alajo_jun_02_0" function="internal">
         <lane id=":alajo_jun_02_0_0" index="0" speed="13.89" length="15.85" shape="-238.21,37.21 -240.68,33.20 -242.31,30.41 -244.06,27.71 -246.92,23.99"/>
@@ -66,6 +90,9 @@
     </edge>
     <edge id=":alajo_jun_02_3" function="internal">
         <lane id=":alajo_jun_02_3_0" index="0" speed="13.89" length="17.21" shape="-246.53,34.90 -232.49,24.95"/>
+    </edge>
+    <edge id=":alajo_jun_02_w0" function="walkingarea">
+        <lane id=":alajo_jun_02_w0_0" index="0" allow="pedestrian" speed="2.78" length="13.48" width="3.20" shape="-239.55,38.08 -234.18,34.60 -235.11,31.78 -234.89,30.38 -234.22,28.99 -233.10,27.60 -231.52,26.22 -235.40,21.13 -238.37,22.72 -239.71,22.89 -240.97,22.66 -242.13,22.01 -243.20,20.96 -248.16,25.00 -247.19,27.06 -247.23,28.08 -247.63,29.10 -248.39,30.12 -249.49,31.13 -245.54,36.16 -243.48,35.28 -242.47,35.41 -241.48,35.92 -240.51,36.81"/>
     </edge>
     <edge id=":alajo_jun_03_0" function="internal">
         <lane id=":alajo_jun_03_0_0" index="0" speed="13.89" length="18.58" shape="-205.18,7.45 -223.78,7.62"/>
@@ -81,6 +108,9 @@
         <lane id=":alajo_jun_03_6_0" index="0" speed="13.89" length="25.41" shape="-221.98,12.90 -217.78,7.49 -215.34,1.48 -212.06,-3.42 -205.35,-5.52"/>
         <lane id=":alajo_jun_03_6_1" index="1" speed="13.89" length="25.41" shape="-220.04,15.44 -216.01,10.13 -214.02,4.35 -211.36,-0.33 -205.31,-2.32"/>
     </edge>
+    <edge id=":alajo_jun_03_w0" function="walkingarea">
+        <lane id=":alajo_jun_03_w0_0" index="0" allow="pedestrian" speed="2.78" length="19.05" width="3.20" shape="-205.15,9.05 -205.41,-10.32 -223.88,-10.08 -223.78,9.22 -221.91,9.48 -221.57,9.81 -221.63,10.28 -222.09,10.89 -222.95,11.63 -219.07,16.72 -216.40,14.49 -214.42,12.63 -212.72,11.15 -210.89,10.05 -208.50,9.35"/>
+    </edge>
     <edge id=":alajo_jun_04_0" function="internal">
         <lane id=":alajo_jun_04_0_0" index="0" speed="11.57" length="14.23" shape="-174.12,-9.13 -172.50,-9.74 -170.22,-11.51 -167.30,-14.47 -163.73,-18.59"/>
         <lane id=":alajo_jun_04_0_1" index="1" speed="11.99" length="15.30" shape="-174.12,-9.13 -170.77,-9.63 -167.51,-11.03 -164.34,-13.34 -161.26,-16.55"/>
@@ -89,6 +119,9 @@
         <lane id=":alajo_jun_04_2_0" index="0" speed="13.89" length="12.19" shape="-174.12,-9.13 -161.91,-9.43"/>
         <lane id=":alajo_jun_04_2_1" index="1" speed="13.89" length="12.19" shape="-174.07,-5.93 -161.89,-6.23"/>
         <lane id=":alajo_jun_04_2_2" index="2" speed="13.89" length="12.19" shape="-174.03,-2.73 -161.87,-3.03"/>
+    </edge>
+    <edge id=":alajo_jun_04_w0" function="walkingarea">
+        <lane id=":alajo_jun_04_w0_0" index="0" allow="pedestrian" speed="2.78" length="11.87" width="3.20" shape="-161.86,-1.43 -161.92,-11.03 -162.53,-11.52 -162.37,-12.15 -161.90,-13.02 -161.12,-14.15 -160.03,-15.53 -164.96,-19.61 -167.25,-16.90 -169.24,-14.69 -170.92,-12.96 -172.30,-11.73 -173.37,-10.99 -174.14,-10.73 -174.01,-1.13"/>
     </edge>
     <edge id=":alajo_jun_05_0" function="internal">
         <lane id=":alajo_jun_05_0_0" index="0" speed="13.89" length="23.12" shape="-138.25,6.37 -145.01,7.16 -149.52,9.21 -153.53,12.18 -158.80,15.74"/>
@@ -99,10 +132,13 @@
         <lane id=":alajo_jun_05_2_1" index="1" speed="13.89" length="20.58" shape="-138.27,3.17 -158.85,3.14"/>
         <lane id=":alajo_jun_05_2_2" index="2" speed="13.89" length="20.58" shape="-138.30,-0.03 -158.93,-0.06"/>
     </edge>
+    <edge id=":alajo_jun_05_w0" function="walkingarea">
+        <lane id=":alajo_jun_05_w0_0" index="0" allow="pedestrian" speed="2.78" length="17.51" width="3.20" shape="-138.23,7.97 -138.31,-1.63 -158.97,-1.66 -158.74,7.94 -157.23,8.30 -157.36,8.80 -158.06,9.52 -159.34,10.45 -161.21,11.59 -158.00,17.13 -154.02,14.56 -151.11,12.35 -148.67,10.53 -146.11,9.17 -142.83,8.30"/>
+    </edge>
     <edge id=":alajo_jun_06_0" function="internal">
-        <lane id=":alajo_jun_06_0_0" index="0" speed="13.89" length="17.41" shape="-104.81,6.27 -122.19,6.24"/>
-        <lane id=":alajo_jun_06_0_1" index="1" speed="13.89" length="17.41" shape="-104.81,3.07 -122.21,3.04"/>
-        <lane id=":alajo_jun_06_0_2" index="2" speed="13.89" length="17.41" shape="-104.80,-0.13 -122.24,-0.16"/>
+        <lane id=":alajo_jun_06_0_0" index="0" speed="13.89" length="17.41" shape="-104.81,6.30 -122.19,6.24"/>
+        <lane id=":alajo_jun_06_0_1" index="1" speed="13.89" length="17.41" shape="-104.81,3.10 -122.21,3.04"/>
+        <lane id=":alajo_jun_06_0_2" index="2" speed="13.89" length="17.41" shape="-104.80,-0.10 -122.24,-0.16"/>
     </edge>
     <edge id=":alajo_jun_06_3" function="internal">
         <lane id=":alajo_jun_06_3_0" index="0" speed="10.40" length="24.53" shape="-110.38,-15.31 -111.12,-7.32 -113.34,-1.59 -117.04,1.86 -122.21,3.04"/>
@@ -113,6 +149,9 @@
         <lane id=":alajo_jun_06_5_1" index="1" speed="13.89" length="17.49" shape="-122.29,-6.47 -104.79,-6.48"/>
         <lane id=":alajo_jun_06_5_2" index="2" speed="13.89" length="17.49" shape="-122.26,-3.27 -104.80,-3.28"/>
     </edge>
+    <edge id=":alajo_jun_06_w0" function="walkingarea">
+        <lane id=":alajo_jun_06_w0_0" index="0" allow="pedestrian" speed="2.78" length="18.21" width="3.20" shape="-104.81,7.90 -104.79,-11.28 -107.00,-11.73 -107.78,-12.29 -108.34,-13.07 -108.67,-14.08 -108.78,-15.31 -115.18,-15.31 -115.97,-13.08 -116.97,-12.30 -118.36,-11.74 -120.14,-11.39 -122.32,-11.27 -122.17,7.84"/>
+    </edge>
     <edge id=":alajo_jun_07_0" function="internal">
         <lane id=":alajo_jun_07_0_0" index="0" speed="13.89" length="13.75" shape="-110.38,-50.70 -109.77,-46.64 -108.22,-43.90 -106.16,-41.63 -104.01,-38.96"/>
     </edge>
@@ -120,9 +159,15 @@
         <lane id=":alajo_jun_07_1_0" index="0" speed="13.89" length="11.18" shape="-110.38,-50.70 -110.38,-39.52"/>
         <lane id=":alajo_jun_07_1_1" index="1" speed="13.89" length="11.18" shape="-113.58,-50.70 -113.58,-39.52"/>
     </edge>
+    <edge id=":alajo_jun_07_w0" function="walkingarea">
+        <lane id=":alajo_jun_07_w0_0" index="0" allow="pedestrian" speed="2.78" length="10.31" width="3.20" shape="-115.18,-39.52 -108.78,-39.52 -108.40,-41.06 -107.92,-41.08 -107.26,-40.59 -106.40,-39.59 -105.35,-38.09 -102.67,-39.84 -104.31,-42.02 -105.77,-43.59 -107.00,-44.89 -107.95,-46.28 -108.56,-48.10 -108.78,-50.70 -115.18,-50.70"/>
+    </edge>
     <edge id=":alajo_jun_08_0" function="internal">
         <lane id=":alajo_jun_08_0_0" index="0" speed="7.58" length="21.12" shape="-126.27,-63.85 -121.41,-68.00 -116.21,-69.84 -112.07,-68.74 -110.38,-64.10"/>
         <lane id=":alajo_jun_08_0_1" index="1" speed="6.69" length="16.07" shape="-123.80,-61.81 -119.33,-66.58 -116.14,-68.56 -114.22,-67.73 -113.58,-64.10"/>
+    </edge>
+    <edge id=":alajo_jun_08_w0" function="walkingarea">
+        <lane id=":alajo_jun_08_w0_0" index="0" allow="pedestrian" speed="2.78" length="15.89" width="3.20" shape="-115.18,-64.10 -108.78,-64.10 -109.30,-70.62 -110.86,-74.58 -113.46,-75.99 -117.10,-74.84 -121.78,-71.13 -127.50,-64.87 -122.57,-60.79 -120.31,-63.36 -118.46,-65.13 -117.03,-66.08 -116.00,-66.23 -115.39,-65.57"/>
     </edge>
     <edge id=":alajo_jun_09_0" function="internal">
         <lane id=":alajo_jun_09_0_0" index="0" speed="7.82" length="7.52" shape="-87.68,-13.94 -86.27,-12.07 -84.83,-10.72 -83.36,-9.92 -81.86,-9.65"/>
@@ -132,55 +177,76 @@
         <lane id=":alajo_jun_09_1_1" index="1" speed="13.89" length="8.15" shape="-90.01,-6.46 -81.86,-6.45"/>
         <lane id=":alajo_jun_09_1_2" index="2" speed="13.89" length="8.15" shape="-90.02,-3.26 -81.87,-3.25"/>
     </edge>
+    <edge id=":alajo_jun_09_w0" function="walkingarea">
+        <lane id=":alajo_jun_09_w0_0" index="0" allow="pedestrian" speed="2.78" length="6.75" width="3.20" shape="-81.87,-1.65 -81.86,-11.25 -83.32,-11.65 -84.06,-12.14 -84.81,-12.84 -85.57,-13.73 -86.34,-14.82 -89.02,-13.07 -88.61,-12.06 -88.68,-11.71 -88.94,-11.46 -89.38,-11.31 -90.01,-11.26 -90.02,-1.66"/>
+    </edge>
     <edge id=":alajo_jun_10_0" function="internal">
-        <lane id=":alajo_jun_10_0_0" index="0" speed="13.89" length="35.16" shape="-38.60,-9.59 -29.32,-10.59 -22.19,-12.80 -14.55,-14.97 -3.74,-15.88"/>
-        <lane id=":alajo_jun_10_0_1" index="1" speed="13.89" length="35.16" shape="-38.60,-6.39 -29.32,-7.39 -22.20,-9.60 -14.58,-11.77 -3.78,-12.68"/>
-        <lane id=":alajo_jun_10_0_2" index="2" speed="13.89" length="35.16" shape="-38.60,-6.39 -29.30,-6.89 -22.13,-8.00 -14.51,-9.07 -3.81,-9.48"/>
-        <lane id=":alajo_jun_10_0_3" index="3" speed="13.89" length="35.16" shape="-38.61,-3.19 -29.30,-3.69 -22.15,-4.80 -14.53,-5.87 -3.85,-6.28"/>
-        <lane id=":alajo_jun_10_0_4" index="4" speed="13.89" length="35.16" shape="-38.61,-3.19 -3.88,-3.08"/>
+        <lane id=":alajo_jun_10_0_0" index="0" speed="13.89" length="29.07" shape="-38.60,-9.59 -30.03,-10.72 -24.38,-13.23 -18.73,-15.74 -10.16,-16.86"/>
+        <lane id=":alajo_jun_10_0_1" index="1" speed="13.89" length="29.07" shape="-38.60,-6.39 -30.03,-7.52 -24.38,-10.03 -18.74,-12.54 -10.16,-13.66"/>
+        <lane id=":alajo_jun_10_0_2" index="2" speed="13.89" length="29.07" shape="-38.60,-6.39 -30.12,-7.02 -24.39,-8.43 -18.65,-9.84 -10.17,-10.46"/>
+        <lane id=":alajo_jun_10_0_3" index="3" speed="13.89" length="29.07" shape="-38.61,-3.19 -30.13,-3.82 -24.39,-5.23 -18.66,-6.64 -10.18,-7.26"/>
+        <lane id=":alajo_jun_10_0_4" index="4" speed="13.89" length="29.07" shape="-38.61,-3.19 -10.19,-4.06"/>
+    </edge>
+    <edge id=":alajo_jun_10_w0" function="walkingarea">
+        <lane id=":alajo_jun_10_w0_0" index="0" allow="pedestrian" speed="2.78" length="29.36" width="3.20" shape="-10.19,-2.46 -10.15,-18.46 -16.34,-17.93 -20.79,-16.59 -24.37,-14.83 -27.96,-13.07 -32.41,-11.72 -38.60,-11.19 -38.61,-1.59"/>
     </edge>
     <edge id=":alajo_jun_11_0" function="internal">
         <lane id=":alajo_jun_11_0_0" index="0" speed="7.45" length="11.71" shape="-219.55,50.92 -222.87,52.41 -225.71,52.74 -228.07,51.92 -229.95,49.96"/>
         <lane id=":alajo_jun_11_0_1" index="1" speed="5.83" length="6.77" shape="-221.16,48.15 -223.22,49.13 -224.92,49.47 -226.27,49.16 -227.26,48.22"/>
     </edge>
+    <edge id=":alajo_jun_11_w0" function="walkingarea">
+        <lane id=":alajo_jun_11_w0_0" index="0" allow="pedestrian" speed="2.78" length="10.44" width="3.20" shape="-218.75,52.31 -221.96,46.77 -223.80,47.65 -224.53,47.83 -225.12,47.84 -225.59,47.68 -225.92,47.35 -231.29,50.83 -229.80,52.64 -228.07,53.82 -226.10,54.38 -223.89,54.31 -221.44,53.62"/>
+    </edge>
     <edge id=":carprice_01_0" function="internal">
-        <lane id=":carprice_01_0_0" index="0" speed="7.25" length="11.38" shape="29.87,14.91 29.50,11.23 28.45,8.60 26.70,7.02 24.27,6.49"/>
+        <lane id=":carprice_01_0_0" index="0" speed="7.18" length="11.16" shape="29.86,14.91 29.50,11.34 28.45,8.79 26.71,7.26 24.27,6.74"/>
     </edge>
     <edge id=":carprice_01_1" function="internal">
-        <lane id=":carprice_01_1_0" index="0" speed="10.38" length="24.71" shape="33.07,14.94 33.78,6.93 36.02,1.22 39.80,-2.22 45.10,-3.36"/>
+        <lane id=":carprice_01_1_0" index="0" speed="11.54" length="30.76" shape="33.06,14.94 33.79,3.96 36.04,-3.89 39.84,-8.59 45.16,-10.15"/>
     </edge>
     <edge id=":carprice_01_2" function="internal">
-        <lane id=":carprice_01_2_0" index="0" speed="6.51" length="8.98" shape="45.11,9.44 42.68,9.79 40.93,10.83 39.88,12.57 39.51,14.99"/>
+        <lane id=":carprice_01_2_0" index="0" speed="6.52" length="8.99" shape="45.12,9.44 42.68,9.79 40.94,10.83 39.88,12.57 39.51,15.00"/>
     </edge>
     <edge id=":carprice_01_3" function="internal">
-        <lane id=":carprice_01_3_0" index="0" speed="13.89" length="20.84" shape="45.11,6.24 24.27,6.49"/>
-        <lane id=":carprice_01_3_1" index="1" speed="13.89" length="20.84" shape="45.11,3.04 24.27,3.29"/>
-        <lane id=":carprice_01_3_2" index="2" speed="13.89" length="20.84" shape="45.10,-0.16 24.28,0.09"/>
+        <lane id=":carprice_01_3_0" index="0" speed="13.89" length="20.85" shape="45.13,6.24 24.27,6.74"/>
+        <lane id=":carprice_01_3_1" index="1" speed="13.89" length="20.85" shape="45.13,3.04 24.28,3.54"/>
+        <lane id=":carprice_01_3_2" index="2" speed="13.89" length="20.85" shape="45.14,-0.16 24.30,0.34"/>
     </edge>
     <edge id=":carprice_01_6" function="internal">
-        <lane id=":carprice_01_6_0" index="0" speed="13.89" length="21.97" shape="24.30,-15.89 30.60,-14.95 34.70,-12.84 38.80,-10.72 45.10,-9.76"/>
-        <lane id=":carprice_01_6_1" index="1" speed="13.89" length="21.97" shape="24.30,-12.69 30.60,-11.75 34.70,-9.64 38.80,-7.52 45.10,-6.56"/>
-        <lane id=":carprice_01_6_2" index="2" speed="13.89" length="21.97" shape="24.29,-9.49 30.59,-8.55 34.70,-6.44 38.80,-4.32 45.10,-3.36"/>
+        <lane id=":carprice_01_6_0" index="0" speed="13.89" length="20.83" shape="24.35,-16.81 45.17,-16.55"/>
+        <lane id=":carprice_01_6_1" index="1" speed="13.89" length="20.83" shape="24.34,-13.61 45.17,-13.35"/>
+        <lane id=":carprice_01_6_2" index="2" speed="13.89" length="20.83" shape="24.33,-10.41 45.16,-10.15"/>
     </edge>
     <edge id=":carprice_01_9" function="internal">
-        <lane id=":carprice_01_9_0" index="0" speed="11.31" length="29.69" shape="24.29,-6.29 31.02,-4.98 35.80,-1.00 38.63,5.66 39.51,14.99"/>
-        <lane id=":carprice_01_9_1" index="1" speed="10.32" length="24.53" shape="24.28,-3.09 29.60,-1.98 33.38,1.40 35.62,7.05 36.31,14.97"/>
+        <lane id=":carprice_01_9_0" index="0" speed="11.47" length="30.44" shape="24.32,-7.21 31.04,-5.82 35.81,-1.65 38.63,5.29 39.51,15.00"/>
+        <lane id=":carprice_01_9_1" index="1" speed="10.49" length="25.29" shape="24.31,-4.01 29.62,-2.82 33.39,0.74 35.62,6.67 36.31,14.97"/>
+    </edge>
+    <edge id=":carprice_01_w0" function="walkingarea">
+        <lane id=":carprice_01_w0_0" index="0" allow="pedestrian" speed="2.78" length="23.44" width="3.20" shape="28.26,14.90 41.11,15.01 41.57,12.81 42.13,12.03 42.90,11.48 43.90,11.15 45.12,11.04 45.18,-18.15 24.36,-18.41 24.27,8.34 26.48,9.07 27.25,9.99 27.81,11.26 28.15,12.90"/>
     </edge>
     <edge id=":carprice_jun_01_0" function="internal">
-        <lane id=":carprice_jun_01_0_0" index="0" speed="13.89" length="32.94" shape="108.34,6.19 99.21,6.71 92.49,7.81 85.48,8.91 75.50,9.41"/>
+        <lane id=":carprice_jun_01_0_0" index="0" speed="13.89" length="32.94" shape="108.34,6.19 99.21,6.71 92.49,7.81 85.49,8.91 75.50,9.41"/>
         <lane id=":carprice_jun_01_0_1" index="1" speed="13.89" length="32.94" shape="108.33,2.99 99.20,3.51 92.48,4.61 85.48,5.71 75.50,6.21"/>
-        <lane id=":carprice_jun_01_0_2" index="2" speed="13.89" length="32.94" shape="108.33,2.99 75.49,3.01"/>
+        <lane id=":carprice_jun_01_0_2" index="2" speed="13.89" length="32.94" shape="108.33,2.99 75.50,3.01"/>
         <lane id=":carprice_jun_01_0_3" index="3" speed="13.89" length="32.94" shape="108.32,-0.21 75.49,-0.19"/>
+    </edge>
+    <edge id=":carprice_jun_01_w0" function="walkingarea">
+        <lane id=":carprice_jun_01_w0_0" index="0" allow="pedestrian" speed="2.78" length="33.00" width="3.20" shape="108.35,7.79 108.32,-1.81 75.49,-1.79 75.50,11.01 82.52,10.77 87.69,10.18 91.93,9.41 96.17,8.64 101.33,8.05"/>
     </edge>
     <edge id=":carprice_jun_02_0" function="internal">
         <lane id=":carprice_jun_02_0_0" index="0" speed="13.89" length="15.02" shape="171.38,6.05 156.38,6.04"/>
         <lane id=":carprice_jun_02_0_1" index="1" speed="13.89" length="15.02" shape="171.39,2.85 156.37,2.84"/>
         <lane id=":carprice_jun_02_0_2" index="2" speed="13.89" length="15.02" shape="171.40,-0.35 156.36,-0.36"/>
     </edge>
+    <edge id=":carprice_jun_02_w0" function="walkingarea">
+        <lane id=":carprice_jun_02_w0_0" index="0" allow="pedestrian" speed="2.78" length="15.00" width="3.20" shape="171.38,7.65 171.41,-1.95 156.36,-1.96 156.39,7.64"/>
+    </edge>
     <edge id=":carprice_jun_03_0" function="internal">
-        <lane id=":carprice_jun_03_0_0" index="0" speed="13.89" length="15.14" shape="156.48,-9.83 171.61,-9.82"/>
-        <lane id=":carprice_jun_03_0_1" index="1" speed="13.89" length="15.14" shape="156.48,-6.63 171.61,-6.62"/>
-        <lane id=":carprice_jun_03_0_2" index="2" speed="13.89" length="15.14" shape="156.48,-3.43 171.61,-3.42"/>
+        <lane id=":carprice_jun_03_0_0" index="0" speed="13.89" length="15.44" shape="156.15,-9.81 171.61,-9.82"/>
+        <lane id=":carprice_jun_03_0_1" index="1" speed="13.89" length="15.44" shape="156.18,-6.61 171.61,-6.62"/>
+        <lane id=":carprice_jun_03_0_2" index="2" speed="13.89" length="15.44" shape="156.20,-3.41 171.61,-3.42"/>
+    </edge>
+    <edge id=":carprice_jun_03_w0" function="walkingarea">
+        <lane id=":carprice_jun_03_w0_0" index="0" allow="pedestrian" speed="2.78" length="15.46" width="3.20" shape="171.61,-1.82 171.62,-11.42 156.14,-11.41 156.21,-1.81"/>
     </edge>
     <edge id=":carprice_jun_04_0" function="internal">
         <lane id=":carprice_jun_04_0_0" index="0" speed="6.53" length="9.06" shape="215.40,11.84 215.05,9.37 214.00,7.61 212.25,6.55 209.81,6.19"/>
@@ -193,29 +259,35 @@
         <lane id=":carprice_jun_04_2_1" index="1" speed="13.89" length="14.58" shape="224.40,3.04 209.82,2.99"/>
         <lane id=":carprice_jun_04_2_2" index="2" speed="13.89" length="14.58" shape="224.40,-0.16 209.83,-0.21"/>
     </edge>
+    <edge id=":carprice_jun_04_w0" function="walkingarea">
+        <lane id=":carprice_jun_04_w0_0" index="0" allow="pedestrian" speed="2.78" length="9.14" width="6.40" shape="213.80,11.84 220.20,11.84 220.67,9.62 221.25,8.84 222.07,8.28 223.12,7.95 224.40,7.84 224.40,-1.76 209.83,-1.81 209.80,7.79 212.02,8.24 212.80,8.81 213.36,9.60 213.69,10.61"/>
+    </edge>
     <edge id=":carprice_jun_05_0" function="internal">
-        <lane id=":carprice_jun_05_0_0" index="0" speed="13.89" length="14.34" shape="30.12,53.24 30.03,38.91"/>
-        <lane id=":carprice_jun_05_0_1" index="1" speed="13.89" length="14.34" shape="33.32,53.24 33.23,38.89"/>
+        <lane id=":carprice_jun_05_0_0" index="0" speed="6.51" length="9.03" shape="44.80,47.64 42.35,47.99 40.60,49.04 39.55,50.79 39.20,53.24"/>
     </edge>
-    <edge id=":carprice_jun_05_2" function="internal">
-        <lane id=":carprice_jun_05_2_0" index="0" speed="8.56" length="1.12" shape="33.32,53.24 33.52,52.14"/>
-    </edge>
-    <edge id=":carprice_jun_05_9" function="internal">
-        <lane id=":carprice_jun_05_9_0" index="0" speed="8.56" length="15.36" shape="33.52,52.14 34.02,49.39 36.18,46.64 39.79,44.99 44.86,44.44"/>
+    <edge id=":carprice_jun_05_1" function="internal">
+        <lane id=":carprice_jun_05_1_0" index="0" speed="9.27" length="19.36" shape="44.80,47.64 38.31,47.09 33.67,45.42 30.88,42.65 29.94,38.78"/>
+        <lane id=":carprice_jun_05_1_1" index="1" speed="8.61" length="16.56" shape="44.80,47.64 39.71,47.09 36.07,45.43 33.88,42.68 33.15,38.82"/>
     </edge>
     <edge id=":carprice_jun_05_3" function="internal">
-        <lane id=":carprice_jun_05_3_0" index="0" speed="6.52" length="9.08" shape="44.86,47.64 42.38,47.99 40.62,49.04 39.55,50.79 39.20,53.24"/>
+        <lane id=":carprice_jun_05_3_0" index="0" speed="6.49" length="9.05" shape="39.30,38.74 39.62,41.24 40.65,43.02 42.37,44.08 44.80,44.44"/>
     </edge>
     <edge id=":carprice_jun_05_4" function="internal">
-        <lane id=":carprice_jun_05_4_0" index="0" speed="9.25" length="19.24" shape="44.86,47.64 38.39,47.09 33.76,45.46 30.98,42.73 30.03,38.91"/>
-        <lane id=":carprice_jun_05_4_1" index="1" speed="8.60" length="16.48" shape="44.86,47.64 39.79,47.09 36.16,45.45 33.98,42.72 33.23,38.89"/>
+        <lane id=":carprice_jun_05_4_0" index="0" speed="13.89" length="14.49" shape="39.30,38.74 39.20,53.24"/>
+        <lane id=":carprice_jun_05_4_1" index="1" speed="13.89" length="14.49" shape="36.10,38.75 36.00,53.24"/>
     </edge>
     <edge id=":carprice_jun_05_6" function="internal">
-        <lane id=":carprice_jun_05_6_0" index="0" speed="6.48" length="9.01" shape="39.30,38.85 39.63,41.30 40.66,43.04 42.41,44.09 44.86,44.44"/>
+        <lane id=":carprice_jun_05_6_0" index="0" speed="13.89" length="14.44" shape="30.07,53.24 29.94,38.78"/>
+        <lane id=":carprice_jun_05_6_1" index="1" speed="13.89" length="14.44" shape="33.27,53.24 33.15,38.82"/>
     </edge>
-    <edge id=":carprice_jun_05_7" function="internal">
-        <lane id=":carprice_jun_05_7_0" index="0" speed="13.89" length="14.38" shape="39.30,38.85 39.20,53.24"/>
-        <lane id=":carprice_jun_05_7_1" index="1" speed="13.89" length="14.38" shape="36.10,38.87 36.00,53.24"/>
+    <edge id=":carprice_jun_05_8" function="internal">
+        <lane id=":carprice_jun_05_8_0" index="0" speed="8.59" length="1.37" shape="33.27,53.24 33.52,51.90"/>
+    </edge>
+    <edge id=":carprice_jun_05_9" function="internal">
+        <lane id=":carprice_jun_05_9_0" index="0" speed="8.59" length="15.07" shape="33.52,51.90 34.00,49.39 36.17,46.64 39.77,44.99 44.80,44.44"/>
+    </edge>
+    <edge id=":carprice_jun_05_w0" function="walkingarea">
+        <lane id=":carprice_jun_05_w0_0" index="0" allow="pedestrian" speed="2.78" length="12.52" width="12.80" shape="28.47,53.24 40.80,53.24 41.25,51.02 41.82,50.24 42.60,49.68 43.62,49.35 44.86,49.24 44.86,42.84 42.64,42.38 41.87,41.81 41.32,41.02 41.00,39.99 40.90,38.74 28.34,38.78"/>
     </edge>
     <edge id=":carprice_jun_06_0" function="internal">
         <lane id=":carprice_jun_06_0_0" index="0" speed="6.51" length="9.03" shape="215.40,53.24 215.05,50.79 214.00,49.04 212.25,47.99 209.80,47.64"/>
@@ -259,9 +331,12 @@
     <edge id=":carprice_jun_06_11" function="internal">
         <lane id=":carprice_jun_06_11_0" index="0" speed="8.00" length="14.19" shape="209.80,44.44 213.65,44.99 216.40,46.64 218.05,49.39 218.60,53.24"/>
     </edge>
+    <edge id=":carprice_jun_06_w0" function="walkingarea">
+        <lane id=":carprice_jun_06_w0_0" index="0" allow="pedestrian" speed="2.78" length="11.11" width="6.40" shape="213.80,53.24 220.20,53.24 220.64,50.09 221.20,48.99 221.98,48.20 222.98,47.73 224.20,47.57 224.20,41.17 221.98,40.73 221.20,40.17 220.64,39.39 220.31,38.39 220.20,37.17 213.80,37.17 213.36,40.32 212.80,41.42 212.02,42.21 211.02,42.68 209.80,42.84 209.80,49.24 212.02,49.68 212.80,50.24 213.36,51.02 213.69,52.02"/>
+    </edge>
 
     <edge id="-E4" from="carprice_jun_06" to="carprice_jun_05" priority="-1" shape="211.43,46.04 42.99,46.04">
-        <lane id="-E4_0" index="0" speed="13.89" length="164.94" shape="209.80,47.64 44.86,47.64"/>
+        <lane id="-E4_0" index="0" speed="13.89" length="165.00" shape="209.80,47.64 44.80,47.64"/>
     </edge>
     <edge id="-E5" from="J27" to="carprice_jun_06" priority="-1" shape="392.06,44.37 221.79,44.37">
         <lane id="-E5_0" index="0" speed="13.89" length="167.86" shape="392.06,45.97 224.20,45.97"/>
@@ -271,10 +346,10 @@
         <lane id="-E6_1" index="1" speed="13.89" length="56.00" shape="280.40,3.04 224.40,3.04"/>
         <lane id="-E6_2" index="2" speed="13.89" length="56.00" shape="280.40,-0.16 224.40,-0.16"/>
     </edge>
-    <edge id="-E6.237" from="carprice_01" to="alajo_jun_06" priority="-1" shape="24.81,-1.51 -122.25,-1.76">
-        <lane id="-E6.237_0" index="0" speed="13.89" length="129.08" shape="24.27,6.49 -104.81,6.27"/>
-        <lane id="-E6.237_1" index="1" speed="13.89" length="129.08" shape="24.27,3.29 -104.81,3.07"/>
-        <lane id="-E6.237_2" index="2" speed="13.89" length="129.08" shape="24.28,0.09 -104.80,-0.13"/>
+    <edge id="-E6.237" from="carprice_01" to="alajo_jun_06" priority="-1" shape="24.81,-1.26 -122.25,-1.76">
+        <lane id="-E6.237_0" index="0" speed="13.89" length="129.09" shape="24.27,6.74 -104.81,6.30"/>
+        <lane id="-E6.237_1" index="1" speed="13.89" length="129.09" shape="24.28,3.54 -104.81,3.10"/>
+        <lane id="-E6.237_2" index="2" speed="13.89" length="129.09" shape="24.30,0.34 -104.80,-0.10"/>
     </edge>
     <edge id="-E6.237.165" from="alajo_jun_06" to="alajo_jun_05" priority="-1" shape="-122.25,-1.76 -150.28,-1.54">
         <lane id="-E6.237.165_0" index="0" speed="13.89" length="16.06" shape="-122.19,6.24 -138.25,6.37"/>
@@ -301,11 +376,11 @@
         <lane id="-E6.55_1" index="1" speed="13.89" length="38.42" shape="209.82,2.99 171.39,2.85"/>
         <lane id="-E6.55_2" index="2" speed="13.89" length="38.42" shape="209.83,-0.21 171.40,-0.35"/>
     </edge>
-    <edge id="-E6.55.134" from="carprice_jun_01" to="carprice_01" priority="-1" shape="75.49,-1.79 42.93,-1.76">
-        <lane id="-E6.55.134_0" index="0" speed="13.89" length="30.39" shape="75.50,9.41 45.11,9.44"/>
-        <lane id="-E6.55.134_1" index="1" speed="13.89" length="30.39" shape="75.50,6.21 45.11,6.24"/>
-        <lane id="-E6.55.134_2" index="2" speed="13.89" length="30.39" shape="75.49,3.01 45.11,3.04"/>
-        <lane id="-E6.55.134_3" index="3" speed="13.89" length="30.39" shape="75.49,-0.19 45.10,-0.16"/>
+    <edge id="-E6.55.134" from="carprice_jun_01" to="carprice_01" priority="-1" shape="75.49,-1.79 58.39,-1.77 42.93,-1.76">
+        <lane id="-E6.55.134_0" index="0" speed="13.89" length="30.37" shape="75.50,9.41 58.40,9.43 45.12,9.44"/>
+        <lane id="-E6.55.134_1" index="1" speed="13.89" length="30.37" shape="75.50,6.21 58.40,6.23 45.13,6.24"/>
+        <lane id="-E6.55.134_2" index="2" speed="13.89" length="30.37" shape="75.50,3.01 58.39,3.03 45.13,3.04"/>
+        <lane id="-E6.55.134_3" index="3" speed="13.89" length="30.37" shape="75.49,-0.19 58.39,-0.17 45.14,-0.16"/>
     </edge>
     <edge id="-E6.55.82" from="carprice_jun_02" to="carprice_jun_01" priority="-1" shape="156.36,-1.96 108.32,-1.81">
         <lane id="-E6.55.82_0" index="0" speed="13.89" length="48.04" shape="156.38,6.04 108.34,6.19"/>
@@ -313,8 +388,8 @@
         <lane id="-E6.55.82_2" index="2" speed="13.89" length="48.04" shape="156.36,-0.36 108.32,-0.21"/>
     </edge>
     <edge id="-E7" from="carprice_01" to="carprice_jun_05" priority="-1" shape="34.71,14.71 34.40,49.72">
-        <lane id="-E7_0" index="0" speed="13.89" length="23.88" shape="39.51,14.99 39.30,38.85"/>
-        <lane id="-E7_1" index="1" speed="13.89" length="23.88" shape="36.31,14.97 36.10,38.87"/>
+        <lane id="-E7_0" index="0" speed="13.89" length="23.76" shape="39.51,15.00 39.30,38.74"/>
+        <lane id="-E7_1" index="1" speed="13.89" length="23.76" shape="36.31,14.97 36.10,38.75"/>
     </edge>
     <edge id="-E7.49" from="carprice_jun_05" to="J18" priority="-1" shape="34.40,49.72 34.40,101.28">
         <lane id="-E7.49_0" index="0" speed="13.89" length="48.04" shape="39.20,53.24 39.20,101.28"/>
@@ -362,22 +437,22 @@
         <lane id="E20_1" index="1" speed="13.89" length="15.19" shape="-227.26,48.22 -235.52,35.47"/>
     </edge>
     <edge id="E4" from="carprice_jun_05" to="carprice_jun_06" priority="-1" shape="42.99,46.04 211.43,46.04">
-        <lane id="E4_0" index="0" speed="13.89" length="164.94" shape="44.86,44.44 209.80,44.44"/>
+        <lane id="E4_0" index="0" speed="13.89" length="165.00" shape="44.80,44.44 209.80,44.44"/>
     </edge>
     <edge id="E5" from="carprice_jun_06" to="J27" priority="-1" shape="221.79,44.37 392.06,44.37">
         <lane id="E5_0" index="0" speed="13.89" length="167.86" shape="224.20,42.77 392.06,42.77"/>
     </edge>
-    <edge id="E6.172" from="alajo_jun_10" to="carprice_01" priority="-1" spreadType="roadCenter" shape="-3.90,-1.48 2.60,-1.41 24.46,-1.49">
-        <lane id="E6.172_0" index="0" speed="13.89" length="28.11" shape="-3.74,-15.88 2.65,-15.81 24.30,-15.89"/>
-        <lane id="E6.172_1" index="1" speed="13.89" length="28.11" shape="-3.78,-12.68 2.64,-12.61 24.30,-12.69"/>
-        <lane id="E6.172_2" index="2" speed="13.89" length="28.11" shape="-3.81,-9.48 2.63,-9.41 24.29,-9.49"/>
-        <lane id="E6.172_3" index="3" speed="13.89" length="28.11" shape="-3.85,-6.28 2.62,-6.21 24.29,-6.29"/>
-        <lane id="E6.172_4" index="4" speed="13.89" length="28.11" shape="-3.88,-3.08 2.61,-3.01 24.28,-3.09"/>
+    <edge id="E6.172" from="alajo_jun_10" to="carprice_01" priority="-1" spreadType="roadCenter" shape="-10.19,-2.46 2.56,-2.43 24.95,-2.41">
+        <lane id="E6.172_0" index="0" speed="13.89" length="34.50" shape="-10.16,-16.86 2.58,-16.83 24.35,-16.81"/>
+        <lane id="E6.172_1" index="1" speed="13.89" length="34.50" shape="-10.16,-13.66 2.58,-13.63 24.34,-13.61"/>
+        <lane id="E6.172_2" index="2" speed="13.89" length="34.50" shape="-10.17,-10.46 2.57,-10.43 24.33,-10.41"/>
+        <lane id="E6.172_3" index="3" speed="13.89" length="34.50" shape="-10.18,-7.26 2.57,-7.23 24.32,-7.21"/>
+        <lane id="E6.172_4" index="4" speed="13.89" length="34.50" shape="-10.19,-4.06 2.56,-4.03 24.31,-4.01"/>
     </edge>
-    <edge id="E6.236" from="carprice_01" to="carprice_jun_03" priority="-1" shape="40.55,-1.76 156.48,-1.83">
-        <lane id="E6.236_0" index="0" speed="13.89" length="111.38" shape="45.10,-9.76 156.48,-9.83"/>
-        <lane id="E6.236_1" index="1" speed="13.89" length="111.38" shape="45.10,-6.56 156.48,-6.63"/>
-        <lane id="E6.236_2" index="2" speed="13.89" length="111.38" shape="45.10,-3.36 156.48,-3.43"/>
+    <edge id="E6.236" from="carprice_01" to="carprice_jun_03" priority="-1" shape="44.65,-8.55 58.81,-8.52 113.38,-1.86 137.77,-1.68 156.21,-1.81">
+        <lane id="E6.236_0" index="0" speed="13.89" length="111.42" shape="45.17,-16.55 59.30,-16.52 113.90,-9.86 137.77,-9.68 156.15,-9.81"/>
+        <lane id="E6.236_1" index="1" speed="13.89" length="111.42" shape="45.17,-13.35 59.11,-13.32 113.69,-6.66 137.77,-6.48 156.18,-6.61"/>
+        <lane id="E6.236_2" index="2" speed="13.89" length="111.42" shape="45.16,-10.15 58.91,-10.12 113.48,-3.46 137.77,-3.28 156.20,-3.41"/>
     </edge>
     <edge id="E6.236.118" from="carprice_jun_03" to="J16" priority="-1" shape="171.61,-1.82 280.40,-1.76">
         <lane id="E6.236.118_0" index="0" speed="13.89" length="108.79" shape="171.61,-9.82 280.40,-9.76"/>
@@ -399,13 +474,13 @@
         <lane id="E6.237.165.74_1" index="1" speed="13.89" length="31.28" shape="-205.35,-5.52 -174.07,-5.93"/>
         <lane id="E6.237.165.74_2" index="2" speed="13.89" length="31.28" shape="-205.31,-2.32 -174.03,-2.73"/>
     </edge>
-    <edge id="E7" from="J18" to="carprice_jun_05" priority="-1" shape="35.30,112.31 34.89,48.45">
-        <lane id="E7_0" index="0" speed="13.89" length="48.06" shape="30.43,101.31 30.12,53.24"/>
-        <lane id="E7_1" index="1" speed="13.89" length="48.06" shape="33.63,101.28 33.32,53.24"/>
+    <edge id="E7" from="J18" to="carprice_jun_05" priority="-1" shape="34.58,112.31 34.89,48.45">
+        <lane id="E7_0" index="0" speed="13.89" length="48.02" shape="29.83,101.25 30.07,53.24"/>
+        <lane id="E7_1" index="1" speed="13.89" length="48.02" shape="33.03,101.26 33.27,53.24"/>
     </edge>
-    <edge id="E7.63" from="carprice_jun_05" to="carprice_01" priority="-1" shape="34.89,48.45 34.65,11.04">
-        <lane id="E7.63_0" index="0" speed="13.89" length="23.98" shape="30.03,38.91 29.87,14.91"/>
-        <lane id="E7.63_1" index="1" speed="13.89" length="23.98" shape="33.23,38.89 33.07,14.94"/>
+    <edge id="E7.63" from="carprice_jun_05" to="carprice_01" priority="-1" shape="34.79,48.35 34.77,46.11 34.65,11.04">
+        <lane id="E7.63_0" index="0" speed="13.89" length="23.87" shape="29.94,38.78 29.86,14.91"/>
+        <lane id="E7.63_1" index="1" speed="13.89" length="23.87" shape="33.15,38.82 33.06,14.94"/>
     </edge>
     <edge id="E8" from="alajo_jun_06" to="alajo_jun_09" priority="-1" spreadType="roadCenter" shape="-111.72,-1.69 -82.68,-1.65">
         <lane id="E8_0" index="0" speed="13.89" length="14.78" shape="-104.79,-9.68 -90.01,-9.66"/>
@@ -448,15 +523,10 @@
         <phase duration="42" state="rrrGGrrr"/>
         <phase duration="3"  state="rrryyrrr"/>
     </tlLogic>
-    <tlLogic id="carprice_jun_tls_02" type="static" programID="0" offset="0">
-        <phase duration="82" state="GGG"/>
-        <phase duration="3"  state="yyy"/>
-        <phase duration="5"  state="rrr"/>
-    </tlLogic>
     <tlLogic id="carprice_jun_tls_03" type="static" programID="0" offset="0">
-        <phase duration="82" state="GGG"/>
+        <phase duration="67" state="GGG"/>
         <phase duration="3"  state="yyy"/>
-        <phase duration="5"  state="rrr"/>
+        <phase duration="20" state="rrr"/>
     </tlLogic>
     <tlLogic id="carprice_tls_01" type="static" programID="0" offset="0">
         <phase duration="37" state="rGGGr"/>
@@ -469,7 +539,7 @@
 
     <junction id="J15" type="dead_end" x="-301.67" y="0.04" incLanes="-E6.237.267_0 -E6.237.267_1 -E6.237.267_2" intLanes="" shape="-301.77,-9.26 -301.64,9.64 -301.67,0.04"/>
     <junction id="J16" type="dead_end" x="280.40" y="-1.76" incLanes="E6.236.118_0 E6.236.118_1 E6.236.118_2" intLanes="" shape="280.40,-1.76 280.40,7.84 280.41,-11.36"/>
-    <junction id="J18" type="dead_end" x="34.40" y="101.28" incLanes="-E7.49_0 -E7.49_1" intLanes="" shape="28.83,101.32 40.80,101.28 34.40,101.28"/>
+    <junction id="J18" type="dead_end" x="34.40" y="101.28" incLanes="-E7.49_0 -E7.49_1" intLanes="" shape="28.23,101.25 40.80,101.28 34.40,101.28"/>
     <junction id="J25" type="dead_end" x="217.00" y="103.77" incLanes="-E9.38_0" intLanes="" shape="217.00,103.77 220.20,103.77 217.00,103.77"/>
     <junction id="J27" type="dead_end" x="392.06" y="44.37" incLanes="E5_0" intLanes="" shape="392.06,44.37 392.06,41.17 392.06,44.37"/>
     <junction id="J74" type="dead_end" x="-261.31" y="46.98" incLanes="" intLanes="" shape="-260.54,47.95 -264.50,42.92"/>
@@ -510,7 +580,7 @@
         <request index="3" response="00000" foes="00000" cont="0"/>
         <request index="4" response="00000" foes="00000" cont="0"/>
     </junction>
-    <junction id="alajo_jun_06" type="traffic_light" x="-116.42" y="-9.24" incLanes="-E6.237_0 -E6.237_1 -E6.237_2 E10.24_0 E10.24_1 E6.237.165.28_0 E6.237.165.28_1 E6.237.165.28_2" intLanes=":alajo_jun_06_0_0 :alajo_jun_06_0_1 :alajo_jun_06_0_2 :alajo_jun_06_3_0 :alajo_jun_06_3_1 :alajo_jun_06_5_0 :alajo_jun_06_5_1 :alajo_jun_06_5_2" shape="-104.81,7.87 -104.79,-11.28 -107.00,-11.73 -107.78,-12.29 -108.34,-13.07 -108.67,-14.08 -108.78,-15.31 -115.18,-15.31 -115.97,-13.08 -116.97,-12.30 -118.36,-11.74 -120.14,-11.39 -122.32,-11.27 -122.17,7.84">
+    <junction id="alajo_jun_06" type="traffic_light" x="-116.42" y="-9.24" incLanes="-E6.237_0 -E6.237_1 -E6.237_2 E10.24_0 E10.24_1 E6.237.165.28_0 E6.237.165.28_1 E6.237.165.28_2" intLanes=":alajo_jun_06_0_0 :alajo_jun_06_0_1 :alajo_jun_06_0_2 :alajo_jun_06_3_0 :alajo_jun_06_3_1 :alajo_jun_06_5_0 :alajo_jun_06_5_1 :alajo_jun_06_5_2" shape="-104.81,7.90 -104.79,-11.28 -107.00,-11.73 -107.78,-12.29 -108.34,-13.07 -108.67,-14.08 -108.78,-15.31 -115.18,-15.31 -115.97,-13.08 -116.97,-12.30 -118.36,-11.74 -120.14,-11.39 -122.32,-11.27 -122.17,7.84">
         <request index="0" response="00000000" foes="00011000" cont="0"/>
         <request index="1" response="00000000" foes="00011000" cont="0"/>
         <request index="2" response="00000000" foes="00011000" cont="0"/>
@@ -535,7 +605,7 @@
         <request index="2" response="0000" foes="0001" cont="0"/>
         <request index="3" response="0000" foes="0001" cont="0"/>
     </junction>
-    <junction id="alajo_jun_10" type="priority" x="-32.38" y="-4.53" incLanes="E8.29_0 E8.29_1 E8.29_2" intLanes=":alajo_jun_10_0_0 :alajo_jun_10_0_1 :alajo_jun_10_0_2 :alajo_jun_10_0_3 :alajo_jun_10_0_4" shape="-3.90,-1.48 -3.73,-17.48 -11.23,-17.08 -16.70,-15.93 -21.16,-14.40 -25.62,-12.85 -31.09,-11.66 -38.60,-11.19 -38.61,-1.59">
+    <junction id="alajo_jun_10" type="priority" x="-32.38" y="-4.53" incLanes="E8.29_0 E8.29_1 E8.29_2" intLanes=":alajo_jun_10_0_0 :alajo_jun_10_0_1 :alajo_jun_10_0_2 :alajo_jun_10_0_3 :alajo_jun_10_0_4" shape="-10.19,-2.46 -10.15,-18.46 -16.34,-17.93 -20.79,-16.59 -27.96,-13.07 -32.41,-11.72 -38.60,-11.19 -38.61,-1.59">
         <request index="0" response="00000" foes="00000" cont="0"/>
         <request index="1" response="00000" foes="00000" cont="0"/>
         <request index="2" response="00000" foes="00000" cont="0"/>
@@ -546,7 +616,7 @@
         <request index="0" response="00" foes="00" cont="0"/>
         <request index="1" response="00" foes="00" cont="0"/>
     </junction>
-    <junction id="carprice_01" type="traffic_light" x="38.90" y="-1.24" incLanes="E7.63_0 E7.63_1 -E6.55.134_0 -E6.55.134_1 -E6.55.134_2 -E6.55.134_3 E6.172_0 E6.172_1 E6.172_2 E6.172_3 E6.172_4" intLanes=":carprice_01_0_0 :carprice_01_1_0 :carprice_01_2_0 :carprice_01_3_0 :carprice_01_3_1 :carprice_01_3_2 :carprice_01_6_0 :carprice_01_6_1 :carprice_01_6_2 :carprice_01_9_0 :carprice_01_9_1" shape="28.27,14.90 41.11,15.01 41.57,12.80 42.13,12.03 42.90,11.48 43.90,11.15 45.11,11.04 45.10,-11.36 40.55,-11.82 37.30,-12.96 34.70,-14.44 32.11,-15.92 28.86,-17.05 24.31,-17.49 24.26,8.09 26.47,8.85 27.25,9.79 27.81,11.12 28.15,12.82">
+    <junction id="carprice_01" type="traffic_light" x="38.90" y="-1.24" incLanes="E7.63_0 E7.63_1 -E6.55.134_0 -E6.55.134_1 -E6.55.134_2 -E6.55.134_3 E6.172_0 E6.172_1 E6.172_2 E6.172_3 E6.172_4" intLanes=":carprice_01_0_0 :carprice_01_1_0 :carprice_01_2_0 :carprice_01_3_0 :carprice_01_3_1 :carprice_01_3_2 :carprice_01_6_0 :carprice_01_6_1 :carprice_01_6_2 :carprice_01_9_0 :carprice_01_9_1" shape="28.26,14.90 41.11,15.01 41.57,12.81 42.13,12.03 42.90,11.48 43.90,11.15 45.12,11.04 45.18,-18.15 24.36,-18.41 24.27,8.34 26.48,9.07 27.25,9.99 27.81,11.26 28.15,12.90">
         <request index="0"  response="00000111000" foes="00000111000" cont="0"/>
         <request index="1"  response="11111111000" foes="11111111000" cont="0"/>
         <request index="2"  response="00000000000" foes="11000000000" cont="0"/>
@@ -570,7 +640,7 @@
         <request index="1" response="000" foes="000" cont="0"/>
         <request index="2" response="000" foes="000" cont="0"/>
     </junction>
-    <junction id="carprice_jun_03" type="traffic_light" x="148.09" y="-1.83" incLanes="E6.236_0 E6.236_1 E6.236_2" intLanes=":carprice_jun_03_0_0 :carprice_jun_03_0_1 :carprice_jun_03_0_2" shape="171.61,-1.82 171.62,-11.42 156.47,-11.43 156.48,-1.83">
+    <junction id="carprice_jun_03" type="traffic_light" x="148.09" y="-1.83" incLanes="E6.236_0 E6.236_1 E6.236_2" intLanes=":carprice_jun_03_0_0 :carprice_jun_03_0_1 :carprice_jun_03_0_2" shape="171.61,-1.82 171.62,-11.42 156.14,-11.41 156.21,-1.81">
         <request index="0" response="000" foes="000" cont="0"/>
         <request index="1" response="000" foes="000" cont="0"/>
         <request index="2" response="000" foes="000" cont="0"/>
@@ -582,16 +652,16 @@
         <request index="3" response="00000" foes="00001" cont="0"/>
         <request index="4" response="00000" foes="00001" cont="0"/>
     </junction>
-    <junction id="carprice_jun_05" type="traffic_light" x="36.79" y="48.17" incLanes="E7_0 E7_1 -E4_0 -E7_0 -E7_1" intLanes=":carprice_jun_05_0_0 :carprice_jun_05_0_1 :carprice_jun_05_9_0 :carprice_jun_05_3_0 :carprice_jun_05_4_0 :carprice_jun_05_4_1 :carprice_jun_05_6_0 :carprice_jun_05_7_0 :carprice_jun_05_7_1" shape="28.52,53.24 40.80,53.24 41.25,51.02 41.82,50.24 42.60,49.68 43.62,49.35 44.86,49.24 44.86,42.84 42.64,42.40 41.87,41.84 41.32,41.06 41.00,40.06 40.90,38.84 28.43,38.92">
-        <request index="0" response="000000000" foes="000110000" cont="0"/>
-        <request index="1" response="000000000" foes="000110000" cont="0"/>
-        <request index="2" response="111000000" foes="111110000" cont="1"/>
-        <request index="3" response="110000000" foes="110000000" cont="0"/>
-        <request index="4" response="110000111" foes="110000111" cont="0"/>
-        <request index="5" response="110000111" foes="110000111" cont="0"/>
-        <request index="6" response="000000000" foes="000000100" cont="0"/>
-        <request index="7" response="000000000" foes="000111100" cont="0"/>
-        <request index="8" response="000000000" foes="000111100" cont="0"/>
+    <junction id="carprice_jun_05" type="traffic_light" x="36.79" y="48.17" incLanes="-E4_0 -E7_0 -E7_1 E7_0 E7_1" intLanes=":carprice_jun_05_0_0 :carprice_jun_05_1_0 :carprice_jun_05_1_1 :carprice_jun_05_3_0 :carprice_jun_05_4_0 :carprice_jun_05_4_1 :carprice_jun_05_6_0 :carprice_jun_05_6_1 :carprice_jun_05_9_0" shape="28.47,53.24 40.80,53.24 41.25,51.02 41.82,50.24 42.60,49.68 43.62,49.35 44.86,49.24 44.86,42.84 42.64,42.38 41.87,41.81 41.32,41.02 41.00,39.99 40.90,38.74 28.34,38.78">
+        <request index="0" response="000110000" foes="000110000" cont="0"/>
+        <request index="1" response="111110000" foes="111110000" cont="0"/>
+        <request index="2" response="111110000" foes="111110000" cont="0"/>
+        <request index="3" response="000000000" foes="100000000" cont="0"/>
+        <request index="4" response="000000000" foes="100000111" cont="0"/>
+        <request index="5" response="000000000" foes="100000111" cont="0"/>
+        <request index="6" response="000000000" foes="000000110" cont="0"/>
+        <request index="7" response="000000000" foes="000000110" cont="0"/>
+        <request index="8" response="000111000" foes="000111110" cont="1"/>
     </junction>
     <junction id="carprice_jun_06" type="priority" x="218.70" y="46.69" incLanes="E9_0 -E5_0 -E9_0 E4_0" intLanes=":carprice_jun_06_0_0 :carprice_jun_06_1_0 :carprice_jun_06_12_0 :carprice_jun_06_3_0 :carprice_jun_06_4_0 :carprice_jun_06_5_0 :carprice_jun_06_6_0 :carprice_jun_06_7_0 :carprice_jun_06_13_0 :carprice_jun_06_9_0 :carprice_jun_06_10_0 :carprice_jun_06_11_0" shape="213.80,53.24 220.20,53.24 220.64,50.09 221.20,48.99 221.98,48.20 222.98,47.73 224.20,47.57 224.20,41.17 221.98,40.73 221.20,40.17 220.64,39.39 220.31,38.39 220.20,37.17 213.80,37.17 213.36,40.32 212.80,41.42 212.02,42.21 211.02,42.68 209.80,42.84 209.80,49.24 212.02,49.68 212.80,50.24 213.36,51.02 213.69,52.02">
         <request index="0"  response="000000000000" foes="000100010000" cont="0"/>
@@ -608,13 +678,13 @@
         <request index="11" response="000110011110" foes="000110011110" cont="0"/>
     </junction>
 
-    <junction id=":carprice_jun_05_9_0" type="internal" x="33.52" y="52.14" incLanes=":carprice_jun_05_2_0 -E7_0 -E7_1" intLanes=":carprice_jun_05_4_0 :carprice_jun_05_4_1 :carprice_jun_05_6_0 :carprice_jun_05_7_0 :carprice_jun_05_7_1"/>
+    <junction id=":carprice_jun_05_9_0" type="internal" x="33.52" y="51.90" incLanes=":carprice_jun_05_8_0 -E7_0 -E7_1" intLanes=":carprice_jun_05_1_0 :carprice_jun_05_1_1 :carprice_jun_05_3_0 :carprice_jun_05_4_0 :carprice_jun_05_4_1"/>
     <junction id=":carprice_jun_06_12_0" type="internal" x="216.77" y="48.64" incLanes=":carprice_jun_06_2_0 -E9_0" intLanes=":carprice_jun_06_4_0 :carprice_jun_06_5_0 :carprice_jun_06_6_0 :carprice_jun_06_7_0 :carprice_jun_06_10_0 :carprice_jun_06_11_0"/>
     <junction id=":carprice_jun_06_13_0" type="internal" x="217.23" y="41.77" incLanes=":carprice_jun_06_8_0 E9_0" intLanes=":carprice_jun_06_0_0 :carprice_jun_06_1_0 :carprice_jun_06_4_0 :carprice_jun_06_5_0 :carprice_jun_06_10_0 :carprice_jun_06_11_0"/>
 
-    <connection from="-E4" to="-E7.49" fromLane="0" toLane="0" uncontrolled="1" via=":carprice_jun_05_3_0" dir="r" state="m"/>
-    <connection from="-E4" to="E7.63" fromLane="0" toLane="0" uncontrolled="1" via=":carprice_jun_05_4_0" dir="l" state="m"/>
-    <connection from="-E4" to="E7.63" fromLane="0" toLane="1" uncontrolled="1" via=":carprice_jun_05_4_1" dir="l" state="m"/>
+    <connection from="-E4" to="-E7.49" fromLane="0" toLane="0" uncontrolled="1" via=":carprice_jun_05_0_0" dir="r" state="m"/>
+    <connection from="-E4" to="E7.63" fromLane="0" toLane="0" uncontrolled="1" via=":carprice_jun_05_1_0" dir="l" state="m"/>
+    <connection from="-E4" to="E7.63" fromLane="0" toLane="1" uncontrolled="1" via=":carprice_jun_05_1_1" dir="l" state="m"/>
     <connection from="-E5" to="-E9.38" fromLane="0" toLane="0" via=":carprice_jun_06_3_0" dir="r" state="m"/>
     <connection from="-E5" to="-E4" fromLane="0" toLane="0" via=":carprice_jun_06_4_0" dir="s" state="m"/>
     <connection from="-E5" to="E9.52" fromLane="0" toLane="0" via=":carprice_jun_06_5_0" dir="l" state="m"/>
@@ -636,9 +706,9 @@
     <connection from="-E6.237.233" to="-E6.237.267" fromLane="0" toLane="0" via=":alajo_jun_01_2_0" tl="alajo_jun_tls_01" linkIndex="2" dir="s" state="O"/>
     <connection from="-E6.237.233" to="-E6.237.267" fromLane="1" toLane="1" via=":alajo_jun_01_2_1" tl="alajo_jun_tls_01" linkIndex="3" dir="s" state="O"/>
     <connection from="-E6.237.233" to="-E6.237.267" fromLane="2" toLane="2" via=":alajo_jun_01_2_2" tl="alajo_jun_tls_01" linkIndex="4" dir="s" state="O"/>
-    <connection from="-E6.55" to="-E6.55.82" fromLane="0" toLane="0" via=":carprice_jun_02_0_0" tl="carprice_jun_tls_02" linkIndex="0" dir="s" state="O"/>
-    <connection from="-E6.55" to="-E6.55.82" fromLane="1" toLane="1" via=":carprice_jun_02_0_1" tl="carprice_jun_tls_02" linkIndex="1" dir="s" state="O"/>
-    <connection from="-E6.55" to="-E6.55.82" fromLane="2" toLane="2" via=":carprice_jun_02_0_2" tl="carprice_jun_tls_02" linkIndex="2" dir="s" state="O"/>
+    <connection from="-E6.55" to="-E6.55.82" fromLane="0" toLane="0" uncontrolled="1" via=":carprice_jun_02_0_0" dir="s" state="M"/>
+    <connection from="-E6.55" to="-E6.55.82" fromLane="1" toLane="1" uncontrolled="1" via=":carprice_jun_02_0_1" dir="s" state="M"/>
+    <connection from="-E6.55" to="-E6.55.82" fromLane="2" toLane="2" uncontrolled="1" via=":carprice_jun_02_0_2" dir="s" state="M"/>
     <connection from="-E6.55.134" to="-E7" fromLane="0" toLane="0" via=":carprice_01_2_0" tl="carprice_tls_01" linkIndex="1" dir="r" state="O"/>
     <connection from="-E6.55.134" to="-E6.237" fromLane="1" toLane="0" via=":carprice_01_3_0" tl="carprice_tls_01" linkIndex="2" dir="s" state="O"/>
     <connection from="-E6.55.134" to="-E6.237" fromLane="2" toLane="1" via=":carprice_01_3_1" tl="carprice_tls_01" linkIndex="2" dir="s" state="O"/>
@@ -647,9 +717,9 @@
     <connection from="-E6.55.82" to="-E6.55.134" fromLane="1" toLane="1" via=":carprice_jun_01_0_1" dir="s" state="M"/>
     <connection from="-E6.55.82" to="-E6.55.134" fromLane="1" toLane="2" via=":carprice_jun_01_0_2" dir="s" state="M"/>
     <connection from="-E6.55.82" to="-E6.55.134" fromLane="2" toLane="3" via=":carprice_jun_01_0_3" dir="s" state="M"/>
-    <connection from="-E7" to="E4" fromLane="0" toLane="0" uncontrolled="1" via=":carprice_jun_05_6_0" dir="r" state="M"/>
-    <connection from="-E7" to="-E7.49" fromLane="0" toLane="0" uncontrolled="1" via=":carprice_jun_05_7_0" dir="s" state="M"/>
-    <connection from="-E7" to="-E7.49" fromLane="1" toLane="1" uncontrolled="1" via=":carprice_jun_05_7_1" dir="s" state="M"/>
+    <connection from="-E7" to="E4" fromLane="0" toLane="0" uncontrolled="1" via=":carprice_jun_05_3_0" dir="r" state="M"/>
+    <connection from="-E7" to="-E7.49" fromLane="0" toLane="0" uncontrolled="1" via=":carprice_jun_05_4_0" dir="s" state="M"/>
+    <connection from="-E7" to="-E7.49" fromLane="1" toLane="1" uncontrolled="1" via=":carprice_jun_05_4_1" dir="s" state="M"/>
     <connection from="-E9" to="E5" fromLane="0" toLane="0" via=":carprice_jun_06_6_0" dir="r" state="M"/>
     <connection from="-E9" to="-E9.38" fromLane="0" toLane="0" via=":carprice_jun_06_7_0" dir="s" state="M"/>
     <connection from="-E9" to="-E4" fromLane="0" toLane="0" via=":carprice_jun_06_8_0" dir="l" state="m"/>
@@ -693,9 +763,9 @@
     <connection from="E6.237.165.74" to="E6.237.165.28" fromLane="0" toLane="0" via=":alajo_jun_04_2_0" dir="s" state="M"/>
     <connection from="E6.237.165.74" to="E6.237.165.28" fromLane="1" toLane="1" via=":alajo_jun_04_2_1" dir="s" state="M"/>
     <connection from="E6.237.165.74" to="E6.237.165.28" fromLane="2" toLane="2" via=":alajo_jun_04_2_2" dir="s" state="M"/>
-    <connection from="E7" to="E7.63" fromLane="0" toLane="0" uncontrolled="1" via=":carprice_jun_05_0_0" dir="s" state="M"/>
-    <connection from="E7" to="E7.63" fromLane="1" toLane="1" uncontrolled="1" via=":carprice_jun_05_0_1" dir="s" state="M"/>
-    <connection from="E7" to="E4" fromLane="1" toLane="0" uncontrolled="1" via=":carprice_jun_05_2_0" dir="l" state="m"/>
+    <connection from="E7" to="E7.63" fromLane="0" toLane="0" uncontrolled="1" via=":carprice_jun_05_6_0" dir="s" state="M"/>
+    <connection from="E7" to="E7.63" fromLane="1" toLane="1" uncontrolled="1" via=":carprice_jun_05_6_1" dir="s" state="M"/>
+    <connection from="E7" to="E4" fromLane="1" toLane="0" uncontrolled="1" via=":carprice_jun_05_8_0" dir="l" state="m"/>
     <connection from="E7.63" to="-E6.237" fromLane="0" toLane="0" via=":carprice_01_0_0" tl="carprice_tls_01" linkIndex="0" dir="r" state="o"/>
     <connection from="E7.63" to="E6.236" fromLane="1" toLane="2" via=":carprice_01_1_0" tl="carprice_tls_01" linkIndex="0" dir="l" state="o"/>
     <connection from="E8" to="E8.29" fromLane="0" toLane="0" via=":alajo_jun_09_1_0" dir="s" state="M"/>
@@ -788,16 +858,16 @@
     <connection from=":carprice_jun_04_2" to="-E6.55" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":carprice_jun_04_2" to="-E6.55" fromLane="1" toLane="1" dir="s" state="M"/>
     <connection from=":carprice_jun_04_2" to="-E6.55" fromLane="2" toLane="2" dir="s" state="M"/>
-    <connection from=":carprice_jun_05_0" to="E7.63" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":carprice_jun_05_0" to="E7.63" fromLane="1" toLane="1" dir="s" state="M"/>
-    <connection from=":carprice_jun_05_2" to="E4" fromLane="0" toLane="0" via=":carprice_jun_05_9_0" dir="l" state="m"/>
+    <connection from=":carprice_jun_05_0" to="-E7.49" fromLane="0" toLane="0" dir="r" state="M"/>
+    <connection from=":carprice_jun_05_1" to="E7.63" fromLane="0" toLane="0" dir="l" state="M"/>
+    <connection from=":carprice_jun_05_1" to="E7.63" fromLane="1" toLane="1" dir="l" state="M"/>
+    <connection from=":carprice_jun_05_3" to="E4" fromLane="0" toLane="0" dir="r" state="M"/>
+    <connection from=":carprice_jun_05_4" to="-E7.49" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_jun_05_4" to="-E7.49" fromLane="1" toLane="1" dir="s" state="M"/>
+    <connection from=":carprice_jun_05_6" to="E7.63" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_jun_05_6" to="E7.63" fromLane="1" toLane="1" dir="s" state="M"/>
+    <connection from=":carprice_jun_05_8" to="E4" fromLane="0" toLane="0" via=":carprice_jun_05_9_0" dir="l" state="m"/>
     <connection from=":carprice_jun_05_9" to="E4" fromLane="0" toLane="0" dir="l" state="M"/>
-    <connection from=":carprice_jun_05_3" to="-E7.49" fromLane="0" toLane="0" dir="r" state="M"/>
-    <connection from=":carprice_jun_05_4" to="E7.63" fromLane="0" toLane="0" dir="l" state="M"/>
-    <connection from=":carprice_jun_05_4" to="E7.63" fromLane="1" toLane="1" dir="l" state="M"/>
-    <connection from=":carprice_jun_05_6" to="E4" fromLane="0" toLane="0" dir="r" state="M"/>
-    <connection from=":carprice_jun_05_7" to="-E7.49" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":carprice_jun_05_7" to="-E7.49" fromLane="1" toLane="1" dir="s" state="M"/>
     <connection from=":carprice_jun_06_0" to="-E4" fromLane="0" toLane="0" dir="r" state="M"/>
     <connection from=":carprice_jun_06_1" to="E9.52" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":carprice_jun_06_2" to="E5" fromLane="0" toLane="0" via=":carprice_jun_06_12_0" dir="l" state="m"/>
@@ -813,4 +883,80 @@
     <connection from=":carprice_jun_06_10" to="E5" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":carprice_jun_06_11" to="-E9.38" fromLane="0" toLane="0" dir="l" state="M"/>
 
+    <connection from=":J15_w0" to="E6.237.165" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E6.237.267" to=":J15_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":J16_w0" to="-E6" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E6.236.118" to=":J16_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":J18_w0" to="E7" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E7.49" to=":J18_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":J25_w0" to="E9" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E9.38" to=":J25_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":J27_w0" to="-E5" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E5" to=":J27_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":J74_w0" to="E19" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_01_w0" to="-E6.237.267" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E16" to=":alajo_jun_01_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E6.237.233" to=":alajo_jun_01_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_02_w0" to="E17" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_02_w0" to="E16" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E20" to=":alajo_jun_02_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E19" to=":alajo_jun_02_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_03_w0" to="E6.237.165.74" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_03_w0" to="-E6.237.233" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E6.237.195" to=":alajo_jun_03_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E6.237.165" to=":alajo_jun_03_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E17" to=":alajo_jun_03_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_04_w0" to="E6.237.165.28" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_04_w0" to="E12" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E6.237.165.74" to=":alajo_jun_04_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_05_w0" to="-E6.237.195" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_05_w0" to="E13" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E6.237.165" to=":alajo_jun_05_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_06_w0" to="E8" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_06_w0" to="-E6.237.165" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E6.237" to=":alajo_jun_06_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E10.24" to=":alajo_jun_06_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E6.237.165.28" to=":alajo_jun_06_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_07_w0" to="E10.24" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_07_w0" to="E11" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E10" to=":alajo_jun_07_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_08_w0" to="E10" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E12" to=":alajo_jun_08_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_09_w0" to="E8.29" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E11" to=":alajo_jun_09_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E8" to=":alajo_jun_09_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_10_w0" to="E6.172" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E8.29" to=":alajo_jun_10_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":alajo_jun_11_w0" to="E20" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E13" to=":alajo_jun_11_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_01_w0" to="-E7" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_01_w0" to="E6.236" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_01_w0" to="-E6.237" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E6.55.134" to=":carprice_01_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E6.172" to=":carprice_01_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E7.63" to=":carprice_01_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_jun_01_w0" to="-E6.55.134" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E6.55.82" to=":carprice_jun_01_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_jun_02_w0" to="-E6.55.82" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E6.55" to=":carprice_jun_02_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_jun_03_w0" to="E6.236.118" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E6.236" to=":carprice_jun_03_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_jun_04_w0" to="-E9" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_jun_04_w0" to="-E6.55" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E9.52" to=":carprice_jun_04_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E6" to=":carprice_jun_04_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_jun_05_w0" to="-E7.49" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_jun_05_w0" to="E4" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_jun_05_w0" to="E7.63" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E4" to=":carprice_jun_05_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E7" to=":carprice_jun_05_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E7" to=":carprice_jun_05_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_jun_06_w0" to="-E9.38" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_jun_06_w0" to="E5" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_jun_06_w0" to="E9.52" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":carprice_jun_06_w0" to="-E4" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E9" to=":carprice_jun_06_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E5" to=":carprice_jun_06_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="-E9" to=":carprice_jun_06_w0" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="E4" to=":carprice_jun_06_w0" fromLane="0" toLane="0" dir="s" state="M"/>
 </net>

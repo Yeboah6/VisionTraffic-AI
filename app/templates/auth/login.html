@@ -7,25 +7,40 @@
             <div class="logo">
                 <h1 class="text-2xl font-['Delius'] text-white">VisionTraffic AI</h1>
             </div>
-            <h2>Welcome Back</h2>
-            <p>Sign-in to access your dashboard</p>
+            <h2 id="login-title">Welcome Back</h2>
+            <p id="login-subtitle">Sign-in to access your dashboard</p>
         </div>
 
-        <!-- {% with messages = get_flashed_messages(with_categories=true) %}
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
+                <div id="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
             {% endif %}
-        {% endwith %} -->
+        {% endwith %}
         
-        <form method="POST">
+        <!-- Error Messages (for AJAX) -->
+        <div id="login-errors" class="hidden" style="background-color: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+            <div style="display: flex; align-items: start;">
+                <i class="fas fa-exclamation-circle" style="margin-right: 8px; margin-top: 2px;"></i>
+                <div>
+                    <p style="font-weight: 500; margin-bottom: 4px;">Error:</p>
+                    <ul id="login-error-list" style="list-style: disc; padding-left: 20px;"></ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Login Form (Step 1: Username & Password) -->
+        <form method="POST" id="login-form">
             
             <div class="form-group">
-                <label for="email">Username</label>
+                <label for="username">Username</label>
                 <div class="input-wrapper">
                     <i class="fas fa-envelope"></i>
-                    <input type="text" class="form-control" name="username" placeholder="Enter Username" value="{{email}}">
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Enter Username" value="{{email}}" required>
                 </div>
             </div>
             
@@ -33,24 +48,335 @@
                 <label for="password">Password</label>
                 <div class="input-wrapper">
                     <i class="fas fa-lock"></i>
-                    <input type="password" name="password" class="form-control" placeholder="••••••••">
+                    <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
                 </div>
             </div>
             
             <div class="remember-forgot">
                 <div class="remember-me">
-                    <input type="checkbox" name="remember">
+                    <input type="checkbox" name="remember" id="remember">
                     <label for="remember">Remember me</label>
                 </div>
                 <a href="/forgot-password" class="forgot-password">Forgot password?</a>
             </div>
             
-            <button type="submit" class="btn btn-primary">Login</button>
+            <button type="submit" class="btn btn-primary" id="login-btn">
+                <span id="login-btn-text">Login</span>
+                <span id="login-btn-loading" class="hidden">
+                    <i class="fas fa-spinner fa-spin"></i> Logging in...
+                </span>
+            </button>
             
             <div class="login-footer">
                 <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Sign up</a></p>
             </div>
         </form>
+        
+        <!-- 2FA Verification Form (Step 2: Hidden by default) -->
+        <div id="2fa-verification-section" class="hidden">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; margin-bottom: 16px;">
+                    <i class="fas fa-shield-alt" style="font-size: 28px; color: white;"></i>
+                </div>
+                <p style="color: #64748b; font-size: 14px; margin-top: 8px;">
+                    Enter the 6-digit code from your authenticator app
+                </p>
+            </div>
+            
+            <form id="2fa-verify-form">
+                <!-- Error Messages for 2FA -->
+                <div id="2fa-errors" class="hidden" style="background-color: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: start;">
+                        <i class="fas fa-exclamation-circle" style="margin-right: 8px; margin-top: 2px;"></i>
+                        <div>
+                            <p style="font-weight: 500; margin-bottom: 4px;">Error:</p>
+                            <ul id="2fa-error-list" style="list-style: disc; padding-left: 20px;"></ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="2fa-token">Verification Code</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-key"></i>
+                        <input type="text" 
+                               class="form-control" 
+                               id="2fa-token" 
+                               name="token" 
+                               placeholder="000000" 
+                               maxlength="6" 
+                               pattern="[0-9]{6}"
+                               autocomplete="off"
+                               style="text-align: center; font-size: 24px; letter-spacing: 8px; font-weight: 600;"
+                               required>
+                    </div>
+                    <p style="color: #64748b; font-size: 12px; margin-top: 8px; text-align: center;">
+                        Open your authenticator app to get the code
+                    </p>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="2fa-verify-btn">
+                    <span id="2fa-verify-text">
+                        <i class="fas fa-check-circle"></i> Verify & Login
+                    </span>
+                    <span id="2fa-verify-loading" class="hidden">
+                        <i class="fas fa-spinner fa-spin"></i> Verifying...
+                    </span>
+                </button>
+                
+                <button type="button" class="btn btn-secondary" id="2fa-cancel-btn" style="margin-top: 12px; background-color: #f1f5f9; color: #475569; width: 100%;">
+                    <i class="fas fa-arrow-left"></i> Back to Login
+                </button>
+            </form>
+        </div>
     </div>
+
+    <style>
+        .hidden {
+            display: none !important;
+        }
+        
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+        
+        /* Auto-submit on 6 digits */
+        #2fa-token:valid {
+            border-color: #10b981;
+        }
+        
+        /* Loading spinner animation */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('login-form');
+            const loginBtn = document.getElementById('login-btn');
+            const loginBtnText = document.getElementById('login-btn-text');
+            const loginBtnLoading = document.getElementById('login-btn-loading');
+            const loginErrors = document.getElementById('login-errors');
+            const loginErrorList = document.getElementById('login-error-list');
+            
+            const twoFASection = document.getElementById('2fa-verification-section');
+            const twoFAForm = document.getElementById('2fa-verify-form');
+            const twoFAVerifyBtn = document.getElementById('2fa-verify-btn');
+            const twoFAVerifyText = document.getElementById('2fa-verify-text');
+            const twoFAVerifyLoading = document.getElementById('2fa-verify-loading');
+            const twoFACancelBtn = document.getElementById('2fa-cancel-btn');
+            const twoFAErrors = document.getElementById('2fa-errors');
+            const twoFAErrorList = document.getElementById('2fa-error-list');
+            const twoFAToken = document.getElementById('2fa-token');
+            
+            const loginTitle = document.getElementById('login-title');
+            const loginSubtitle = document.getElementById('login-subtitle');
+            
+            // Hide flash messages function
+            function hideFlashMessages() {
+                const flashMessages = document.getElementById('flash-messages');
+                if (flashMessages) {
+                    flashMessages.style.display = 'none';
+                }
+            }
+            
+            // Show login errors
+            function showLoginErrors(errors) {
+                hideFlashMessages();
+                loginErrorList.innerHTML = '';
+                errors.forEach(error => {
+                    const li = document.createElement('li');
+                    li.textContent = error;
+                    loginErrorList.appendChild(li);
+                });
+                loginErrors.classList.remove('hidden');
+            }
+            
+            // Hide login errors
+            function hideLoginErrors() {
+                loginErrors.classList.add('hidden');
+                loginErrorList.innerHTML = '';
+            }
+            
+            // Show 2FA errors
+            function show2FAErrors(errors) {
+                twoFAErrorList.innerHTML = '';
+                errors.forEach(error => {
+                    const li = document.createElement('li');
+                    li.textContent = error;
+                    twoFAErrorList.appendChild(li);
+                });
+                twoFAErrors.classList.remove('hidden');
+            }
+            
+            // Hide 2FA errors
+            function hide2FAErrors() {
+                twoFAErrors.classList.add('hidden');
+                twoFAErrorList.innerHTML = '';
+            }
+            
+            // Show 2FA section
+            function show2FASection() {
+                loginForm.style.display = 'none';
+                twoFASection.classList.remove('hidden');
+                loginTitle.textContent = 'Two-Factor Authentication';
+                loginSubtitle.textContent = 'Enter your verification code';
+                hide2FAErrors();
+                
+                // Focus on token input
+                setTimeout(() => {
+                    twoFAToken.focus();
+                }, 100);
+            }
+            
+            // Show login section
+            function showLoginSection() {
+                loginForm.style.display = 'block';
+                twoFASection.classList.add('hidden');
+                loginTitle.textContent = 'Welcome Back';
+                loginSubtitle.textContent = 'Sign-in to access your dashboard';
+                twoFAForm.reset();
+                hide2FAErrors();
+            }
+            
+            // Handle login form submission
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                hideLoginErrors();
+                
+                loginBtn.disabled = true;
+                loginBtnText.classList.add('hidden');
+                loginBtnLoading.classList.remove('hidden');
+                
+                const formData = new FormData(loginForm);
+                
+                try {
+                    const response = await fetch('{{ url_for("auth.login") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: new URLSearchParams(formData)
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok && data.success) {
+                        if (data.requires_2fa) {
+                            // Show 2FA verification form
+                            show2FASection();
+                        } else {
+                            // Login successful, redirect
+                            window.location.href = data.redirect_url || '{{ url_for("signal.signals") }}';
+                        }
+                    } else {
+                        // Show error
+                        showLoginErrors([data.message || 'Login failed']);
+                    }
+                    
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showLoginErrors(['Network error. Please check your connection and try again.']);
+                } finally {
+                    loginBtn.disabled = false;
+                    loginBtnText.classList.remove('hidden');
+                    loginBtnLoading.classList.add('hidden');
+                }
+            });
+            
+            // Handle 2FA verification
+            twoFAForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                hide2FAErrors();
+                
+                twoFAVerifyBtn.disabled = true;
+                twoFAVerifyText.classList.add('hidden');
+                twoFAVerifyLoading.classList.remove('hidden');
+                
+                const token = twoFAToken.value.trim();
+                
+                try {
+                    const response = await fetch('{{ url_for("auth.verify_2fa_login") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ token: token })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok && data.success) {
+                        // Verification successful, redirect
+                        window.location.href = data.redirect_url || '{{ url_for("signal.signals") }}';
+                    } else {
+                        // Show error
+                        const errors = data.errors || [data.message || 'Verification failed'];
+                        show2FAErrors(errors);
+                        twoFAToken.value = '';
+                        twoFAToken.focus();
+                    }
+                    
+                } catch (error) {
+                    console.error('2FA verification error:', error);
+                    show2FAErrors(['Network error. Please try again.']);
+                } finally {
+                    twoFAVerifyBtn.disabled = false;
+                    twoFAVerifyText.classList.remove('hidden');
+                    twoFAVerifyLoading.classList.add('hidden');
+                }
+            });
+            
+            // Handle 2FA cancel
+            twoFACancelBtn.addEventListener('click', async function() {
+                try {
+                    await fetch('{{ url_for("auth.cancel_2fa") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                } catch (error) {
+                    console.error('Cancel 2FA error:', error);
+                }
+                
+                showLoginSection();
+            });
+            
+            // Auto-submit when 6 digits entered
+            twoFAToken.addEventListener('input', function() {
+                if (this.value.length === 6 && /^\d{6}$/.test(this.value)) {
+                    // Auto-submit after a short delay
+                    setTimeout(() => {
+                        if (this.value.length === 6) {
+                            twoFAForm.dispatchEvent(new Event('submit'));
+                        }
+                    }, 300);
+                }
+            });
+            
+            // Only allow numbers in 2FA input
+            twoFAToken.addEventListener('keypress', function(e) {
+                if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete') {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
 
 {% endblock %}
