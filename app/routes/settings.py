@@ -8,6 +8,7 @@ import qrcode
 import io
 import base64
 
+# Models
 from ..models.user import User
 
 settings_bp = Blueprint('settings', __name__)
@@ -15,13 +16,15 @@ settings_bp = Blueprint('settings', __name__)
 @settings_bp.route('/settings')
 @login_required
 def settings():
-    # now = datetime.now()
+    now = datetime.now()
     user = current_user
     teams = User.query.all()
     
     return render_template('settings/index.html',
                            user=user,
-                           teams=teams
+                           teams=teams,
+                           current_date=now.strftime("%B %d, %Y"), 
+                           current_time=now.strftime("%I:%M %p")
                            )
     
 def validate_email(email):

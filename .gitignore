@@ -4,3 +4,4 @@ __pycache__/
 instance/
 logs/
 data.csv
+simple_q_table.json

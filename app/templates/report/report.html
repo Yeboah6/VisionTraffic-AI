@@ -175,6 +175,37 @@
             </div>
         </div>
 
+        <!-- NEW: Vehicle Type Distribution Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Vehicle Type Breakdown Chart -->
+            <div class="card shadow-sm hover:shadow-md transition-shadow">
+                <div class="p-4 border-b bg-gradient-to-r from-slate-50 to-white">
+                    <h2 class="font-semibold text-slate-800 flex items-center">
+                        <i class="ri-roadster-line text-primary mr-2"></i>
+                        Vehicle Type Breakdown
+                    </h2>
+                </div>
+                <div class="p-4">
+                    <div id="vehicleTypeChart" class="h-[300px]"></div>
+                </div>
+            </div>
+
+            <!-- Vehicle Type Stats -->
+            <div class="card shadow-sm hover:shadow-md transition-shadow">
+                <div class="p-4 border-b bg-gradient-to-r from-slate-50 to-white">
+                    <h2 class="font-semibold text-slate-800 flex items-center">
+                        <i class="ri-list-check text-primary mr-2"></i>
+                        Vehicle Type Statistics
+                    </h2>
+                </div>
+                <div class="p-4">
+                    <div id="vehicleTypeStats" class="space-y-3">
+                        <div class="text-center text-slate-500 py-8">Loading vehicle type data...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Emergency & Traffic Patterns Row -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <!-- Emergency Vehicle Activity -->
@@ -264,7 +295,7 @@ let currentFilters = {
 };
 
 // Initialize charts
-let trafficVolumeChart, congestionHeatmap, vehicleDistributionChart, emergencyActivityChart;
+let trafficVolumeChart, congestionHeatmap, vehicleDistributionChart, emergencyActivityChart, vehicleTypeChart;
 
 // Helper functions
 function getTodayDate() {
@@ -282,6 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
     congestionHeatmap = echarts.init(document.getElementById('congestionHeatmap'));
     vehicleDistributionChart = echarts.init(document.getElementById('vehicleDistributionChart'));
     emergencyActivityChart = echarts.init(document.getElementById('emergencyActivityChart'));
+    vehicleTypeChart = echarts.init(document.getElementById('vehicleTypeChart'));
     
     // Load scenarios and data
     loadScenarios().then(() => loadReportData());
@@ -295,6 +327,7 @@ document.addEventListener('DOMContentLoaded', function() {
         congestionHeatmap.resize();
         vehicleDistributionChart.resize();
         emergencyActivityChart.resize();
+        vehicleTypeChart.resize();
     });
 });
 
@@ -345,7 +378,8 @@ async function loadReportData() {
             loadCongestionAnalysis(),
             loadVehicleDistribution(),
             loadEmergencyActivity(),
-            loadTrafficPatterns()
+            loadTrafficPatterns(),
+            loadVehicleTypeData() // NEW
         ]);
         
         hideLoading();
@@ -353,6 +387,151 @@ async function loadReportData() {
         console.error('Error loading report data:', error);
         showError('Failed to load report data');
     }
+}
+
+// NEW: Load vehicle type data
+async function loadVehicleTypeData() {
+    const params = new URLSearchParams({
+        scenario: currentFilters.scenario,
+        date_start: currentFilters.startDate,
+        date_end: currentFilters.endDate
+    });
+    
+    try {
+        const response = await fetch(`/api/reports/vehicle-type-distribution?${params}`);
+        const result = await response.json();
+        
+        console.log('🚗 Vehicle type data response:', result);
+        
+        if (result.success && result.data) {
+            renderVehicleTypeChart(result.data);
+            renderVehicleTypeStats(result.data);
+        } else {
+            renderNoVehicleTypeData();
+        }
+    } catch (error) {
+        console.error('❌ Error loading vehicle type data:', error);
+        renderNoVehicleTypeData();
+    }
+}
+
+function renderVehicleTypeChart(data) {
+    const vehicleTypes = [
+        { name: 'Passenger Cars', value: data.passenger || 0, color: '#3b82f6' },
+        { name: 'Trucks', value: data.truck || 0, color: '#10b981' },
+        { name: 'Buses', value: data.bus || 0, color: '#f97316' },
+        { name: 'Motorcycles', value: data.motorcycle || 0, color: '#8b5cf6' },
+        { name: 'Bicycles', value: data.bicycle || 0, color: '#06b6d4' },
+        { name: 'Emergency', value: data.emergency || 0, color: '#ef4444' }
+    ].filter(item => item.value > 0);
+    
+    const option = {
+        tooltip: {
+            trigger: 'item',
+            formatter: '{b}: {c} ({d}%)'
+        },
+        legend: {
+            orient: 'vertical',
+            right: '5%',
+            top: 'center',
+            textStyle: { fontSize: 12 }
+        },
+        series: [{
+            type: 'pie',
+            radius: ['40%', '70%'],
+            center: ['40%', '50%'],
+            data: vehicleTypes.map(item => ({
+                name: item.name,
+                value: item.value,
+                itemStyle: { color: item.color }
+            })),
+            emphasis: {
+                itemStyle: {
+                    shadowBlur: 10,
+                    shadowOffsetX: 0,
+                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+            },
+            label: {
+                show: true,
+                formatter: '{d}%',
+                fontSize: 11
+            }
+        }]
+    };
+    
+    vehicleTypeChart.setOption(option);
+}
+
+function renderVehicleTypeStats(data) {
+    const total = (data.passenger || 0) + (data.truck || 0) + (data.bus || 0) + 
+                  (data.motorcycle || 0) + (data.bicycle || 0) + (data.emergency || 0);
+    
+    const stats = [
+        { name: 'Passenger Cars', count: data.passenger || 0, icon: 'ri-car-line', color: 'blue' },
+        { name: 'Trucks', count: data.truck || 0, icon: 'ri-truck-line', color: 'green' },
+        { name: 'Buses', count: data.bus || 0, icon: 'ri-bus-line', color: 'orange' },
+        { name: 'Motorcycles', count: data.motorcycle || 0, icon: 'ri-motorbike-line', color: 'purple' },
+        { name: 'Bicycles', count: data.bicycle || 0, icon: 'ri-bike-line', color: 'cyan' },
+        { name: 'Emergency', count: data.emergency || 0, icon: 'ri-ambulance-line', color: 'red' }
+    ];
+    
+    const html = `
+        <div class="bg-slate-50 rounded-lg p-4 mb-4">
+            <div class="text-center">
+                <div class="text-3xl font-bold text-slate-800">${total.toLocaleString()}</div>
+                <div class="text-sm text-slate-600 mt-1">Total Vehicles Tracked</div>
+            </div>
+        </div>
+        
+        <div class="space-y-2">
+            ${stats.map(stat => {
+                const percentage = total > 0 ? ((stat.count / total) * 100).toFixed(1) : 0;
+                return `
+                    <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200 hover:shadow-sm transition-shadow">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-${stat.color}-100 flex items-center justify-center">
+                                <i class="${stat.icon} text-${stat.color}-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-slate-800">${stat.name}</div>
+                                <div class="text-xs text-slate-500">${percentage}% of total</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-slate-800">${stat.count.toLocaleString()}</div>
+                            <div class="text-xs text-slate-500">vehicles</div>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+    
+    document.getElementById('vehicleTypeStats').innerHTML = html;
+}
+
+function renderNoVehicleTypeData() {
+    vehicleTypeChart.setOption({
+        graphic: [{
+            type: 'text',
+            left: 'center',
+            top: 'middle',
+            style: {
+                text: 'No vehicle type data available',
+                fontSize: 14,
+                fill: '#64748b'
+            }
+        }]
+    });
+    
+    document.getElementById('vehicleTypeStats').innerHTML = `
+        <div class="text-center text-slate-500 py-12">
+            <i class="ri-car-line text-5xl mb-4 block text-slate-300"></i>
+            <p class="font-medium text-lg mb-2">No vehicle type data</p>
+            <p class="text-sm text-slate-400">Data will appear once simulation is running</p>
+        </div>
+    `;
 }
 
 async function loadTrafficOverview() {
@@ -669,12 +848,10 @@ async function loadTrafficPatterns() {
                 const congestion = metrics.congestion || {};
                 const volume = metrics.volume || {};
                 
-                // Pattern type badge styling
                 const patternTypeClass = getPatternTypeClass(pattern.pattern_type);
                 
                 return `
                     <div class="p-4 bg-white rounded-lg hover:shadow-md transition-all border-l-4 ${patternTypeClass.border}">
-                        <!-- Header -->
                         <div class="flex items-start justify-between mb-3">
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
@@ -698,7 +875,6 @@ async function loadTrafficPatterns() {
                             ` : ''}
                         </div>
                         
-                        <!-- Metrics Grid -->
                         <div class="grid grid-cols-3 gap-3 mb-3 pb-3 border-b border-slate-100">
                             ${efficiency.average !== undefined ? `
                                 <div>
@@ -739,7 +915,6 @@ async function loadTrafficPatterns() {
                             ` : ''}
                         </div>
                         
-                        <!-- Interval and Sample Info -->
                         <div class="mb-2 space-y-1">
                             ${pattern.simulation_interval ? `
                                 <div class="text-xs text-slate-600 flex items-center">
@@ -766,7 +941,6 @@ async function loadTrafficPatterns() {
                             ` : ''}
                         </div>
                         
-                        <!-- Recommendations -->
                         ${pattern.recommendations && pattern.recommendations.length > 0 ? `
                             <div class="mt-3 pt-3 border-t border-slate-100">
                                 <div class="text-xs font-medium text-slate-700 mb-1 flex items-center">
@@ -917,7 +1091,6 @@ function formatDateTime(isoString) {
     }
 }
 
-// Force pattern analysis from the UI
 async function forcePatternAnalysis() {
     try {
         showSuccess('Starting pattern analysis...');
@@ -934,7 +1107,6 @@ async function forcePatternAnalysis() {
         
         if (result.success) {
             showSuccess(`Analysis complete! Found ${result.patterns_found || 0} patterns`);
-            // Reload patterns after a brief delay
             setTimeout(() => loadTrafficPatterns(), 1000);
         } else {
             showError(result.message || 'Analysis failed');
@@ -943,37 +1115,6 @@ async function forcePatternAnalysis() {
         console.error('Analysis error:', error);
         showError('Failed to start analysis');
     }
-}
-
-function formatPatternDate(dateStr) {
-    if (!dateStr || dateStr === 'N/A') return 'N/A';
-    try {
-        const date = new Date(dateStr);
-        return date.toLocaleString('en-US', { 
-            month: 'short', 
-            day: 'numeric', 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
-    } catch {
-        return dateStr;
-    }
-}
-
-function getConfidenceClass(confidence) {
-    if (confidence >= 80) return 'bg-green-100 text-green-800';
-    if (confidence >= 60) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
-}
-
-function getActionClass(action) {
-    const classes = {
-        'EXTEND_GREEN': 'bg-green-50 text-green-700 border border-green-200',
-        'REDUCE_GREEN': 'bg-yellow-50 text-yellow-700 border border-yellow-200',
-        'MAINTAIN': 'bg-blue-50 text-blue-700 border border-blue-200',
-        'SKIP_PHASE': 'bg-orange-50 text-orange-700 border border-orange-200'
-    };
-    return classes[action] || 'bg-slate-50 text-slate-700 border border-slate-200';
 }
 
 function updateTrendIndicator(elementId, trendValue) {

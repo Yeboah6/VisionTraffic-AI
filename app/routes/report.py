@@ -18,25 +18,8 @@ import xlsxwriter
 from app.models.user import User
 from app.models.traffic_light import TrafficLightLog, TrafficLightConfig, TrafficPattern
 from app.models.ai import AIDecisionLog, AIPerformance, AIQTable
-from app.models.emergency_veh import EmergencyVehicleLog, EmergencySchedule, GreenWaveSchedule
 
 report_bp = Blueprint('report', __name__)
-
-
-# def parse_date_range(date_start, date_end):
-#     """Parse date range with proper time boundaries"""
-#     if date_start and date_end:
-#         start = datetime.strptime(date_start, '%Y-%m-%d')
-#         end = datetime.strptime(date_end, '%Y-%m-%d')
-        
-#         # Set end to end of day to capture all records
-#         end = end.replace(hour=23, minute=59, second=59, microsecond=999999)
-#     else:
-#         end = datetime.now()
-#         start = end - timedelta(days=30)
-    
-#     return start, end
-
 
 @report_bp.route('/report')
 @login_required
@@ -56,15 +39,11 @@ def get_scenarios():
     try:
         # Get unique scenarios from all relevant tables
         tl_scenarios = db.session.query(TrafficLightLog.scenario).distinct().all()
-        emergency_scenarios = db.session.query(EmergencyVehicleLog.scenario).distinct().all()
         pattern_scenarios = db.session.query(TrafficPattern.scenario).distinct().all()
         
         # Combine all scenarios
         all_scenarios = set()
         for (scenario,) in tl_scenarios:
-            if scenario:
-                all_scenarios.add(scenario)
-        for (scenario,) in emergency_scenarios:
             if scenario:
                 all_scenarios.add(scenario)
         for (scenario,) in pattern_scenarios:
@@ -116,13 +95,6 @@ def get_traffic_overview():
             TrafficLightLog.created_at <= end_date
         ).all()
         
-        # Query emergency logs
-        emergency_logs = EmergencyVehicleLog.query.filter(
-            EmergencyVehicleLog.scenario == scenario,
-            EmergencyVehicleLog.detected_at >= start_date,
-            EmergencyVehicleLog.detected_at <= end_date
-        ).all()
-        
         if not logs:
             return jsonify({
                 "success": True,
@@ -131,7 +103,7 @@ def get_traffic_overview():
                     "average_speed": "0 mph",
                     "peak_hours": "N/A",
                     "congestion_level": "Low",
-                    "emergency_count": len(emergency_logs),
+                    "emergency_count": 0,
                     "trend": {
                         "vehicle_count": 0,
                         "speed": 0,
@@ -141,8 +113,12 @@ def get_traffic_overview():
                 }
             })
         
-        # Calculate metrics
+        # Calculate metrics using NEW vehicle type fields
         total_vehicles = sum(log.vehicle_count for log in logs if log.vehicle_count)
+        
+        # NEW: Calculate emergency count from emergency_count field
+        emergency_count = sum(log.emergency_count or 0 for log in logs)
+        
         avg_efficiency = sum(log.efficiency_score for log in logs if log.efficiency_score) / len(logs)
         avg_speed = round(38.5 + (avg_efficiency - 50) * 0.1, 1)
         
@@ -174,22 +150,17 @@ def get_traffic_overview():
             TrafficLightLog.created_at < start_date
         ).all()
         
-        prev_emergency = EmergencyVehicleLog.query.filter(
-            EmergencyVehicleLog.scenario == scenario,
-            EmergencyVehicleLog.detected_at >= prev_start,
-            EmergencyVehicleLog.detected_at < start_date
-        ).count()
-        
         trend = {"vehicle_count": 0, "speed": 0, "congestion": 0, "emergency": 0}
         if prev_logs:
             prev_vehicles = sum(log.vehicle_count for log in prev_logs if log.vehicle_count)
+            prev_emergency = sum(log.emergency_count or 0 for log in prev_logs)
             prev_efficiency = sum(log.efficiency_score for log in prev_logs if log.efficiency_score) / len(prev_logs)
             prev_speed = 38.5 + (prev_efficiency - 50) * 0.1
             
             trend["vehicle_count"] = round(((total_vehicles - prev_vehicles) / prev_vehicles * 100), 1) if prev_vehicles else 0
             trend["speed"] = round(((avg_speed - prev_speed) / prev_speed * 100), 1) if prev_speed else 0
             trend["congestion"] = round(((avg_efficiency - prev_efficiency) / prev_efficiency * 100), 1) if prev_efficiency else 0
-            trend["emergency"] = round(((len(emergency_logs) - prev_emergency) / prev_emergency * 100), 1) if prev_emergency else 0
+            trend["emergency"] = round(((emergency_count - prev_emergency) / prev_emergency * 100), 1) if prev_emergency else 0
         
         return jsonify({
             "success": True,
@@ -199,7 +170,7 @@ def get_traffic_overview():
                 "peak_hours": peak_hours_str,
                 "congestion_level": congestion_level,
                 "congestion_percentage": round(avg_efficiency, 1),
-                "emergency_count": len(emergency_logs),
+                "emergency_count": emergency_count,
                 "trend": trend
             }
         })
@@ -332,7 +303,7 @@ def get_congestion_analysis():
 
 @report_bp.route('/api/reports/vehicle-distribution', methods=['GET'])
 def get_vehicle_distribution():
-    """Get vehicle type distribution"""
+    """Get vehicle type distribution with actual data from database"""
     try:
         scenario = request.args.get('scenario', 'accra')
         date_start = request.args.get('date_start')
@@ -346,18 +317,57 @@ def get_vehicle_distribution():
             TrafficLightLog.created_at <= end_date
         ).all()
         
-        total_vehicles = sum(log.vehicle_count for log in logs if log.vehicle_count)
+        # Aggregate vehicle types from NEW fields in logs
+        total_passenger = sum(log.passenger_count or 0 for log in logs)
+        total_truck = sum(log.truck_count or 0 for log in logs)
+        total_bus = sum(log.bus_count or 0 for log in logs)
+        total_motorcycle = sum(log.motorcycle_count or 0 for log in logs)
+        total_bicycle = sum(log.bicycle_count or 0 for log in logs)
+        total_emergency = sum(log.emergency_count or 0 for log in logs)
         
-        distribution = {
-            "Cars": round(total_vehicles * 0.68),
-            "Trucks": round(total_vehicles * 0.15),
-            "Buses": round(total_vehicles * 0.12),
-            "Motorcycles": round(total_vehicles * 0.05)
-        }
+        total_vehicles = (total_passenger + total_truck + total_bus + 
+                         total_motorcycle + total_bicycle + total_emergency)
+        
+        # If no data collected yet, use default distribution
+        if total_vehicles == 0:
+            # Fallback to estimated distribution
+            total_vehicles = sum(log.vehicle_count for log in logs if log.vehicle_count)
+            distribution = {
+                "Passenger Cars": round(total_vehicles * 0.68),
+                "Trucks": round(total_vehicles * 0.15),
+                "Buses": round(total_vehicles * 0.12),
+                "Motorcycles": round(total_vehicles * 0.05),
+                "Bicycles": 0,
+                "Emergency": 0
+            }
+            data_source = "estimated"
+        else:
+            # Use actual collected data
+            distribution = {
+                "Passenger Cars": total_passenger,
+                "Trucks": total_truck,
+                "Buses": total_bus,
+                "Motorcycles": total_motorcycle,
+                "Bicycles": total_bicycle,
+                "Emergency": total_emergency
+            }
+            data_source = "actual"
+        
+        # Calculate percentages
+        distribution_with_percentages = {}
+        for vehicle_type, count in distribution.items():
+            percentage = round((count / total_vehicles * 100), 1) if total_vehicles > 0 else 0
+            distribution_with_percentages[vehicle_type] = {
+                'count': count,
+                'percentage': percentage
+            }
         
         return jsonify({
             "success": True,
-            "data": distribution
+            "data": distribution,
+            "detailed": distribution_with_percentages,
+            "total_vehicles": total_vehicles,
+            "data_source": data_source
         })
         
     except Exception as e:
@@ -368,9 +378,157 @@ def get_vehicle_distribution():
         }), 500
 
 
+@report_bp.route('/api/reports/vehicle-type-distribution', methods=['GET'])
+def get_vehicle_type_distribution():
+    """NEW: Get detailed vehicle type distribution for visualization"""
+    try:
+        scenario = request.args.get('scenario', 'accra')
+        date_start = request.args.get('date_start')
+        date_end = request.args.get('date_end')
+        
+        start_date, end_date = parse_date_range(date_start, date_end)
+        
+        logs = TrafficLightLog.query.filter(
+            TrafficLightLog.scenario == scenario,
+            TrafficLightLog.created_at >= start_date,
+            TrafficLightLog.created_at <= end_date
+        ).all()
+        
+        if not logs:
+            return jsonify({
+                "success": True,
+                "data": {
+                    "passenger": 0,
+                    "truck": 0,
+                    "bus": 0,
+                    "motorcycle": 0,
+                    "bicycle": 0,
+                    "emergency": 0
+                },
+                "message": "No data available for selected period"
+            })
+        
+        # Aggregate vehicle types
+        vehicle_types = {
+            "passenger": sum(log.passenger_count or 0 for log in logs),
+            "truck": sum(log.truck_count or 0 for log in logs),
+            "bus": sum(log.bus_count or 0 for log in logs),
+            "motorcycle": sum(log.motorcycle_count or 0 for log in logs),
+            "bicycle": sum(log.bicycle_count or 0 for log in logs),
+            "emergency": sum(log.emergency_count or 0 for log in logs)
+        }
+        
+        total = sum(vehicle_types.values())
+        
+        # If no type data but we have vehicle counts, use estimation
+        if total == 0:
+            total_vehicles = sum(log.vehicle_count for log in logs if log.vehicle_count)
+            vehicle_types = {
+                "passenger": round(total_vehicles * 0.68),
+                "truck": round(total_vehicles * 0.15),
+                "bus": round(total_vehicles * 0.12),
+                "motorcycle": round(total_vehicles * 0.05),
+                "bicycle": 0,
+                "emergency": 0
+            }
+            data_source = "estimated"
+        else:
+            data_source = "actual"
+        
+        return jsonify({
+            "success": True,
+            "data": vehicle_types,
+            "total_vehicles": sum(vehicle_types.values()),
+            "data_source": data_source,
+            "period": {
+                "start": start_date.strftime('%Y-%m-%d'),
+                "end": end_date.strftime('%Y-%m-%d')
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error in vehicle type distribution: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@report_bp.route('/api/reports/vehicle-type-trends', methods=['GET'])
+def get_vehicle_type_trends():
+    """Get vehicle type trends over time"""
+    try:
+        scenario = request.args.get('scenario', 'accra')
+        date_start = request.args.get('date_start')
+        date_end = request.args.get('date_end')
+        period = request.args.get('period', 'hourly')
+        
+        start_date, end_date = parse_date_range(date_start, date_end)
+        
+        logs = TrafficLightLog.query.filter(
+            TrafficLightLog.scenario == scenario,
+            TrafficLightLog.created_at >= start_date,
+            TrafficLightLog.created_at <= end_date
+        ).order_by(TrafficLightLog.created_at).all()
+        
+        # Group by time period
+        time_data = {}
+        
+        for log in logs:
+            if period == 'hourly':
+                time_key = log.created_at.strftime('%H:00')
+            elif period == 'daily':
+                time_key = log.created_at.strftime('%b %d')
+            else:
+                time_key = log.created_at.strftime('Week %W')
+            
+            if time_key not in time_data:
+                time_data[time_key] = {
+                    'passenger': 0,
+                    'truck': 0,
+                    'bus': 0,
+                    'motorcycle': 0,
+                    'bicycle': 0,
+                    'emergency': 0
+                }
+            
+            time_data[time_key]['passenger'] += log.passenger_count or 0
+            time_data[time_key]['truck'] += log.truck_count or 0
+            time_data[time_key]['bus'] += log.bus_count or 0
+            time_data[time_key]['motorcycle'] += log.motorcycle_count or 0
+            time_data[time_key]['bicycle'] += log.bicycle_count or 0
+            time_data[time_key]['emergency'] += log.emergency_count or 0
+        
+        labels = sorted(time_data.keys())
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "labels": labels,
+                "datasets": {
+                    "passenger": [time_data[label]['passenger'] for label in labels],
+                    "truck": [time_data[label]['truck'] for label in labels],
+                    "bus": [time_data[label]['bus'] for label in labels],
+                    "motorcycle": [time_data[label]['motorcycle'] for label in labels],
+                    "bicycle": [time_data[label]['bicycle'] for label in labels],
+                    "emergency": [time_data[label]['emergency'] for label in labels]
+                }
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error in vehicle type trends: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
 @report_bp.route('/api/reports/emergency-activity', methods=['GET'])
 def get_emergency_activity():
-    """Get emergency vehicle activity over time"""
+    """Get emergency vehicle activity over time from TrafficLightLog"""
     try:
         scenario = request.args.get('scenario', 'accra')
         date_start = request.args.get('date_start')
@@ -380,33 +538,31 @@ def get_emergency_activity():
         
         start_date, end_date = parse_date_range(date_start, date_end)
         
-        # Query emergency logs
-        logs = EmergencyVehicleLog.query.filter(
-            EmergencyVehicleLog.scenario == scenario,
-            EmergencyVehicleLog.detected_at >= start_date,
-            EmergencyVehicleLog.detected_at <= end_date
+        # Query traffic logs and aggregate emergency counts
+        logs = TrafficLightLog.query.filter(
+            TrafficLightLog.scenario == scenario,
+            TrafficLightLog.created_at >= start_date,
+            TrafficLightLog.created_at <= end_date
         ).all()
         
-        print(f"✅ Found {len(logs)} emergency logs in date range")
+        print(f"✅ Found {len(logs)} traffic logs in date range")
         
-        # Group by hour and type
+        # Group by hour
         time_data = {}
         
         for log in logs:
-            # Group by hour of day
-            time_key = log.detected_at.strftime('%H:00')
+            time_key = log.created_at.strftime('%H:00')
             
             if time_key not in time_data:
                 time_data[time_key] = {'ambulance': 0, 'fire_truck': 0, 'police': 0}
             
-            # Classify vehicle type from original_type field
-            vtype = (log.original_type or '').lower()
-            if 'ambulance' in vtype or 'emergency' in vtype:
-                time_data[time_key]['ambulance'] += 1
-            elif 'fire' in vtype:
-                time_data[time_key]['fire_truck'] += 1
-            elif 'police' in vtype:
-                time_data[time_key]['police'] += 1
+            # Distribute emergency count (simplified - in real scenario, you'd track types separately)
+            emergency_total = log.emergency_count or 0
+            if emergency_total > 0:
+                # Simple distribution (you can make this more sophisticated)
+                time_data[time_key]['ambulance'] += emergency_total // 3
+                time_data[time_key]['fire_truck'] += emergency_total // 3
+                time_data[time_key]['police'] += emergency_total - (2 * (emergency_total // 3))
         
         if not time_data:
             print("⚠️ No emergency data, returning empty")
@@ -473,15 +629,11 @@ def get_traffic_patterns():
         
         print(f"📊 Fetching patterns for scenario: {scenario}, dates: {date_start} to {date_end}")
         
-        # Parse date range - this gives us datetime objects for filtering created_at
         start_date, end_date = parse_date_range(date_start, date_end)
-        # Extend end_date to include the full day
         end_date = end_date.replace(hour=23, minute=59, second=59)
         
         print(f"📅 Parsed date range: {start_date} to {end_date}")
         
-        # Query patterns - FIXED: Filter by created_at (when pattern was created)
-        # NOT by interval_start (which is simulation time in seconds: 0, 500, 1000, etc.)
         patterns = TrafficPattern.query.filter(
             TrafficPattern.scenario == scenario,
             TrafficPattern.created_at >= start_date,
@@ -500,21 +652,16 @@ def get_traffic_patterns():
                 "message": f"No patterns found between {start_date.strftime('%b %d')} and {end_date.strftime('%b %d')}"
             })
         
-        # Format results
         pattern_data = []
         for pattern in patterns:
-            # FIXED: Handle both float/int (simulation time) and datetime objects
             interval_start = pattern.interval_start
             interval_end = pattern.interval_end
             
-            # Format interval display based on type
             if isinstance(interval_start, (int, float)):
-                # Simulation time in seconds (0, 500, 1000, etc.)
                 interval_start_display = f"{int(interval_start)}s"
                 interval_end_display = f"{int(interval_end)}s"
                 interval_range = f"Sim Time: {int(interval_start)}-{int(interval_end)}s"
             else:
-                # Datetime object (legacy format)
                 try:
                     interval_start_display = interval_start.strftime('%b %d, %H:%M') if interval_start else "N/A"
                     interval_end_display = interval_end.strftime('%b %d, %H:%M') if interval_end else "N/A"
@@ -524,11 +671,8 @@ def get_traffic_patterns():
                     interval_end_display = "N/A"
                     interval_range = "N/A"
             
-            # Convert confidence and success rate to percentages
             confidence = round((pattern.confidence_score or 0) * 100, 1)
             success_rate = round((pattern.action_success_rate or 0.5) * 100, 1)
-            
-            # Get metrics safely
             metrics = pattern.pattern_metrics or {}
             
             pattern_data.append({
@@ -595,7 +739,6 @@ def parse_date_range(date_start, date_end):
     else:
         end_date = datetime.now().replace(hour=23, minute=59, second=59, microsecond=999999)
     
-    # Ensure end_date is not before start_date
     if end_date < start_date:
         end_date = start_date.replace(hour=23, minute=59, second=59, microsecond=999999)
     
@@ -604,7 +747,7 @@ def parse_date_range(date_start, date_end):
 
 @report_bp.route('/api/reports/generate', methods=['POST'])
 def generate_report():
-    """Generate downloadable report (PDF/Excel/CSV)"""
+    """Generate downloadable report (PDF/Excel/CSV) with vehicle type data"""
     try:
         data = request.get_json()
         
@@ -623,7 +766,7 @@ def generate_report():
         
         start, end = parse_date_range(date_start, date_end)
         
-        # Collect report data
+        # Collect report data (now includes vehicle types)
         report_data = _collect_report_data(scenario, start, end, metrics)
         
         # Generate file based on format
@@ -631,6 +774,8 @@ def generate_report():
             file_buffer = _generate_pdf_report(report_data, template, scenario, start, end)
             mimetype = 'application/pdf'
             filename = f'traffic_report_{scenario}_{date_start}.pdf'
+            
+            file_buffer.seek(0)
             
             return send_file(
                 file_buffer,
@@ -647,15 +792,29 @@ def generate_report():
             writer.writerow([f'Period: {start.strftime("%Y-%m-%d")} to {end.strftime("%Y-%m-%d")}'])
             writer.writerow([])
             
-            # Add traffic data
+            # Traffic data
             if 'traffic_volume' in report_data:
                 writer.writerow(['Traffic Volume'])
                 writer.writerow(['Total Vehicles', report_data['traffic_volume']['total']])
                 writer.writerow(['Average Daily', round(report_data['traffic_volume']['average_daily'], 1)])
                 writer.writerow([])
             
+            # NEW: Vehicle Type Distribution
+            if 'vehicle_types' in report_data:
+                writer.writerow(['Vehicle Type Distribution'])
+                writer.writerow(['Type', 'Count', 'Percentage'])
+                for vtype, data in report_data['vehicle_types'].items():
+                    writer.writerow([vtype, data['count'], f"{data['percentage']}%"])
+                writer.writerow([])
+            
             if 'average_speed' in report_data:
                 writer.writerow(['Average Speed', f"{report_data['average_speed']} mph"])
+                writer.writerow([])
+            
+            # Emergency vehicles
+            if 'emergency' in report_data:
+                writer.writerow(['Emergency Vehicle Activity'])
+                writer.writerow(['Total Emergencies', report_data['emergency']['total']])
                 writer.writerow([])
             
             if 'patterns' in report_data and report_data['patterns']:
@@ -680,6 +839,61 @@ def generate_report():
                 download_name=f'traffic_report_{scenario}_{date_start}.csv'
             )
         
+        elif format_type == 'EXCEL':
+            output = io.BytesIO()
+            workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+            worksheet = workbook.add_worksheet('Traffic Report')
+            
+            header_format = workbook.add_format({
+                'bold': True,
+                'bg_color': '#3b82f6',
+                'font_color': 'white',
+                'border': 1
+            })
+            
+            row = 0
+            worksheet.write(row, 0, 'Traffic Management Report', header_format)
+            row += 2
+            
+            worksheet.write(row, 0, 'Scenario:', header_format)
+            worksheet.write(row, 1, scenario)
+            row += 1
+            
+            worksheet.write(row, 0, 'Period:', header_format)
+            worksheet.write(row, 1, f"{start.strftime('%Y-%m-%d')} to {end.strftime('%Y-%m-%d')}")
+            row += 2
+            
+            if 'traffic_volume' in report_data:
+                worksheet.write(row, 0, 'Total Vehicles:', header_format)
+                worksheet.write(row, 1, report_data['traffic_volume']['total'])
+                row += 1
+            
+            # NEW: Vehicle Types
+            if 'vehicle_types' in report_data:
+                row += 1
+                worksheet.write(row, 0, 'Vehicle Type Distribution', header_format)
+                row += 1
+                worksheet.write(row, 0, 'Type', header_format)
+                worksheet.write(row, 1, 'Count', header_format)
+                worksheet.write(row, 2, 'Percentage', header_format)
+                row += 1
+                
+                for vtype, data in report_data['vehicle_types'].items():
+                    worksheet.write(row, 0, vtype)
+                    worksheet.write(row, 1, data['count'])
+                    worksheet.write(row, 2, f"{data['percentage']}%")
+                    row += 1
+            
+            workbook.close()
+            output.seek(0)
+            
+            return send_file(
+                output,
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                as_attachment=True,
+                download_name=f'traffic_report_{scenario}_{date_start}.xlsx'
+            )
+        
         return jsonify({
             "success": False,
             "error": f"Format {format_type} not supported"
@@ -696,10 +910,9 @@ def generate_report():
 
 
 def _collect_report_data(scenario, start_date, end_date, metrics):
-    """Collect all data needed for report"""
+    """Collect all data needed for report including vehicle types"""
     data = {}
     
-    # Traffic volume
     logs = TrafficLightLog.query.filter(
         TrafficLightLog.scenario == scenario,
         TrafficLightLog.created_at >= start_date,
@@ -717,31 +930,56 @@ def _collect_report_data(scenario, start_date, end_date, metrics):
         if efficiencies:
             avg_efficiency = sum(efficiencies) / len(efficiencies)
             data['average_speed'] = round(38.5 + (avg_efficiency - 50) * 0.1, 1)
+            data['congestion'] = round(avg_efficiency, 1)
         
-        # Congestion
-        data['congestion'] = round(avg_efficiency, 1) if efficiencies else 0
+        # NEW: Vehicle Type Distribution
+        total_passenger = sum(log.passenger_count or 0 for log in logs)
+        total_truck = sum(log.truck_count or 0 for log in logs)
+        total_bus = sum(log.bus_count or 0 for log in logs)
+        total_motorcycle = sum(log.motorcycle_count or 0 for log in logs)
+        total_bicycle = sum(log.bicycle_count or 0 for log in logs)
+        total_emergency = sum(log.emergency_count or 0 for log in logs)
+        
+        total_by_type = total_passenger + total_truck + total_bus + total_motorcycle + total_bicycle + total_emergency
+        
+        if total_by_type > 0:
+            data['vehicle_types'] = {
+                'Passenger Cars': {
+                    'count': total_passenger,
+                    'percentage': round((total_passenger / total_by_type) * 100, 1)
+                },
+                'Trucks': {
+                    'count': total_truck,
+                    'percentage': round((total_truck / total_by_type) * 100, 1)
+                },
+                'Buses': {
+                    'count': total_bus,
+                    'percentage': round((total_bus / total_by_type) * 100, 1)
+                },
+                'Motorcycles': {
+                    'count': total_motorcycle,
+                    'percentage': round((total_motorcycle / total_by_type) * 100, 1)
+                },
+                'Bicycles': {
+                    'count': total_bicycle,
+                    'percentage': round((total_bicycle / total_by_type) * 100, 1)
+                },
+                'Emergency': {
+                    'count': total_emergency,
+                    'percentage': round((total_emergency / total_by_type) * 100, 1)
+                }
+            }
     
-    # Emergency vehicles
-    emergency_logs = EmergencyVehicleLog.query.filter(
-        EmergencyVehicleLog.scenario == scenario,
-        EmergencyVehicleLog.detected_at >= start_date,
-        EmergencyVehicleLog.detected_at <= end_date
-    ).all()
-    
+    # Emergency vehicles total
     data['emergency'] = {
-        'total': len(emergency_logs),
-        'by_type': {
-            'ambulance': len([l for l in emergency_logs if 'ambulance' in (l.original_type or '').lower() or 'emergency' in (l.original_type or '').lower()]),
-            'fire_truck': len([l for l in emergency_logs if 'fire' in (l.original_type or '').lower()]),
-            'police': len([l for l in emergency_logs if 'police' in (l.original_type or '').lower()])
-        }
+        'total': sum(log.emergency_count or 0 for log in logs)
     }
     
     # Traffic patterns
     patterns = TrafficPattern.query.filter(
         TrafficPattern.scenario == scenario,
-        TrafficPattern.interval_start >= start_date,
-        TrafficPattern.interval_start <= end_date
+        TrafficPattern.created_at >= start_date,
+        TrafficPattern.created_at <= end_date
     ).order_by(TrafficPattern.confidence_score.desc()).limit(10).all()
     
     data['patterns'] = [{
@@ -756,13 +994,12 @@ def _collect_report_data(scenario, start_date, end_date, metrics):
 
 
 def _generate_pdf_report(report_data, template, scenario, start_date, end_date):
-    """Generate PDF report"""
+    """Generate PDF report with vehicle type data"""
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
     story = []
     styles = getSampleStyleSheet()
     
-    # Custom styles
     title_style = ParagraphStyle(
         'CustomTitle',
         parent=styles['Heading1'],
@@ -783,7 +1020,6 @@ def _generate_pdf_report(report_data, template, scenario, start_date, end_date):
         fontName='Helvetica-Bold'
     )
     
-    # Title
     story.append(Paragraph("Traffic Management Report", title_style))
     story.append(Spacer(1, 0.2*inch))
     
@@ -799,15 +1035,13 @@ def _generate_pdf_report(report_data, template, scenario, start_date, end_date):
     info_table.setStyle(TableStyle([
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
         ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#64748b')),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
     ]))
     story.append(info_table)
     story.append(Spacer(1, 0.3*inch))
     
-    # Traffic Volume Section
+    # Traffic Volume
     if 'traffic_volume' in report_data:
         story.append(Paragraph("Traffic Volume Summary", heading_style))
         
@@ -821,107 +1055,91 @@ def _generate_pdf_report(report_data, template, scenario, start_date, end_date):
         volume_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3b82f6')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 11),
-            ('FONTSIZE', (0, 1), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('TOPPADDING', (0, 1), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
             ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e2e8f0')),
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')])
         ]))
         story.append(volume_table)
         story.append(Spacer(1, 0.25*inch))
     
-    # Speed & Congestion Section
+    # NEW: Vehicle Type Distribution
+    if 'vehicle_types' in report_data:
+        story.append(Paragraph("Vehicle Type Distribution", heading_style))
+        
+        vtype_data = [['Vehicle Type', 'Count', 'Percentage']]
+        for vtype, data in report_data['vehicle_types'].items():
+            vtype_data.append([vtype, f"{data['count']:,}", f"{data['percentage']}%"])
+        
+        vtype_table = Table(vtype_data, colWidths=[2.5*inch, 2*inch, 1.5*inch])
+        vtype_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#10b981')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e2e8f0')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0fdf4')])
+        ]))
+        story.append(vtype_table)
+        story.append(Spacer(1, 0.25*inch))
+    
+    # Performance Metrics
     if 'average_speed' in report_data or 'congestion' in report_data:
         story.append(Paragraph("Performance Metrics", heading_style))
         
         perf_data = [['Metric', 'Value']]
-        
         if 'average_speed' in report_data:
             perf_data.append(['Average Speed', f"{report_data['average_speed']} mph"])
-        
         if 'congestion' in report_data:
             perf_data.append(['Congestion Level', f"{report_data['congestion']}%"])
         
         perf_table = Table(perf_data, colWidths=[3*inch, 3*inch])
         perf_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#10b981')),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f97316')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 11),
-            ('FONTSIZE', (0, 1), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('TOPPADDING', (0, 1), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
             ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e2e8f0')),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')])
         ]))
         story.append(perf_table)
         story.append(Spacer(1, 0.25*inch))
     
-    # Emergency Section
+    # Emergency Activity
     if 'emergency' in report_data:
         story.append(Paragraph("Emergency Vehicle Activity", heading_style))
         
         emergency_data = [
-            ['Type', 'Count'],
-            ['Total Emergency Responses', str(report_data['emergency']['total'])],
-            ['Ambulance', str(report_data['emergency']['by_type']['ambulance'])],
-            ['Fire Truck', str(report_data['emergency']['by_type']['fire_truck'])],
-            ['Police', str(report_data['emergency']['by_type']['police'])]
+            ['Metric', 'Value'],
+            ['Total Emergency Responses', str(report_data['emergency']['total'])]
         ]
         
         emergency_table = Table(emergency_data, colWidths=[3*inch, 3*inch])
         emergency_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ef4444')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 11),
-            ('FONTSIZE', (0, 1), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('TOPPADDING', (0, 1), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
             ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e2e8f0')),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#fef2f2')])
         ]))
         story.append(emergency_table)
         story.append(Spacer(1, 0.25*inch))
     
-    # Traffic Patterns Section
+    # Traffic Patterns
     if 'patterns' in report_data and report_data['patterns']:
         story.append(Paragraph("Traffic Patterns Detected", heading_style))
         
-        pattern_data = [['Pattern Type', 'Traffic Light', 'Confidence', 'Best Action', 'Success Rate']]
-        
-        for pattern in report_data['patterns'][:10]:  # Limit to 10 patterns
+        pattern_data = [['Pattern Type', 'Traffic Light', 'Confidence', 'Best Action']]
+        for pattern in report_data['patterns'][:10]:
             pattern_data.append([
                 pattern['type'],
                 pattern['traffic_light'],
                 f"{pattern['confidence']}%",
-                pattern.get('best_action', 'N/A'),
-                f"{pattern.get('success_rate', 0)}%"
+                pattern.get('best_action', 'N/A')
             ])
         
-        pattern_table = Table(pattern_data, colWidths=[1.8*inch, 1.5*inch, 1*inch, 1.2*inch, 1*inch])
+        pattern_table = Table(pattern_data, colWidths=[2*inch, 1.8*inch, 1.2*inch, 1.5*inch])
         pattern_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#8b5cf6')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('ALIGN', (2, 0), (2, -1), 'CENTER'),
-            ('ALIGN', (4, 0), (4, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('FONTSIZE', (0, 1), (-1, -1), 9),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('TOPPADDING', (0, 1), (-1, -1), 6),
-            ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
             ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e2e8f0')),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#faf5ff')])
         ]))
         story.append(pattern_table)
     
@@ -937,7 +1155,6 @@ def _generate_pdf_report(report_data, template, scenario, start_date, end_date):
     )
     story.append(Paragraph(footer_text, footer_style))
     
-    # Build PDF
     doc.build(story)
     buffer.seek(0)
     return buffer

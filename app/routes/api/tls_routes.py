@@ -145,6 +145,195 @@ def get_tls_performance():
             "success": False,
             "error": str(e)
         }), 500
+
+# NEW: Get vehicle type distribution across all traffic lights
+@tls_bp.route('/api/tls/vehicle-types', methods=['GET'])
+def get_vehicle_type_distribution():
+    """Get aggregated vehicle type distribution across all traffic lights"""
+    try:
+        from app.services.optimized_sumo_service import optimized_sumo_service
+        
+        if not optimized_sumo_service.is_running:
+            return jsonify({
+                "success": False,
+                "error": "No simulation running"
+            }), 400
+        
+        tls_data = optimized_sumo_service.get_tls_data()
+        traffic_lights = tls_data.get('tls_snapshot', {}).get('traffic_lights', {})
+        
+        # Aggregate vehicle types across all traffic lights
+        total_vehicle_types = {
+            'passenger': 0,
+            'truck': 0,
+            'bus': 0,
+            'motorcycle': 0,
+            'bicycle': 0,
+            'emergency': 0,
+            'other': 0
+        }
+        
+        tls_with_data = 0
+        
+        for tl_id, tl_data in traffic_lights.items():
+            lane_data = tl_data.get('lane_data', {})
+            vehicle_distribution = lane_data.get('vehicle_type_distribution', {})
+            
+            if vehicle_distribution:
+                tls_with_data += 1
+                for vtype, count in vehicle_distribution.items():
+                    if vtype in total_vehicle_types:
+                        total_vehicle_types[vtype] += count
+        
+        total_vehicles = sum(total_vehicle_types.values())
+        
+        # Calculate percentages
+        vehicle_type_percentages = {}
+        if total_vehicles > 0:
+            for vtype, count in total_vehicle_types.items():
+                vehicle_type_percentages[vtype] = round((count / total_vehicles) * 100, 2)
+        
+        return jsonify({
+            "success": True,
+            "vehicle_types": {
+                "counts": total_vehicle_types,
+                "percentages": vehicle_type_percentages,
+                "total_vehicles": total_vehicles,
+                "traffic_lights_analyzed": tls_with_data
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+# NEW: Get vehicle types for a specific traffic light
+@tls_bp.route('/api/tls/<tl_id>/vehicle-types', methods=['GET'])
+def get_tls_vehicle_types(tl_id):
+    """Get vehicle type distribution for a specific traffic light"""
+    try:
+        from app.services.optimized_sumo_service import optimized_sumo_service
+        
+        if not optimized_sumo_service.is_running:
+            return jsonify({
+                "success": False,
+                "error": "No simulation running"
+            }), 400
+        
+        tls_data = optimized_sumo_service.get_tls_data()
+        traffic_lights = tls_data.get('tls_snapshot', {}).get('traffic_lights', {})
+        
+        if tl_id not in traffic_lights:
+            return jsonify({
+                "success": False,
+                "error": f"Traffic light {tl_id} not found"
+            }), 404
+        
+        tl_data = traffic_lights[tl_id]
+        lane_data = tl_data.get('lane_data', {})
+        vehicle_distribution = lane_data.get('vehicle_type_distribution', {})
+        
+        total_vehicles = sum(vehicle_distribution.values()) if vehicle_distribution else 0
+        
+        # Calculate percentages
+        vehicle_type_percentages = {}
+        if total_vehicles > 0:
+            for vtype, count in vehicle_distribution.items():
+                vehicle_type_percentages[vtype] = round((count / total_vehicles) * 100, 2)
+        
+        return jsonify({
+            "success": True,
+            "traffic_light_id": tl_id,
+            "vehicle_types": {
+                "counts": vehicle_distribution,
+                "percentages": vehicle_type_percentages,
+                "total_vehicles": total_vehicles
+            },
+            "performance": tl_data.get('performance', {}),
+            "timestamp": tl_data.get('timestamp')
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+# NEW: Diagnostic endpoint for vehicle type debugging
+@tls_bp.route('/api/tls/diagnostics/vehicle-types', methods=['GET'])
+def diagnose_vehicle_types():
+    """Run vehicle type diagnostic on current simulation"""
+    try:
+        from app.services.optimized_sumo_service import optimized_sumo_service
+        
+        if not optimized_sumo_service.is_running:
+            return jsonify({
+                "success": False,
+                "error": "No simulation running"
+            }), 400
+        
+        # Run diagnostic
+        traci = optimized_sumo_service.traci_connection
+        if not traci:
+            return jsonify({
+                "success": False,
+                "error": "TraCI connection not available"
+            }), 500
+        
+        # Get diagnostic information
+        all_vehicles = traci.vehicle.getIDList()
+        sample_size = min(20, len(all_vehicles))
+        sample_vehicles = all_vehicles[:sample_size]
+        
+        type_distribution = {}
+        class_distribution = {}
+        vehicle_details = []
+        
+        for veh_id in sample_vehicles:
+            try:
+                vtype = traci.vehicle.getTypeID(veh_id)
+                type_distribution[vtype] = type_distribution.get(vtype, 0) + 1
+                
+                try:
+                    vclass = traci.vehicle.getVehicleClass(veh_id)
+                    class_distribution[vclass] = class_distribution.get(vclass, 0) + 1
+                    
+                    vehicle_details.append({
+                        'id': veh_id,
+                        'type': vtype,
+                        'class': vclass
+                    })
+                except:
+                    vehicle_details.append({
+                        'id': veh_id,
+                        'type': vtype,
+                        'class': 'N/A'
+                    })
+                    
+            except Exception as e:
+                vehicle_details.append({
+                    'id': veh_id,
+                    'error': str(e)
+                })
+        
+        return jsonify({
+            "success": True,
+            "diagnostics": {
+                "total_vehicles": len(all_vehicles),
+                "sampled_vehicles": sample_size,
+                "type_distribution": type_distribution,
+                "class_distribution": class_distribution,
+                "sample_details": vehicle_details
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
         
 # Get all TLS configurations for current scenario
 @tls_bp.route('/api/tls/configs', methods=['GET'])

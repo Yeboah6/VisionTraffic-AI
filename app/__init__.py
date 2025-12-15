@@ -15,9 +15,8 @@ from app.services.db_queue import init_db_queue
 from app.models.incident import Incident
 from app.models.location import Location
 from app.models.user import User
-from app.models.traffic_light import TrafficLightLog, TrafficLightConfig, TrafficPattern
+from app.models.traffic_light import TrafficLightLog, TrafficLightConfig, TrafficPattern, TLSOptimization
 from app.models.ai import AIDecisionLog, AIQTable, AIPerformance
-from app.models.emergency_veh import EmergencyVehicleLog, EmergencySchedule, GreenWaveSchedule
 
 migrate = Migrate()
 
@@ -47,17 +46,17 @@ def create_app():
     from app.services.tls_config_service import init_tls_config_service
     init_tls_config_service(app)
     
-    # from app.services.ai_traffic_service import ai_traffic_service
-    # ai_traffic_service.init_app(app)
+    # from app.services.ai_decision import enhanced_ai_decision_service
+    # enhanced_ai_decision_service.init_app(app)
     
-    from app.services.ai_decision import enhanced_ai_decision_service
-    enhanced_ai_decision_service.init_app(app)
+    from app.services.q_learning import init_simple_ai
+    simple_ai_optimizer = init_simple_ai(app)
     
-    from app.services.q_learning import q_learning
-    q_learning.init_app(app)
+    from app.services.ai_db_storage import ai_db_storage
+    ai_db_storage.init_app(app)
     
-    from app.services.emergency import emergency_service
-    emergency_service.init_app(app)
+    # from app.services.tls_optimization import tls_optimization_service
+    # tls_optimization_service.init_app(app)
 
     from app.services.traffic_pattern_analyzer import traffic_pattern_analyzer
     traffic_pattern_analyzer.init_app(app)
@@ -78,7 +77,7 @@ def create_app():
     from app.routes.api.tls_routes import tls_bp
     from app.routes.api.sumo import sumo_bp
     from app.routes.api.ai_routes import ai_bp
-    from app.routes.api.emergency import emergency_bp
+    from app.routes.api.optimization import optimization_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -92,7 +91,7 @@ def create_app():
     app.register_blueprint(sumo_bp)
     app.register_blueprint(tls_bp)
     app.register_blueprint(ai_bp)
-    app.register_blueprint(emergency_bp)
+    app.register_blueprint(optimization_bp)
     
     # Custom Jinja2 filter for humanizing time
     @app.template_filter('time_ago')

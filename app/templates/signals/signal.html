@@ -395,7 +395,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <h4 class="text-sm font-medium">AI Traffic Optimization</h4>
-                                <p class="text-xs text-slate-500 mt-0.5">Automatically adjust signals based on flow</p>
+                                <p class="text-xs text-slate-500 mt-0.5">Q-Learning based optimization</p>
                             </div>
                             <label class="custom-switch">
                                 <input type="checkbox" id="ai-optimization" checked>
@@ -412,6 +412,28 @@
                                 <input type="checkbox" id="emergency-detection" checked>
                                 <span class="switch-slider"></span>
                             </label>
+                        </div>
+                    </div>
+                    
+                    <!-- AI Status Display -->
+                    <div id="ai-status-display" class="mt-4 p-3 bg-slate-50 rounded-lg hidden">
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div>
+                                <div class="text-slate-500">Q-Table States</div>
+                                <div class="font-semibold" id="ai-states-count">0</div>
+                            </div>
+                            <div>
+                                <div class="text-slate-500">Decisions Made</div>
+                                <div class="font-semibold" id="ai-decisions-count">0</div>
+                            </div>
+                            <div>
+                                <div class="text-slate-500">Success Rate</div>
+                                <div class="font-semibold" id="ai-success-rate">0%</div>
+                            </div>
+                            <div>
+                                <div class="text-slate-500">Exploration Rate</div>
+                                <div class="font-semibold" id="ai-exploration-rate">0%</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -436,16 +458,17 @@
             </div>
         </div>
 <br>
+        <!-- Q-Learning AI Section -->
         <div class="card shadow-sm">
             <div class="p-4 border-b bg-gradient-to-r from-purple-50 to-white">
                 <div class="flex items-center justify-between">
                     <h2 class="font-semibold text-slate-800 flex items-center">
                         <i class="ri-robot-line text-purple-600 mr-2 text-xl"></i>
-                        AI Traffic Recommendations
+                        Q-Learning AI Traffic Optimization
                     </h2>
                     <div class="flex items-center gap-2">
                         <span class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
-                            Pattern-Based Learning
+                            Reinforcement Learning
                         </span>
                         <button onclick="refreshAIRecommendations()" 
                                 class="text-xs px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-50">
@@ -456,46 +479,51 @@
             </div>
     
             <div class="p-4">
-                <!-- AI Statistics -->
+                <!-- Q-Learning Statistics -->
                 <div id="aiStats" class="grid grid-cols-4 gap-4 mb-4 pb-4 border-b">
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-purple-600" id="totalRecommendations">0</div>
-                        <div class="text-xs text-slate-500">Total Recommendations</div>
+                        <div class="text-2xl font-bold text-purple-600" id="q-table-size">0</div>
+                        <div class="text-xs text-slate-500">States Learned</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-green-600" id="patternMatchRate">0%</div>
-                        <div class="text-xs text-slate-500">Pattern Match Rate</div>
+                        <div class="text-2xl font-bold text-green-600" id="episodes-learned">0</div>
+                        <div class="text-xs text-slate-500">Episodes Trained</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-blue-600" id="patternsInCache">0</div>
-                        <div class="text-xs text-slate-500">Patterns Learned</div>
+                        <div class="text-2xl font-bold text-blue-600" id="decisions-made">0</div>
+                        <div class="text-xs text-slate-500">Decisions Made</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-orange-600" id="avgConfidence">0%</div>
-                        <div class="text-xs text-slate-500">Avg Confidence</div>
+                        <div class="text-2xl font-bold text-orange-600" id="success-rate">0%</div>
+                        <div class="text-xs text-slate-500">Success Rate</div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-4 gap-4 mb-4 pb-4 border-b">
-                    <div class="text-center">
-                <div class="text-xl font-bold text-purple-600" id="qTableSize">0</div>
-                <div class="text-xs text-slate-500">States Learned</div>
-            </div>
-            <div class="text-center">
-                <div class="text-xl font-bold text-blue-600" id="episodesProcessed">0</div>
-                <div class="text-xs text-slate-500">Episodes Trained</div>
-            </div>
-            <div class="text-center">
-                <div class="text-xl font-bold text-green-600" id="convergenceRate">0%</div>
-                <div class="text-xs text-slate-500">Convergence</div>
-            </div>
-            <div class="text-center">
-                <div class="flex items-center justify-center">
-                    <div class="w-3 h-3 rounded-full mr-2" id="learningStatusDot"></div>
-                    <span class="text-sm font-medium" id="learningStatusText">-</span>
+                <!-- Learning Status -->
+                <div class="mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" id="learning-dot"></div>
+                            <span class="text-sm font-medium" id="learning-status">Loading...</span>
+                        </div>
+                        <div class="text-xs text-slate-500">
+                            <span id="exploration-rate">Exploration: 0%</span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="bg-purple-500 h-2 rounded-full transition-all duration-500" 
+                             id="learning-progress" style="width: 0%"></div>
+                    </div>
                 </div>
-                <div class="text-xs text-slate-500">Learning Status</div>
-            </div>
+
+                <!-- Top Strategies -->
+                <div class="mb-4">
+                    <h4 class="text-sm font-semibold mb-2">Top Learned Strategies</h4>
+                    <div id="top-strategies" class="space-y-2">
+                        <div class="text-sm text-slate-400 text-center py-2">
+                            Loading strategies...
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Recommendations List -->
@@ -506,11 +534,43 @@
                     </div>
                 </div>
             </div>
+            <!-- Add this to your signal.html in the AI section -->
+<div class="card mt-4">
+    <div class="p-4 border-b">
+        <h3 class="font-semibold flex items-center">
+            <i class="ri-eye-line text-blue-500 mr-2"></i>
+            AI Optimization Monitoring
+        </h3>
+    </div>
+    <div class="p-4">
+        <!-- Real-time Optimization Status -->
+        <div class="mb-4">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium">AI Activity Status</span>
+                <span id="ai-activity-status" class="text-xs px-2 py-1 rounded-full bg-gray-100">Inactive</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="ai-activity-bar" class="bg-green-500 h-2 rounded-full transition-all duration-1000" style="width: 0%"></div>
+            </div>
+            <div class="text-xs text-gray-500 mt-1" id="ai-last-action">No recent actions</div>
+        </div>
+
+        <!-- Recent Optimizations -->
+        <div class="space-y-2">
+            <h4 class="text-sm font-medium mb-2">Recent AI Decisions</h4>
+            <div id="recent-decisions" class="space-y-2 max-h-60 overflow-y-auto">
+                <div class="text-sm text-gray-400 text-center py-2">No decisions yet</div>
+            </div>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 </main>
 
 <script>
+
+    
 let refreshInterval;
 
 // Fetch performance data
@@ -1137,7 +1197,9 @@ async function refreshAllData() {
         fetchPerformanceData(),
         fetchAllSignals(),
         fetchSnapshot(),
-        fetchRealtimeData()
+        fetchRealtimeData(),
+        loadAIRecommendations(),
+        loadAIStatus()
     ]);
 }
 
@@ -1334,15 +1396,345 @@ function viewIncidentDetails(incidentId) {
 
 <script>
 /**
- * AI Optimization Toggle Integration
- * Adds working toggle functionality with visual feedback
+ * Corrected AI System Controller for Q-Learning Integration
+ * Uses the correct API endpoints from ai_routes.py and fetches TLS optimization details.
+ */
+
+class QLearningAIController {
+    constructor() {
+        this.toggle = document.getElementById('ai-optimization');
+        this.aiStatsContainer = document.getElementById('aiStats');
+        this.statusContainer = null;
+        this.isInitialized = false;
+        
+        this.init();
+    }
+    
+    async init() {
+        console.log('🔄 Initializing Q-Learning AI Controller...');
+        
+        // 1. Create a status display next to the toggle
+        this.createStatusIndicators();
+        
+        // 2. Load the current AI and simulation status
+        await this.loadAIStatus();
+        
+        // 3. Setup the toggle event listener with the correct endpoint
+        this.setupEventListeners();
+        
+        this.isInitialized = true;
+        console.log('✅ Q-Learning AI Controller initialized.');
+    }
+    
+    createStatusIndicators() {
+        const aiContainer = this.toggle.closest('.flex.items-center.justify-between');
+        if (!aiContainer) return;
+        
+        const statusDiv = document.createElement('div');
+        statusDiv.id = 'ai-optimization-status';
+        statusDiv.className = 'mt-2';
+        statusDiv.innerHTML = `
+            <div class="flex items-center space-x-2 text-xs">
+                <div class="flex items-center space-x-1">
+                    <div class="w-2 h-2 rounded-full bg-slate-400" id="ai-status-dot"></div>
+                    <span class="text-slate-600" id="ai-status-text">Checking status...</span>
+                </div>
+                <span class="text-slate-400">|</span>
+                <a href="javascript:void(0);" onclick="window.aiController.viewDetailedStatus()" 
+                   class="text-slate-500 hover:text-primary" id="ai-stats-text">Loading...</a>
+            </div>
+        `;
+        
+        const descriptionP = aiContainer.querySelector('p.text-xs.text-slate-500');
+        if (descriptionP && descriptionP.parentNode) {
+            descriptionP.parentNode.insertBefore(statusDiv, descriptionP.nextSibling);
+        }
+        this.statusContainer = statusDiv;
+    }
+    
+    async loadAIStatus() {
+        try {
+            // Fetch AI status from the CORRECT endpoint: /api/ai/status
+            const aiResponse = await fetch('/api/ai/status');
+            const aiData = await aiResponse.json();
+            
+            // Fetch SUMO simulation status
+            const simResponse = await fetch('/sumo/api/status');
+            const simData = await simResponse.json();
+            
+            if (aiData.success && simData.success) {
+                this.updateDisplay(aiData.data, simData.status);
+                this.updateAICardWithOptimizedTLS(aiData.data, simData.status); // NEW FUNCTION
+            } else {
+                throw new Error('Failed to fetch status from one or more services.');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error loading system status:', error);
+            this.updateDisplay({}, { is_running: false });
+            this.showToast('Could not connect to AI service. Running in baseline mode.', 'warning');
+        }
+    }
+
+    // NEW FUNCTION: Fetches and displays details of AI-optimized TLS
+    async updateAICardWithOptimizedTLS(aiStatus, simStatus) {
+        // Target the "Top Learned Strategies" container in the Q-Learning AI card
+        const strategyContainer = document.getElementById('top-strategies');
+        const recommendationsContainer = document.getElementById('aiRecommendationsList');
+
+        if (!aiStatus.summary?.ai_enabled || !simStatus.is_running) {
+            // If AI is off or sim isn't running, show a placeholder
+            strategyContainer.innerHTML = `<div class="text-sm text-slate-400 text-center py-4">Enable AI in a running simulation to see optimization strategies.</div>`;
+            return;
+        }
+
+        try {
+            // 1. Get the current simulation's Traffic Light data from SUMO service
+            const tlsResponse = await fetch('/sumo/api/tls/performance');
+            const tlsData = await tlsResponse.json();
+
+            // 2. Get the AI's recent recommendations/actions from its status
+            const recentActions = aiStatus.integration?.last_recommendations || [];
+
+            if (recentActions.length > 0) {
+                let strategiesHTML = '';
+                let recommendationsHTML = '';
+
+                // Process each recent AI action for a specific TLS
+                recentActions.forEach(action => {
+                    const tlsId = action.tl_id;
+                    // Try to find performance data for this specific TLS
+                    const tlsPerformance = tlsData.performance?.details?.[tlsId] || { performance_grade: 'N/A', waiting_vehicles: 'N/A' };
+
+                    strategiesHTML += `
+                        <div class="p-3 mb-2 border border-slate-200 rounded-lg bg-white">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <div class="font-semibold text-sm">${tlsId}</div>
+                                    <div class="text-xs text-slate-500">Action: <span class="font-medium">${action.action}</span></div>
+                                </div>
+                                <span class="px-2 py-1 text-xs rounded-full ${this.getGradeColorClass(tlsPerformance.performance_grade)}">
+                                    Grade: ${tlsPerformance.performance_grade}
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div>Waiting Vehicles: <strong>${tlsPerformance.waiting_vehicles}</strong></div>
+                                <div>AI Confidence: <strong>${(action.confidence * 100).toFixed(0)}%</strong></div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Build a more detailed recommendation card
+                    recommendationsHTML += this.createRecommendationCard(action, tlsPerformance);
+                });
+
+                strategyContainer.innerHTML = strategiesHTML;
+                recommendationsContainer.innerHTML = recommendationsHTML || `<div class="text-center text-slate-400 py-8">No recent AI actions to display.</div>`;
+
+            } else {
+                strategyContainer.innerHTML = `<div class="text-sm text-slate-400 text-center py-4">AI is enabled. Strategies will appear here after the next optimization cycle.</div>`;
+            }
+
+        } catch (error) {
+            console.error("Error fetching TLS data for AI card:", error);
+            strategyContainer.innerHTML = `<div class="text-sm text-red-400 text-center py-4">Could not load optimized signal details.</div>`;
+        }
+    }
+
+    // Helper to create a detailed recommendation card
+    createRecommendationCard(action, perf) {
+        const actionClass = this.getActionClass(action.action);
+        return `
+            <div class="p-4 rounded-lg border-l-4 ${actionClass.border} bg-white mb-3">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="font-semibold flex items-center gap-2">
+                            <i class="${actionClass.icon}"></i> ${action.tl_id}
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">${action.reasoning || 'Optimization based on current traffic state.'}</div>
+                    </div>
+                    <span class="text-xs font-semibold px-2 py-1 rounded ${actionClass.badge}">${action.action}</span>
+                </div>
+                <div class="mt-3 grid grid-cols-3 gap-2 text-xs">
+                    <div class="text-center p-2 bg-slate-50 rounded">
+                        <div class="text-slate-500">Before</div>
+                        <div class="font-bold">${perf.waiting_vehicles} waiting</div>
+                    </div>
+                    <div class="text-center p-2 bg-slate-50 rounded">
+                        <div class="text-slate-500">Expected</div>
+                        <div class="font-bold text-green-600">-${Math.round(action.expected_impact?.waiting || 15)}%</div>
+                    </div>
+                    <div class="text-center p-2 bg-slate-50 rounded">
+                        <div class="text-slate-500">Grade</div>
+                        <div class="font-bold ${this.getGradeColorClass(perf.performance_grade)}">${perf.performance_grade}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // --- Helper functions for styling ---
+    getGradeColorClass(grade) {
+        const map = { 'A': 'bg-green-100 text-green-800', 'B': 'bg-blue-100 text-blue-800', 'C': 'bg-yellow-100 text-yellow-800', 'D': 'bg-red-100 text-red-800' };
+        return map[grade] || 'bg-slate-100 text-slate-800';
+    }
+    getActionClass(action) {
+        const map = {
+            'EXTEND_GREEN': { border: 'border-green-500', icon: 'ri-time-line', badge: 'bg-green-100 text-green-800' },
+            'REDUCE_GREEN': { border: 'border-yellow-500', icon: 'ri-speed-line', badge: 'bg-yellow-100 text-yellow-800' },
+            'MAINTAIN': { border: 'border-blue-500', icon: 'ri-check-line', badge: 'bg-blue-100 text-blue-800' }
+        };
+        return map[action] || { border: 'border-slate-500', icon: 'ri-question-line', badge: 'bg-slate-100 text-slate-800' };
+    }
+    // --- End of new functions ---
+
+    setupEventListeners() {
+        // Use the CORRECT endpoint: /api/ai/toggle (POST)
+        this.toggle.addEventListener('change', async (e) => {
+            const enabled = e.target.checked;
+            await this.handleToggle(enabled);
+        });
+    }
+    
+    async handleToggle(enabled) {
+        console.log(`🔄 User toggling AI: ${enabled ? 'ON' : 'OFF'}`);
+        this.setLoadingState(true);
+        
+        try {
+            // Check simulation status first (REQUIRED for AI to work)
+            const simStatusRes = await fetch('/sumo/api/status');
+            const simStatus = await simStatusRes.json();
+            
+            if (!simStatus.success || !simStatus.status.is_running) {
+                this.showToast('Cannot Enable AI', 'warning', ['No active SUMO simulation found.', 'Please start a simulation first.']);
+                this.toggle.checked = false;
+                this.setLoadingState(false);
+                return;
+            }
+            
+            // Use the CORRECT endpoint for toggling
+            const endpoint = '/api/ai/toggle';
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled: enabled })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showToast(
+                    `AI ${enabled ? 'Enabled' : 'Disabled'}`,
+                    'success',
+                    [result.message || `AI optimization is now ${enabled ? 'active' : 'inactive'}.`]
+                );
+                // Reload the status to update the UI
+                await this.loadAIStatus();
+            } else {
+                throw new Error(result.error || 'Toggle request failed');
+            }
+            
+        } catch (error) {
+            console.error('Toggle failed:', error);
+            this.showToast('Toggle Failed', 'error', [error.message]);
+            this.toggle.checked = !enabled; // Revert the toggle visually
+        } finally {
+            this.setLoadingState(false);
+        }
+    }
+    
+    updateDisplay(aiData, simStatus) {
+        // Update the small status indicator
+        const dot = document.getElementById('ai-status-dot');
+        const text = document.getElementById('ai-status-text');
+        const stats = document.getElementById('ai-stats-text');
+        
+        const isSimRunning = simStatus.is_running;
+        const isAIEnabled = aiData.summary?.ai_enabled;
+        
+        if (isAIEnabled && isSimRunning) {
+            dot.className = 'w-2 h-2 rounded-full bg-green-500 animate-pulse';
+            text.textContent = 'AI Active';
+            text.className = 'text-green-600 font-medium';
+            stats.textContent = `Exploring at ${aiData.summary.exploration_rate}`;
+        } else if (!isSimRunning) {
+            dot.className = 'w-2 h-2 rounded-full bg-gray-400';
+            text.textContent = 'Sim Stopped';
+            text.className = 'text-gray-600';
+            stats.textContent = 'Start simulation';
+            this.toggle.disabled = true;
+        } else {
+            dot.className = 'w-2 h-2 rounded-full bg-orange-500';
+            text.textContent = 'AI Ready';
+            text.className = 'text-orange-600';
+            stats.textContent = 'Click to enable';
+            this.toggle.disabled = false;
+        }
+        this.toggle.checked = isAIEnabled;
+        
+        // Update the main Q-Learning statistics card
+        this.updateMainStatsCard(aiData);
+    }
+    
+    updateMainStatsCard(aiData) {
+        if (!this.aiStatsContainer) return;
+        
+        const optimizer = aiData.optimizer || {};
+        const summary = aiData.summary || {};
+        
+        // Update the four stat boxes
+        document.getElementById('q-table-size').textContent = optimizer.states_learned || 0;
+        document.getElementById('episodes-learned').textContent = optimizer.episodes_learned || 0;
+        document.getElementById('decisions-made').textContent = optimizer.decisions_made || 0;
+        document.getElementById('success-rate').textContent = optimizer.success_rate ? `${optimizer.success_rate}%` : '0%';
+        
+        // Update learning progress bar
+        const progressBar = document.getElementById('learning-progress');
+        const progress = Math.min(100, (optimizer.episodes_learned || 0) / 2); // Simple scaling
+        progressBar.style.width = `${progress}%`;
+        
+        // Update exploration rate text
+        document.getElementById('exploration-rate').textContent = `Exploration: ${summary.exploration_rate || '0%'}`;
+    }
+    
+    setLoadingState(loading) {
+        this.toggle.disabled = loading;
+        const text = document.getElementById('ai-status-text');
+        if (loading) {
+            text.textContent = 'Updating...';
+            text.className = 'text-blue-600 animate-pulse';
+        }
+    }
+    
+    showToast(title, type, messages) {
+        console.log(`Toast: ${title}`, messages);
+        // Use your existing toast function or a simple alert for now
+        alert(`${title}\n${messages.join('\n')}`);
+    }
+    
+    viewDetailedStatus() {
+        // Optional: Navigate to a dedicated AI status page or open a modal
+        console.log('View detailed status');
+        window.open('/api/ai/status?format=json', '_blank');
+    }
+}
+
+// Initialize the controller when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    window.aiController = new QLearningAIController();
+    // Refresh status every 30 seconds
+    setInterval(() => window.aiController.loadAIStatus(), 30000);
+});
+</script>
+
+<!-- <script>
+/**
+ * AI Optimization Integration - Fixed for actual routes
  */
 
 class AIOptimizationController {
     constructor() {
         this.toggle = document.getElementById('ai-optimization');
-        this.emergencyToggle = document.getElementById('emergency-detection');
-        this.statusContainer = null;
         this.isInitialized = false;
         
         this.init();
@@ -1356,9 +1748,6 @@ class AIOptimizationController {
         
         console.log('🤖 Initializing AI Optimization Controller...');
         
-        // Create status indicators
-        this.createStatusIndicators();
-        
         // Load current status
         await this.loadCurrentStatus();
         
@@ -1369,121 +1758,78 @@ class AIOptimizationController {
         console.log('✅ AI Optimization Controller initialized');
     }
     
-    createStatusIndicators() {
-        // Find the AI optimization container
-        const aiContainer = this.toggle.closest('.flex.items-center.justify-between');
-        if (!aiContainer) return;
-        
-        // Create status indicator element
-        const statusDiv = document.createElement('div');
-        statusDiv.id = 'ai-optimization-status';
-        statusDiv.className = 'mt-2';
-        statusDiv.innerHTML = `
-            <div class="flex items-center space-x-2 text-xs">
-                <div class="flex items-center space-x-1">
-                    <div class="w-2 h-2 rounded-full bg-slate-400" id="ai-status-dot"></div>
-                    <span class="text-slate-600" id="ai-status-text">Checking...</span>
-                </div>
-                <span class="text-slate-400">|</span>
-                <span class="text-slate-500" id="ai-stats-text">0 decisions</span>
-            </div>
-        `;
-        
-        // Insert after the toggle's parent description
-        const descriptionP = aiContainer.querySelector('p.text-xs.text-slate-500');
-        if (descriptionP && descriptionP.parentNode) {
-            descriptionP.parentNode.insertBefore(statusDiv, descriptionP.nextSibling);
-        }
-        
-        this.statusContainer = statusDiv;
-    }
-    
     setupEventListeners() {
         // AI Optimization toggle
         this.toggle.addEventListener('change', async (e) => {
-            await this.handleToggle(e.target.checked);
+            const enabled = e.target.checked;
+            await this.handleToggle(enabled);
         });
-        
-        // Emergency detection toggle (bonus feature)
-        if (this.emergencyToggle) {
-            this.emergencyToggle.addEventListener('change', async (e) => {
-                await this.handleEmergencyToggle(e.target.checked);
-            });
-        }
     }
     
     async loadCurrentStatus() {
         try {
-            const response = await fetch('/ai/status');
+            // Check if simulation is running
+            const simResponse = await fetch('/sumo/api/status');
+            const simStatus = await simResponse.json();
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            if (!simStatus.success || !simStatus.status.is_running) {
+                this.toggle.checked = false;
+                this.toggle.disabled = true;
+                return;
             }
             
-            const data = await response.json();
+            // Check AI status
+            const aiResponse = await fetch('/api/ai/status');
+            const aiStatus = await aiResponse.json();
             
-            if (data.success) {
-                // Update toggle state
-                this.toggle.checked = data.ai_enabled;
+            if (aiStatus.success) {
+                this.toggle.checked = aiStatus.data?.summary?.ai_enabled || false;
+                this.toggle.disabled = false;
                 
-                // Update status display
-                this.updateStatusDisplay(data);
+                // Update AI stats display
+                this.updateAIStats(aiStatus.data);
                 
-                console.log('📊 AI Status loaded:', data);
-            } else {
-                throw new Error(data.error || 'Failed to load status');
+                console.log('✅ AI status loaded:', aiStatus.data?.summary?.ai_enabled);
             }
             
         } catch (error) {
             console.error('❌ Error loading AI status:', error);
-            this.updateStatusDisplay({
-                ai_enabled: false,
-                mode: 'ERROR',
-                stats: { total_decisions: 0 }
-            });
-            
-            // Show error toast
-            this.showToast('Failed to load AI status. Using default settings.', 'warning');
+            this.toggle.checked = false;
+            this.toggle.disabled = true;
         }
     }
     
     async handleToggle(enabled) {
-        console.log(`🔄 Toggling AI optimization: ${enabled ? 'ON' : 'OFF'}`);
+        console.log(`🔄 Toggling AI: ${enabled ? 'ON' : 'OFF'}`);
         
         // Show loading state
         this.setLoadingState(true);
         
         try {
-            const response = await fetch('/ai/toggle', {
+            // Use the correct endpoints based on the routes file
+            const endpoint = enabled ? '/api/ai/enable' : '/api/ai/disable';
+            
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ enabled })
+                }
             });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
             
             const result = await response.json();
             
             if (result.success) {
-                // Update status display
-                this.updateStatusDisplay(result);
+                // Reload status to update display
+                await this.loadCurrentStatus();
                 
-                // Show success message with implications
-                this.showSuccessMessage(result);
+                // Show success message
+                this.showToast(
+                    `AI Optimization ${enabled ? 'Enabled' : 'Disabled'}`,
+                    'success',
+                    [result.message || (enabled ? 'AI will optimize traffic lights' : 'AI optimization stopped')]
+                );
                 
-                // Log the change
-                console.log('✅ AI optimization toggled:', result);
-                
-                // Refresh data after a short delay
-                setTimeout(() => {
-                    if (typeof refreshAllData === 'function') {
-                        refreshAllData();
-                    }
-                }, 1000);
+                console.log('✅ AI toggle successful:', result);
                 
             } else {
                 throw new Error(result.error || 'Toggle failed');
@@ -1491,7 +1837,7 @@ class AIOptimizationController {
             
         } catch (error) {
             console.error('❌ Error toggling AI:', error);
-            this.showToast('Failed to toggle AI optimization: ' + error.message, 'error');
+            this.showToast('Failed to toggle AI', 'error', [error.message]);
             
             // Revert toggle state
             this.toggle.checked = !enabled;
@@ -1501,69 +1847,42 @@ class AIOptimizationController {
         }
     }
     
-    async handleEmergencyToggle(enabled) {
-        console.log(`🚨 Toggling emergency detection: ${enabled ? 'ON' : 'OFF'}`);
+    updateAIStats(aiData) {
+        if (!aiData) return;
         
-        try {
-            // You can implement emergency detection toggle here
-            this.showToast(
-                `Emergency vehicle detection ${enabled ? 'enabled' : 'disabled'}`, 
-                'info'
-            );
-        } catch (error) {
-            console.error('❌ Error toggling emergency detection:', error);
+        // Update main stats display if elements exist
+        const stats = aiData.optimizer || {};
+        
+        if (document.getElementById('q-table-size')) {
+            document.getElementById('q-table-size').textContent = 
+                stats.states_learned || 0;
+        }
+        
+        if (document.getElementById('episodes-learned')) {
+            document.getElementById('episodes-learned').textContent = 
+                stats.episodes_learned || 0;
+        }
+        
+        if (document.getElementById('decisions-made')) {
+            document.getElementById('decisions-made').textContent = 
+                stats.decisions_made || 0;
+        }
+        
+        if (document.getElementById('success-rate')) {
+            document.getElementById('success-rate').textContent = 
+                stats.success_rate ? `${stats.success_rate}%` : '0%';
         }
     }
     
-    updateStatusDisplay(data) {
-        if (!this.statusContainer) return;
+    setLoadingState(loading) {
+        this.toggle.disabled = loading;
         
-        const dot = document.getElementById('ai-status-dot');
-        const text = document.getElementById('ai-status-text');
-        const stats = document.getElementById('ai-stats-text');
-        
-        if (!dot || !text || !stats) return;
-        
-        const isEnabled = data.ai_enabled || data.current_state;
-        const mode = data.mode || 'UNKNOWN';
-        
-        // Update status dot and text
-        if (isEnabled) {
-            dot.className = 'w-2 h-2 rounded-full bg-green-500 animate-pulse';
-            text.textContent = 'Active';
-            text.className = 'text-green-600 font-medium';
+        // Show loading cursor
+        if (loading) {
+            document.body.style.cursor = 'wait';
         } else {
-            dot.className = 'w-2 h-2 rounded-full bg-orange-500';
-            text.textContent = 'Baseline Mode';
-            text.className = 'text-orange-600 font-medium';
+            document.body.style.cursor = 'default';
         }
-        
-        // Update stats
-        if (data.stats) {
-            const totalDecisions = data.stats.total_decisions || 0;
-            const appliedOptimizations = data.stats.applied_optimizations || 0;
-            
-            if (isEnabled) {
-                stats.textContent = `${appliedOptimizations} optimizations applied`;
-            } else {
-                stats.textContent = `${data.stats.baseline_collections || 0} baseline samples`;
-            }
-            stats.className = 'text-slate-600 font-medium';
-        }
-    }
-    
-    showSuccessMessage(result) {
-        const isEnabled = result.current_state;
-        const message = isEnabled 
-            ? '🤖 AI Optimization Enabled' 
-            : '📊 Baseline Collection Mode';
-        
-        const description = isEnabled
-            ? 'AI will now optimize traffic light timings based on real-time conditions.'
-            : 'Collecting baseline data without AI intervention for comparison.';
-        
-        // Show detailed toast with implications
-        this.showToast(message, 'success', [description, ...result.implications.slice(0, 2)]);
     }
     
     showToast(message, type = 'info', details = []) {
@@ -1612,7 +1931,6 @@ class AIOptimizationController {
         toast.className = `
             ${bgColor} border-l-4 ${borderColor} p-4 rounded-lg shadow-lg
             transform transition-all duration-300 ease-in-out
-            animate-slide-in
         `;
         
         // Build details HTML
@@ -1651,100 +1969,38 @@ class AIOptimizationController {
             setTimeout(() => toast.remove(), 300);
         }, 6000);
     }
-    
-    setLoadingState(loading) {
-        this.toggle.disabled = loading;
-        
-        if (this.statusContainer) {
-            const text = document.getElementById('ai-status-text');
-            if (text) {
-                if (loading) {
-                    text.textContent = 'Updating...';
-                    text.className = 'text-blue-600 animate-pulse';
-                }
-            }
-        }
-        
-        // Show loading cursor
-        if (loading) {
-            document.body.style.cursor = 'wait';
-        } else {
-            document.body.style.cursor = 'default';
-        }
-    }
 }
 
-// Add animation styles
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slide-in {
-        from {
-            opacity: 0;
-            transform: translateX(100%);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-    
-    .animate-slide-in {
-        animation: slide-in 0.3s ease-out;
-    }
-`;
-document.head.appendChild(style);
-
-// Initialize AI Controller when DOM is ready
+// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Wait a bit to ensure other scripts are loaded
     setTimeout(() => {
         window.aiOptimizationController = new AIOptimizationController();
     }, 500);
 });
 
-// Add to existing refresh function
-const originalRefreshAllData = refreshAllData;
-refreshAllData = async function() {
-    if (typeof originalRefreshAllData === 'function') {
-        await originalRefreshAllData();
-    }
-    
-    // Also refresh AI status
-    if (window.aiOptimizationController && window.aiOptimizationController.isInitialized) {
-        await window.aiOptimizationController.loadCurrentStatus();
-    }
-};
-
-// Export for use in other scripts
-window.AIOptimizationController = AIOptimizationController;
-
-</script>
-
-<script>
 // AI Recommendations Management
-let aiRecommendationsRefreshInterval;
+async function loadAIStatus() {
+    try {
+        const response = await fetch('/api/ai/status');
+        const result = await response.json();
 
-// Initialize AI recommendations on page load
-document.addEventListener('DOMContentLoaded', function() {
-    loadAIRecommendations();
-    
-    // Auto-refresh every 30 seconds
-    aiRecommendationsRefreshInterval = setInterval(() => {
-        loadAIRecommendations();
-    }, 30000);
-});
+        if (result.success) {
+            displayAIStatus(result.data);
+        }
+    } catch (error) {
+        console.error('❌ Error loading AI status:', error);
+    }
+}
 
 async function loadAIRecommendations() {
     try {
-        const scenario = getCurrentScenario(); // Your function to get current scenario
-        const response = await fetch(`/ai/recommendations?scenario=${scenario}`);
+        const response = await fetch('/api/ai/recommendations?limit=5');
         const result = await response.json();
-        
+
         if (result.success) {
-            displayAIStatistics(result.statistics);
-            displayAIRecommendations(result.recommendations);
+            displayAIRecommendations(result.data);
         } else {
-            showAIError(result.message || 'Failed to load recommendations');
+            showAIError(result.error || 'Failed to load recommendations');
         }
     } catch (error) {
         console.error('❌ Error loading AI recommendations:', error);
@@ -1752,67 +2008,395 @@ async function loadAIRecommendations() {
     }
 }
 
-function displayAIStatistics(stats) {
-    document.getElementById('totalRecommendations').textContent = stats.total_decisions || 0;
-    document.getElementById('patternMatchRate').textContent = `${stats.pattern_match_rate || 0}%`;
-    document.getElementById('patternsInCache').textContent = stats.patterns_in_cache || 0;
-    document.getElementById('avgConfidence').textContent = `${stats.avg_confidence || 0}%`;
+function displayAIStatus(data) {
+    if (!data) return;
+    
+    const optimizer = data.optimizer || {};
+    const summary = data.summary || {};
+    
+    // Update main stats
+    if (document.getElementById('q-table-size')) {
+        document.getElementById('q-table-size').textContent = 
+            optimizer.states_learned || 0;
+    }
+    
+    if (document.getElementById('episodes-learned')) {
+        document.getElementById('episodes-learned').textContent = 
+            optimizer.episodes_learned || 0;
+    }
+    
+    if (document.getElementById('decisions-made')) {
+        document.getElementById('decisions-made').textContent = 
+            optimizer.decisions_made || 0;
+    }
+    
+    if (document.getElementById('success-rate')) {
+        document.getElementById('success-rate').textContent = 
+            optimizer.success_rate ? `${optimizer.success_rate}%` : '0%';
+    }
+    
+    // Update learning status
+    const learningDot = document.getElementById('learning-dot');
+    const learningStatus = document.getElementById('learning-status');
+    const explorationRate = document.getElementById('exploration-rate');
+    const learningProgress = document.getElementById('learning-progress');
+    
+    if (learningDot && learningStatus && explorationRate && learningProgress) {
+        if (summary.ai_enabled && optimizer.episodes_learned > 0) {
+            learningDot.className = 'w-3 h-3 rounded-full bg-green-500';
+            learningStatus.textContent = 'Active Learning';
+            learningStatus.className = 'text-sm font-medium text-green-600';
+            
+            const episodes = optimizer.episodes_learned;
+            const progress = Math.min(100, (episodes / 100) * 100);
+            learningProgress.style.width = `${progress}%`;
+            
+            const exploration = optimizer.exploration_rate || 0;
+            explorationRate.textContent = `Exploration: ${exploration}%`;
+        } else if (summary.ai_enabled) {
+            learningDot.className = 'w-3 h-3 rounded-full bg-yellow-500';
+            learningStatus.textContent = 'Initializing...';
+            learningStatus.className = 'text-sm font-medium text-yellow-600';
+            explorationRate.textContent = 'Exploration: 100%';
+            learningProgress.style.width = '10%';
+        } else {
+            learningDot.className = 'w-3 h-3 rounded-full bg-gray-400';
+            learningStatus.textContent = 'AI Disabled';
+            learningStatus.className = 'text-sm font-medium text-gray-600';
+            explorationRate.textContent = 'Start AI to begin learning';
+            learningProgress.style.width = '0%';
+        }
+    }
 }
 
-function displayAIRecommendations(recommendations) {
+function displayAIRecommendations(data) {
     const container = document.getElementById('aiRecommendationsList');
+    if (!container) return;
+    
+    const recommendations = data.learned_recommendations || [];
     
     if (!recommendations || recommendations.length === 0) {
         container.innerHTML = `
             <div class="text-center text-slate-400 py-8">
                 <i class="ri-lightbulb-line text-4xl mb-2 block"></i>
-                <p class="font-medium">No active recommendations</p>
-                <p class="text-xs mt-1">AI is analyzing traffic patterns...</p>
+                <p class="font-medium">No recommendations yet</p>
+                <p class="text-xs mt-1">AI is learning from traffic patterns...</p>
             </div>
         `;
         return;
     }
     
     container.innerHTML = recommendations.map(rec => {
-        const priority = rec.display_priority || 'MEDIUM';
-        const priorityClass = getPriorityClass(priority);
         const actionClass = getAIActionClass(rec.action);
-        const confidenceClass = getConfidenceClass(rec.confidence * 100);
+        const confidencePercent = Math.round((rec.confidence || 0.5) * 100);
         
         return `
-            <div class="p-4 rounded-lg border-l-4 ${priorityClass.border} bg-white hover:shadow-md transition-all">
-                <!-- Header -->
+            <div class="p-4 rounded-lg border-l-4 ${actionClass.border} bg-white hover:shadow-md transition-all">
+                Header
                 <div class="flex items-start justify-between mb-3">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
-                            <i class="ri-traffic-light-line text-slate-600"></i>
-                            <span class="font-semibold text-slate-800">${rec.tl_id}</span>
-                            ${rec.pattern_matched ? `
-                                <span class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
-                                    <i class="ri-check-line"></i> Pattern Match
-                                </span>
-                            ` : `
-                                <span class="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
-                                    Heuristic
-                                </span>
-                            `}
+                            <i class="${actionClass.icon} ${actionClass.text}"></i>
+                            <span class="font-semibold text-slate-800">${rec.state || 'Unknown State'}</span>
+                            <span class="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
+                                Q-Learning
+                            </span>
                         </div>
                         <div class="text-xs text-slate-500">
-                            ${formatTimeAgo(rec.timestamp)}
+                            ${rec.reasoning || 'Based on learned patterns'}
                         </div>
                     </div>
                     
                     <div class="text-right">
-                        <div class="text-xs px-2 py-1 ${confidenceClass} rounded-full font-medium mb-1">
-                            ${(rec.confidence * 100).toFixed(0)}% confident
+                        <div class="text-xs px-2 py-1 ${getConfidenceClass(confidencePercent)} rounded-full font-medium mb-1">
+                            ${confidencePercent}% confident
                         </div>
                         <div class="text-xs text-slate-500">
-                            ${(rec.success_rate * 100).toFixed(0)}% success rate
+                            Q-value: ${rec.q_value ? rec.q_value.toFixed(2) : 'N/A'}
                         </div>
                     </div>
                 </div>
                 
-                <!-- Recommended Action -->
+                Recommended Action
+                <div class="mb-3 p-3 rounded-lg ${actionClass.bg}">
+                    <div class="flex items-center gap-2">
+                        <i class="${actionClass.icon} ${actionClass.text} text-lg"></i>
+                        <div>
+                            <div class="font-semibold ${actionClass.text}">
+                                ${formatActionName(rec.action)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                Expected Impact
+                ${rec.expected_impact ? `
+                    <div class="grid grid-cols-3 gap-2 mb-3 text-xs">
+                        <div class="p-2 bg-blue-50 rounded text-center">
+                            <div class="text-slate-600 mb-1">Efficiency</div>
+                            <div class="font-semibold text-blue-700">
+                                ${rec.expected_impact.efficiency || 'N/A'}
+                            </div>
+                        </div>
+                        <div class="p-2 bg-green-50 rounded text-center">
+                            <div class="text-slate-600 mb-1">Waiting</div>
+                            <div class="font-semibold text-green-700">
+                                ${rec.expected_impact.waiting || 'N/A'}
+                            </div>
+                        </div>
+                        <div class="p-2 bg-purple-50 rounded text-center">
+                            <div class="text-slate-600 mb-1">Congestion</div>
+                            <div class="font-semibold text-purple-700">
+                                ${rec.expected_impact.congestion || 'N/A'}
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+// Helper functions
+function getAIActionClass(action) {
+    const classes = {
+        'EXTEND_GREEN': {
+            bg: 'bg-green-50',
+            text: 'text-green-700',
+            icon: 'ri-time-line',
+            border: 'border-green-500'
+        },
+        'REDUCE_GREEN': {
+            bg: 'bg-yellow-50',
+            text: 'text-yellow-700',
+            icon: 'ri-speed-line',
+            border: 'border-yellow-500'
+        },
+        'MAINTAIN': {
+            bg: 'bg-blue-50',
+            text: 'text-blue-700',
+            icon: 'ri-check-line',
+            border: 'border-blue-500'
+        }
+    };
+    return classes[action] || classes['MAINTAIN'];
+}
+
+function getConfidenceClass(confidence) {
+    if (confidence >= 80) return 'bg-green-100 text-green-700';
+    if (confidence >= 60) return 'bg-yellow-100 text-yellow-700';
+    return 'bg-red-100 text-red-700';
+}
+
+function formatActionName(action) {
+    const names = {
+        'EXTEND_GREEN': 'Extend Green Phase',
+        'REDUCE_GREEN': 'Reduce Green Phase',
+        'MAINTAIN': 'Maintain Current Timing'
+    };
+    return names[action] || action.replace('_', ' ');
+}
+
+function showAIError(message) {
+    const container = document.getElementById('aiRecommendationsList');
+    if (container) {
+        container.innerHTML = `
+            <div class="text-center text-red-500 py-8">
+                <i class="ri-error-warning-line text-4xl mb-2 block"></i>
+                <p class="font-medium">${message}</p>
+            </div>
+        `;
+    }
+}
+
+// Refresh AI data
+async function refreshAIRecommendations() {
+    await loadAIStatus();
+    await loadAIRecommendations();
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+    // Load AI data after a delay to ensure DOM is ready
+    setTimeout(() => {
+        loadAIStatus();
+        loadAIRecommendations();
+    }, 1000);
+    
+    // Auto-refresh every 30 seconds
+    setInterval(() => {
+        refreshAIRecommendations();
+    }, 30000);
+}); 
+</script>
+
+<script>
+// AI Recommendations Management for Q-Learning
+let aiRecommendationsRefreshInterval;
+
+// Initialize AI recommendations on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadAIStatus();
+    loadAIRecommendations();
+    
+    // Auto-refresh every 30 seconds
+    aiRecommendationsRefreshInterval = setInterval(() => {
+        loadAIStatus();
+        loadAIRecommendations();
+    }, 30000);
+});
+
+// Load AI Status
+async function loadAIStatus() {
+    try {
+        const response = await fetch('/api/ai/status');
+        const result = await response.json();
+
+        if (result.success) {
+            displayAIStatus(result.data);
+            displayTopStrategies(result.data.optimizer);
+        }
+    } catch (error) {
+        console.error('❌ Error loading AI status:', error);
+    }
+}
+
+// Display AI Status
+function displayAIStatus(data) {
+    // Update main stats
+    document.getElementById('q-table-size').textContent = 
+        data.optimizer?.states_learned || 0;
+    document.getElementById('episodes-learned').textContent = 
+        data.optimizer?.episodes_learned || 0;
+    document.getElementById('decisions-made').textContent = 
+        data.optimizer?.decisions_made || 0;
+    document.getElementById('success-rate').textContent = 
+        data.optimizer?.success_rate ? `${data.optimizer.success_rate}%` : '0%';
+    
+    // Update learning status
+    const learningDot = document.getElementById('learning-dot');
+    const learningStatus = document.getElementById('learning-status');
+    const explorationRate = document.getElementById('exploration-rate');
+    const learningProgress = document.getElementById('learning-progress');
+    
+    if (data.summary?.ai_enabled && data.optimizer?.episodes_learned > 0) {
+        learningDot.className = 'w-3 h-3 rounded-full bg-green-500 animate-pulse';
+        learningStatus.textContent = 'Active Learning';
+        learningStatus.className = 'text-sm font-medium text-green-600';
+        
+        const episodes = data.optimizer.episodes_learned;
+        const progress = Math.min(100, (episodes / 100) * 100);
+        learningProgress.style.width = `${progress}%`;
+        
+        const exploration = data.optimizer.exploration_rate || 0;
+        explorationRate.textContent = `Exploration: ${exploration}%`;
+    } else if (data.summary?.ai_enabled) {
+        learningDot.className = 'w-3 h-3 rounded-full bg-yellow-500';
+        learningStatus.textContent = 'Initializing...';
+        learningStatus.className = 'text-sm font-medium text-yellow-600';
+        explorationRate.textContent = 'Exploration: 100%';
+        learningProgress.style.width = '10%';
+    } else {
+        learningDot.className = 'w-3 h-3 rounded-full bg-gray-400';
+        learningStatus.textContent = 'AI Disabled';
+        learningStatus.className = 'text-sm font-medium text-gray-600';
+        explorationRate.textContent = 'Start AI to begin learning';
+        learningProgress.style.width = '0%';
+    }
+}
+
+// Display Top Strategies
+function displayTopStrategies(optimizer) {
+    const container = document.getElementById('top-strategies');
+    
+    if (!optimizer || !optimizer.top_strategies || optimizer.top_strategies.length === 0) {
+        container.innerHTML = `
+            <div class="text-sm text-slate-400 text-center py-2">
+                No strategies learned yet
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = optimizer.top_strategies.map(strategy => {
+        return `
+            <div class="flex items-center justify-between p-2 bg-slate-50 rounded text-xs">
+                <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 rounded-full ${getActionColor(strategy.action)}"></div>
+                    <span class="font-medium">${strategy.action.replace('_', ' ')}</span>
+                </div>
+                <div class="text-slate-500">
+                    Q: ${strategy.q_value.toFixed(2)}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Load AI Recommendations
+async function loadAIRecommendations() {
+    try {
+        const response = await fetch('/api/ai/recommendations?limit=7');
+        const result = await response.json();
+
+        if (result.success) {
+            displayAIRecommendations(result.data);
+        } else {
+            showAIError(result.error || 'Failed to load recommendations');
+        }
+    } catch (error) {
+        console.error('❌ Error loading AI recommendations:', error);
+        showAIError('Failed to load AI recommendations');
+    }
+}
+
+function displayAIRecommendations(data) {
+    const container = document.getElementById('aiRecommendationsList');
+    const recommendations = data.learned_recommendations || [];
+    
+    if (!recommendations || recommendations.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-slate-400 py-8">
+                <i class="ri-lightbulb-line text-4xl mb-2 block"></i>
+                <p class="font-medium">No recommendations yet</p>
+                <p class="text-xs mt-1">AI is learning from traffic patterns...</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = recommendations.map(rec => {
+        const actionClass = getAIActionClass(rec.action);
+        const confidencePercent = Math.round((rec.confidence || 0.5) * 100);
+        
+        return `
+            <div class="p-4 rounded-lg border-l-4 ${actionClass.border} bg-white hover:shadow-md transition-all">
+                Header
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="${actionClass.icon} ${actionClass.text}"></i>
+                            <span class="font-semibold text-slate-800">State: ${rec.state || 'Unknown'}</span>
+                            <span class="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
+                                Q-Learning
+                            </span>
+                        </div>
+                        <div class="text-xs text-slate-500">
+                            ${rec.reasoning || 'Based on learned patterns'}
+                        </div>
+                    </div>
+                    
+                    <div class="text-right">
+                        <div class="text-xs px-2 py-1 ${getConfidenceClass(confidencePercent)} rounded-full font-medium mb-1">
+                            ${confidencePercent}% confident
+                        </div>
+                        <div class="text-xs text-slate-500">
+                            Q-value: ${rec.q_value ? rec.q_value.toFixed(2) : 'N/A'}
+                        </div>
+                    </div>
+                </div>
+                
+                Recommended Action
                 <div class="mb-3 p-3 rounded-lg ${actionClass.bg}">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
@@ -1822,12 +2406,12 @@ function displayAIRecommendations(recommendations) {
                                     ${formatActionName(rec.action)}
                                 </div>
                                 <div class="text-xs ${actionClass.text} opacity-75">
-                                    ${rec.action_type.replace('_', ' ')}
+                                    ${rec.expected_impact ? 'Expected impact shown below' : 'Optimization action'}
                                 </div>
                             </div>
                         </div>
                         
-                        ${rec.parameters && Object.keys(rec.parameters).length > 0 ? `
+                        ${rec.parameters ? `
                             <div class="text-xs ${actionClass.text} text-right">
                                 ${formatActionParameters(rec.parameters)}
                             </div>
@@ -1835,59 +2419,41 @@ function displayAIRecommendations(recommendations) {
                     </div>
                 </div>
                 
-                <!-- Reasoning -->
-                <div class="mb-3 p-2 bg-slate-50 rounded text-xs text-slate-700">
-                    <i class="ri-information-line mr-1"></i>
-                    ${rec.reasoning}
-                </div>
-                
-                <!-- Expected Impact -->
-                ${rec.expected_impact && rec.expected_impact.efficiency_change ? `
+                Expected Impact
+                ${rec.expected_impact ? `
                     <div class="grid grid-cols-3 gap-2 mb-3 text-xs">
                         <div class="p-2 bg-blue-50 rounded text-center">
                             <div class="text-slate-600 mb-1">Efficiency</div>
                             <div class="font-semibold text-blue-700">
-                                ${rec.expected_impact.efficiency_change}
+                                ${rec.expected_impact.efficiency || 'N/A'}
                             </div>
                         </div>
                         <div class="p-2 bg-green-50 rounded text-center">
                             <div class="text-slate-600 mb-1">Waiting</div>
                             <div class="font-semibold text-green-700">
-                                ${rec.expected_impact.waiting_change}
+                                ${rec.expected_impact.waiting || 'N/A'}
                             </div>
                         </div>
                         <div class="p-2 bg-purple-50 rounded text-center">
                             <div class="text-slate-600 mb-1">Congestion</div>
                             <div class="font-semibold text-purple-700">
-                                ${rec.expected_impact.congestion_change}
+                                ${rec.expected_impact.congestion || 'N/A'}
                             </div>
                         </div>
                     </div>
                 ` : ''}
                 
-                <!-- Recommendations List -->
-                ${rec.recommendations && rec.recommendations.length > 0 ? `
-                    <div class="space-y-1">
-                        ${rec.recommendations.map(r => `
-                            <div class="text-xs text-slate-600 flex items-start">
-                                <i class="ri-arrow-right-s-line text-slate-400 mt-0.5"></i>
-                                <span>${r}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                ` : ''}
-                
-                <!-- Action Buttons (for future implementation) -->
+                Action Buttons
                 <div class="mt-3 pt-3 border-t flex gap-2">
                     <button class="flex-1 px-3 py-2 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
-                            onclick="viewRecommendationDetails('${rec.tl_id}')">
+                            onclick="viewStateKnowledge('${rec.state}')">
                         <i class="ri-eye-line mr-1"></i>
-                        View Details
+                        View State
                     </button>
                     <button class="flex-1 px-3 py-2 text-xs bg-slate-100 text-slate-700 rounded hover:bg-slate-200 transition-colors"
-                            onclick="dismissRecommendation('${rec.tl_id}')">
-                        <i class="ri-close-line mr-1"></i>
-                        Dismiss
+                            onclick="testDecision('${rec.state}')">
+                        <i class="ri-flask-line mr-1"></i>
+                        Test Decision
                     </button>
                 </div>
             </div>
@@ -1895,13 +2461,14 @@ function displayAIRecommendations(recommendations) {
     }).join('');
 }
 
-function getPriorityClass(priority) {
-    const classes = {
-        'HIGH': { border: 'border-red-500', bg: 'bg-red-50' },
-        'MEDIUM': { border: 'border-yellow-500', bg: 'bg-yellow-50' },
-        'LOW': { border: 'border-slate-300', bg: 'bg-slate-50' }
-    };
-    return classes[priority] || classes['MEDIUM'];
+// Helper functions
+function getActionColor(action) {
+    switch(action) {
+        case 'EXTEND_GREEN': return 'bg-green-500';
+        case 'REDUCE_GREEN': return 'bg-yellow-500';
+        case 'MAINTAIN': return 'bg-blue-500';
+        default: return 'bg-slate-400';
+    }
 }
 
 function getAIActionClass(action) {
@@ -1909,22 +2476,20 @@ function getAIActionClass(action) {
         'EXTEND_GREEN': {
             bg: 'bg-green-50',
             text: 'text-green-700',
-            icon: 'ri-time-line'
+            icon: 'ri-time-line',
+            border: 'border-green-500'
         },
         'REDUCE_GREEN': {
             bg: 'bg-yellow-50',
             text: 'text-yellow-700',
-            icon: 'ri-speed-line'
-        },
-        'OPTIMIZE_TIMING': {
-            bg: 'bg-blue-50',
-            text: 'text-blue-700',
-            icon: 'ri-settings-3-line'
+            icon: 'ri-speed-line',
+            border: 'border-yellow-500'
         },
         'MAINTAIN': {
-            bg: 'bg-slate-50',
-            text: 'text-slate-700',
-            icon: 'ri-check-line'
+            bg: 'bg-blue-50',
+            text: 'text-blue-700',
+            icon: 'ri-check-line',
+            border: 'border-blue-500'
         }
     };
     return classes[action] || classes['MAINTAIN'];
@@ -1940,55 +2505,64 @@ function formatActionName(action) {
     const names = {
         'EXTEND_GREEN': '⏱️ Extend Green Phase',
         'REDUCE_GREEN': '⏩ Reduce Green Phase',
-        'OPTIMIZE_TIMING': '⚙️ Optimize Timing',
-        'MAINTAIN': '✓ Maintain Current'
+        'MAINTAIN': '✓ Maintain Current Timing'
     };
-    return names[action] || action;
+    return names[action] || action.replace('_', ' ');
 }
 
 function formatActionParameters(params) {
-    if (params.duration_change) {
+    if (typeof params === 'string') return params;
+    if (params && params.duration_change) {
         const sign = params.duration_change > 0 ? '+' : '';
         return `${sign}${params.duration_change}s`;
     }
-    if (params.optimization_type) {
-        return params.optimization_type;
-    }
-    return 'No change';
-}
-
-function formatTimeAgo(timestamp) {
-    if (!timestamp) return 'Just now';
-    try {
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        
-        if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return `${diffMins}m ago`;
-        if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
-        return date.toLocaleDateString();
-    } catch {
-        return 'Recently';
-    }
+    return 'No parameters';
 }
 
 function refreshAIRecommendations() {
+    loadAIStatus();
     loadAIRecommendations();
 }
 
-function viewRecommendationDetails(tlId) {
-    // Navigate to detailed view or open modal
-    console.log('View details for:', tlId);
-    // TODO: Implement detailed view
+async function viewStateKnowledge(stateKey) {
+    try {
+        const response = await fetch(`/api/ai/knowledge/state/${encodeURIComponent(stateKey)}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`State: ${stateKey}\nBest Action: ${result.data.best_action}\nQ-Value: ${result.data.best_q_value}\nConfidence: ${result.data.confidence}`);
+        } else {
+            alert('Failed to load state knowledge');
+        }
+    } catch (error) {
+        console.error('Error viewing state knowledge:', error);
+        alert('Error loading state knowledge');
+    }
 }
 
-function dismissRecommendation(tlId) {
-    // Mark recommendation as dismissed
-    console.log('Dismiss recommendation for:', tlId);
-    // TODO: Implement dismissal logic
-}
+// async function testDecision(stateKey) {
+//     try {
+//         const response = await fetch('/api/ai/test/decision', {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json' },
+//             body: JSON.stringify({
+//                 waiting: 5,
+//                 total: 8,
+//                 efficiency: 60
+//             })
+//         });
+//         const result = await response.json();
+        
+//         if (result.success) {
+//             alert(`Test Decision:\nAction: ${result.data.decision.action}\nConfidence: ${result.data.decision.confidence}`);
+//         } else {
+//             alert('Failed to test decision');
+//         }
+//     } catch (error) {
+//         console.error('Error testing decision:', error);
+//         alert('Error testing decision');
+//     }
+// }
 
 function showAIError(message) {
     const container = document.getElementById('aiRecommendationsList');
@@ -1999,533 +2573,20 @@ function showAIError(message) {
         </div>
     `;
 }
-
-// Helper function - implement based on your app structure
-function getCurrentScenario() {
-    // Return the currently selected scenario
-    return document.getElementById('scenarioFilter')?.value || 'accra';
-}
-</script>
+<!-- </script> -->
 
 <style>
+/* Animation for learning status */
 .animate-pulse-slow {
     animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
-</style>
 
-<script>
-/**
- * Q-Learning AI Integration
- * Adds Q-learning AI mode selection and status monitoring
- */
-
-class QLearningAIController {
-    constructor() {
-        this.modeSelector = null;
-        this.statusContainer = null;
-        this.isInitialized = false;
-        this.refreshInterval = null;
-        
-        this.aiModes = {
-            'PATTERN_ONLY': { 
-                name: 'Pattern Only', 
-                desc: 'Uses historical patterns only',
-                icon: 'ri-history-line',
-                color: 'blue'
-            },
-            'Q_LEARNING': { 
-                name: 'Q-Learning AI', 
-                desc: 'Uses reinforcement learning',
-                icon: 'ri-robot-line',
-                color: 'purple'
-            },
-            'HYBRID': { 
-                name: 'Hybrid AI', 
-                desc: 'Combines patterns and Q-learning (Recommended)',
-                icon: 'ri-brain-line',
-                color: 'green'
-            },
-            'DISABLED': { 
-                name: 'AI Disabled', 
-                desc: 'No AI optimization',
-                icon: 'ri-close-circle-line',
-                color: 'gray'
-            }
-        };
-        
-        this.init();
-    }
-    
-    async init() {
-        console.log('🧠 Initializing Q-Learning AI Controller...');
-        
-        // Wait for DOM
-        await this.waitForElement('#ai-optimization');
-        
-        // Create UI components
-        this.createModeSelector();
-        this.createStatusDisplay();
-        this.createControlPanel();
-        
-        // Load current status
-        await this.loadAIStatus();
-        
-        // Start auto-refresh (every 30 seconds)
-        this.refreshInterval = setInterval(() => this.loadAIStatus(), 30000);
-        
-        this.isInitialized = true;
-        console.log('✅ Q-Learning AI Controller initialized');
-    }
-    
-    waitForElement(selector, timeout = 5000) {
-        return new Promise((resolve, reject) => {
-            const element = document.querySelector(selector);
-            if (element) {
-                resolve(element);
-                return;
-            }
-            
-            const observer = new MutationObserver(() => {
-                const el = document.querySelector(selector);
-                if (el) {
-                    observer.disconnect();
-                    resolve(el);
-                }
-            });
-            
-            observer.observe(document.body, { childList: true, subtree: true });
-            
-            setTimeout(() => {
-                observer.disconnect();
-                reject(new Error(`Element ${selector} not found`));
-            }, timeout);
-        });
-    }
-    
-    createModeSelector() {
-        const aiContainer = document.getElementById('ai-optimization')?.closest('.flex.items-center.justify-between');
-        if (!aiContainer) {
-            console.error('❌ AI optimization container not found');
-            return;
-        }
-        
-        const modeSelectorContainer = document.createElement('div');
-        modeSelectorContainer.className = 'mt-3 w-full';
-        modeSelectorContainer.innerHTML = `
-            <div class="flex items-center justify-between mb-2">
-                <label class="text-xs font-medium text-slate-700 flex items-center">
-                    <i class="ri-settings-3-line mr-1"></i>
-                    AI Mode:
-                </label>
-                <span class="text-xs text-slate-400">(affects recommendations)</span>
-            </div>
-            <select id="ai-mode-selector" 
-                    class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white 
-                           focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
-                           cursor-pointer transition-all">
-                <option value="HYBRID">🧠 Hybrid AI (Recommended)</option>
-                <option value="Q_LEARNING">🤖 Q-Learning AI</option>
-                <option value="PATTERN_ONLY">📊 Pattern Only</option>
-                <option value="DISABLED">⏸️ AI Disabled</option>
-            </select>
-            <div id="ai-mode-description" class="text-xs text-slate-500 mt-2 p-2 bg-slate-50 rounded">
-                Combines patterns and Q-learning for best results
-            </div>
-        `;
-        
-        aiContainer.parentNode.insertBefore(modeSelectorContainer, aiContainer.nextSibling);
-        
-        this.modeSelector = document.getElementById('ai-mode-selector');
-        this.modeDescription = document.getElementById('ai-mode-description');
-        
-        this.modeSelector.addEventListener('change', (e) => {
-            this.handleModeChange(e.target.value);
-        });
-    }
-    
-    createStatusDisplay() {
-        const aiStatsSection = document.getElementById('aiStats');
-        if (!aiStatsSection) return;
-        
-        // Add Q-learning specific stats
-        const qLearningStats = document.createElement('div');
-        qLearningStats.id = 'q-learning-stats';
-        // qLearningStats.className = 'grid grid-cols-4 gap-4 mb-4 pb-4 border-b';
-        // qLearningStats.innerHTML = `
-        //     <div class="text-center">
-        //         <div class="text-xl font-bold text-purple-600" id="qTableSize">0</div>
-        //         <div class="text-xs text-slate-500">States Learned</div>
-        //     </div>
-        //     <div class="text-center">
-        //         <div class="text-xl font-bold text-blue-600" id="episodesProcessed">0</div>
-        //         <div class="text-xs text-slate-500">Episodes Trained</div>
-        //     </div>
-        //     <div class="text-center">
-        //         <div class="text-xl font-bold text-green-600" id="convergenceRate">0%</div>
-        //         <div class="text-xs text-slate-500">Convergence</div>
-        //     </div>
-        //     <div class="text-center">
-        //         <div class="flex items-center justify-center">
-        //             <div class="w-3 h-3 rounded-full mr-2" id="learningStatusDot"></div>
-        //             <span class="text-sm font-medium" id="learningStatusText">-</span>
-        //         </div>
-        //         <div class="text-xs text-slate-500">Learning Status</div>
-        //     </div>
-        // `;
-        
-        aiStatsSection.appendChild(qLearningStats);
-    }
-    
-    createControlPanel() {
-        const trafficControlContent = document.getElementById('traffic-control-content');
-        if (!trafficControlContent) return;
-        
-        const qLearningControls = document.createElement('div');
-        qLearningControls.className = 'mt-4 pt-4 border-t space-y-3';
-        qLearningControls.innerHTML = `
-            <h4 class="text-sm font-semibold text-slate-700 flex items-center">
-                <i class="ri-brain-line text-purple-600 mr-2"></i>
-                Q-Learning Controls
-            </h4>
-            
-            <div class="grid grid-cols-2 gap-2">
-                <button id="btn-start-learning" 
-                        class="px-3 py-2 text-xs bg-green-100 text-green-700 rounded-lg
-                               hover:bg-green-200 transition-colors flex items-center justify-center">
-                    <i class="ri-play-line mr-1"></i> Start Learning
-                </button>
-                <button id="btn-pause-learning" 
-                        class="px-3 py-2 text-xs bg-yellow-100 text-yellow-700 rounded-lg
-                               hover:bg-yellow-200 transition-colors flex items-center justify-center">
-                    <i class="ri-pause-line mr-1"></i> Pause
-                </button>
-            </div>
-            
-            <div class="bg-slate-50 rounded-lg p-3">
-                <div class="text-xs text-slate-600 mb-2">Learning Parameters</div>
-                <div class="space-y-2 text-xs">
-                    <div class="flex justify-between items-center">
-                        <span>Learning Rate (α):</span>
-                        <span class="font-mono font-medium" id="param-learning-rate">0.1</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span>Discount Factor (γ):</span>
-                        <span class="font-mono font-medium" id="param-discount-factor">0.95</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span>Exploration Rate (ε):</span>
-                        <span class="font-mono font-medium" id="param-exploration-rate">1.0</span>
-                    </div>
-                </div>
-            </div>
-            
-            <button id="btn-reset-learning" 
-                    class="w-full px-3 py-2 text-xs bg-red-50 text-red-600 rounded-lg
-                           hover:bg-red-100 transition-colors flex items-center justify-center">
-                <i class="ri-refresh-line mr-1"></i> Reset Q-Learning
-            </button>
-        `;
-        
-        trafficControlContent.appendChild(qLearningControls);
-        
-        // Add event listeners
-        document.getElementById('btn-start-learning').addEventListener('click', () => this.startLearning());
-        document.getElementById('btn-pause-learning').addEventListener('click', () => this.pauseLearning());
-        document.getElementById('btn-reset-learning').addEventListener('click', () => this.resetLearning());
-    }
-    
-    async handleModeChange(mode) {
-        console.log(`🔄 Changing AI mode to: ${mode}`);
-        
-        this.modeSelector.disabled = true;
-        
-        try {
-            const response = await fetch('/ai/set-mode', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mode })
-            });
-            
-            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.updateModeDescription(mode);
-                this.showToast(`AI Mode: ${this.aiModes[mode].name}`, 'success', [
-                    this.aiModes[mode].desc
-                ]);
-                
-                await this.loadAIStatus();
-                
-                if (typeof refreshAIRecommendations === 'function') {
-                    refreshAIRecommendations();
-                }
-            } else {
-                throw new Error(result.error || 'Mode change failed');
-            }
-            
-        } catch (error) {
-            console.error('❌ Error changing AI mode:', error);
-            this.showToast('Failed to change AI mode', 'error', [error.message]);
-        } finally {
-            this.modeSelector.disabled = false;
-        }
-    }
-    
-    updateModeDescription(mode) {
-        const modeInfo = this.aiModes[mode] || this.aiModes['HYBRID'];
-        
-        if (this.modeDescription) {
-            this.modeDescription.innerHTML = `
-                <i class="${modeInfo.icon} mr-1"></i>
-                ${modeInfo.desc}
-            `;
-        }
-    }
-    
-    async loadAIStatus() {
-        try {
-            const response = await fetch('/ai/status');
-            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.updateStatusDisplay(data);
-            }
-            
-        } catch (error) {
-            console.error('❌ Error loading AI status:', error);
-        }
-    }
-    
-    updateStatusDisplay(data) {
-        const qLearning = data.q_learning || {};
-        const learningStats = qLearning.learning_stats || {};
-        
-        // Update Q-learning stats
-        const qTableSize = document.getElementById('qTableSize');
-        const episodesProcessed = document.getElementById('episodesProcessed');
-        const convergenceRate = document.getElementById('convergenceRate');
-        const learningStatusDot = document.getElementById('learningStatusDot');
-        const learningStatusText = document.getElementById('learningStatusText');
-        
-        if (qTableSize) {
-            qTableSize.textContent = qLearning.q_table_size || 0;
-        }
-        
-        if (episodesProcessed) {
-            episodesProcessed.textContent = learningStats.episodes_processed || 0;
-        }
-        
-        if (convergenceRate) {
-            const rate = (learningStats.convergence_rate || 0) * 100;
-            convergenceRate.textContent = `${rate.toFixed(1)}%`;
-            
-            // Color based on convergence
-            if (rate >= 70) {
-                convergenceRate.className = 'text-xl font-bold text-green-600';
-            } else if (rate >= 40) {
-                convergenceRate.className = 'text-xl font-bold text-yellow-600';
-            } else {
-                convergenceRate.className = 'text-xl font-bold text-red-600';
-            }
-        }
-        
-        if (learningStatusDot && learningStatusText) {
-            if (qLearning.learning_running && qLearning.is_learning) {
-                learningStatusDot.className = 'w-3 h-3 rounded-full mr-2 bg-green-500 animate-pulse';
-                learningStatusText.textContent = 'Active';
-                learningStatusText.className = 'text-sm font-medium text-green-600';
-            } else if (qLearning.learning_running) {
-                learningStatusDot.className = 'w-3 h-3 rounded-full mr-2 bg-yellow-500';
-                learningStatusText.textContent = 'Paused';
-                learningStatusText.className = 'text-sm font-medium text-yellow-600';
-            } else {
-                learningStatusDot.className = 'w-3 h-3 rounded-full mr-2 bg-gray-400';
-                learningStatusText.textContent = 'Stopped';
-                learningStatusText.className = 'text-sm font-medium text-gray-600';
-            }
-        }
-        
-        // Update mode selector
-        if (this.modeSelector && data.current_mode) {
-            this.modeSelector.value = data.current_mode;
-            this.updateModeDescription(data.current_mode);
-        }
-        
-        // Update parameters display
-        if (qLearning.exploration_rate !== undefined) {
-            const expRate = document.getElementById('param-exploration-rate');
-            if (expRate) expRate.textContent = qLearning.exploration_rate.toFixed(4);
-        }
-    }
-    
-    async startLearning() {
-        try {
-            const response = await fetch('/ai/q-learning/resume', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.showToast('Q-Learning Started', 'success', ['Background training resumed']);
-                await this.loadAIStatus();
-            } else {
-                throw new Error(result.error);
-            }
-        } catch (error) {
-            this.showToast('Failed to start learning', 'error', [error.message]);
-        }
-    }
-    
-    async pauseLearning() {
-        try {
-            const response = await fetch('/ai/q-learning/pause', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.showToast('Q-Learning Paused', 'warning', ['Training paused, Q-table preserved']);
-                await this.loadAIStatus();
-            } else {
-                throw new Error(result.error);
-            }
-        } catch (error) {
-            this.showToast('Failed to pause learning', 'error', [error.message]);
-        }
-    }
-    
-    async resetLearning() {
-        if (!confirm('⚠️ This will delete all learned Q-values!\n\nAre you sure you want to reset?')) {
-            return;
-        }
-        
-        try {
-            const response = await fetch('/ai/q-learning/reset', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ confirm: true })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.showToast('Q-Learning Reset', 'info', ['All learned values cleared', 'Starting fresh']);
-                await this.loadAIStatus();
-            } else {
-                throw new Error(result.error);
-            }
-        } catch (error) {
-            this.showToast('Failed to reset', 'error', [error.message]);
-        }
-    }
-    
-    showToast(message, type = 'info', details = []) {
-        // Use existing toast function if available
-        if (window.aiOptimizationController?.showToast) {
-            window.aiOptimizationController.showToast(message, type, details);
-            return;
-        }
-        
-        // Fallback toast
-        let container = document.getElementById('toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toast-container';
-            container.className = 'fixed top-20 right-4 z-50 space-y-2 max-w-md';
-            document.body.appendChild(container);
-        }
-        
-        const toast = document.createElement('div');
-        const colors = {
-            success: 'bg-green-50 border-green-500 text-green-700',
-            error: 'bg-red-50 border-red-500 text-red-700',
-            warning: 'bg-yellow-50 border-yellow-500 text-yellow-700',
-            info: 'bg-blue-50 border-blue-500 text-blue-700'
-        };
-        
-        toast.className = `p-4 rounded-lg shadow-lg border-l-4 ${colors[type] || colors.info}`;
-        toast.innerHTML = `
-            <div class="font-semibold">${message}</div>
-            ${details.length > 0 ? `
-                <ul class="mt-1 text-sm opacity-75">
-                    ${details.map(d => `<li>• ${d}</li>`).join('')}
-                </ul>
-            ` : ''}
-        `;
-        
-        container.appendChild(toast);
-        
-        setTimeout(() => toast.remove(), 5000);
-    }
-    
-    destroy() {
-        if (this.refreshInterval) {
-            clearInterval(this.refreshInterval);
-        }
-    }
-}
-
-
-// Initialize on DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        window.qLearningAIController = new QLearningAIController();
-    }, 1000);
-});
-
-// Cleanup on page unload
-window.addEventListener('beforeunload', () => {
-    if (window.qLearningAIController) {
-        window.qLearningAIController.destroy();
-    }
-});
-
-// Update AI statistics display to include Q-learning info
-function updateAIStatisticsWithQLearning(stats) {
-    // Update existing statistics
-    document.getElementById('totalRecommendations').textContent = 
-        stats.total_decisions || 0;
-    document.getElementById('patternMatchRate').textContent = 
-        `${stats.pattern_match_rate || 0}%`;
-    document.getElementById('patternsInCache').textContent = 
-        stats.patterns_in_cache || 0;
-    
-    // Add Q-learning specific stats if available
-    if (stats.q_learning_decisions) {
-        const qLearningTotal = Object.values(stats.q_learning_decisions).reduce((sum, val) => sum + val, 0);
-        const qLearningRate = stats.total_decisions > 0 ? (qLearningTotal / stats.total_decisions * 100) : 0;
-        
-        // You could add this to the statistics display
-        console.log(`Q-Learning decisions: ${qLearningTotal} (${qLearningRate.toFixed(1)}%)`);
-    }
-}
-
-</script>
-
-<style>
-/* Additional styles for Q-learning AI components */
-#ai-mode-selector:focus {
-    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
-}
-
-#q-learning-status {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-}
-
-/* Animation for learning status */
-.learning-pulse {
+/* Q-Learning specific styles */
+#learning-dot.animate-pulse {
     animation: pulse 2s ease-in-out infinite;
 }
 
-@keyframes learning-pulse {
+@keyframes pulse {
     0%, 100% {
         opacity: 1;
     }
@@ -2533,10 +2594,85 @@ function updateAIStatisticsWithQLearning(stats) {
         opacity: 0.7;
     }
 }
-</style>
 
-<style>
-    /* Incident Item Styles */
+/* Additional styles for Q-learning AI components */
+.signal-status-card {
+    transition: all 0.3s ease;
+}
+
+.tls-card-content {
+    transition: max-height 0.3s ease-in-out;
+}
+
+.tls-chevron {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-collapsible-content {
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+}
+
+.card-collapsible-content.hidden {
+    display: none;
+}
+
+.toggle-card-btn {
+    transition: background-color 0.2s ease-in-out;
+}
+
+.custom-switch input:checked + .switch-slider {
+    background-color: #22c55e;
+}
+
+.custom-switch input:checked + .switch-slider:before {
+    transform: translateX(20px);
+}
+
+.custom-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.custom-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.custom-switch input:disabled + .switch-slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Incident Item Styles */
 .incident-item {
     animation: slideIn 0.3s ease-out;
 }
@@ -2642,103 +2778,6 @@ function updateAIStatisticsWithQLearning(stats) {
 .signal-status-card.warning {
     border-left: 4px solid #f59e0b;
 }
-
-.tls-card-content {
-    transition: max-height 0.3s ease-in-out;
-}
-
-.tls-chevron {
-    transition: transform 0.2s ease-in-out;
-}
-
-.card-collapsible-content {
-    transition: all 0.3s ease-in-out;
-    overflow: hidden;
-}
-
-.card-collapsible-content.hidden {
-    display: none;
-}
-
-.toggle-card-btn {
-    transition: background-color 0.2s ease-in-out;
-}
-
-.custom-switch input:checked + .switch-slider {
-    background-color: #22c55e;
-}
-
-.custom-switch input:checked + .switch-slider:before {
-    transform: translateX(20px);
-}
-
-.custom-switch {
-    position: relative;
-    display: inline-block;
-    width: 44px;
-    height: 24px;
-}
-
-.custom-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.switch-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #cbd5e1;
-    transition: 0.3s;
-    border-radius: 24px;
-}
-
-.switch-slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: 0.3s;
-    border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.custom-switch input:disabled + .switch-slider {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Comparison dashboard link button */
-.comparison-dashboard-btn {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.comparison-dashboard-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.comparison-dashboard-btn i {
-    margin-right: 0.5rem;
-}
-
 </style>
 
 {% endblock %}

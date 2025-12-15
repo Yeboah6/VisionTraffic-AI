@@ -12,7 +12,6 @@ import uuid
 # Import models
 from app.models.traffic_light import TrafficLightLog, TrafficPattern
 from app.models.ai import AIQTable, AIDecisionLog
-from app.models.emergency_veh import EmergencyVehicleLog
 
 class DatabaseQueueService:
     """
@@ -55,6 +54,82 @@ class DatabaseQueueService:
         
         thread = threading.Thread(target=flusher, daemon=True)
         thread.start()
+    
+    # 🔥 NEW METHOD: Queue TLS snapshot data
+    def queue_tls_data(self, tls_snapshot: Dict):
+        """
+        Queue TLS snapshot data by converting it to individual traffic light logs
+        
+        Args:
+            tls_snapshot: Dictionary with structure:
+                {
+                    'scenario': str,
+                    'timestamp': float,
+                    'simulation_step': int,
+                    'traffic_lights': {
+                        'tl_id': {
+                            'id': str,
+                            'state': str,
+                            'phase': int,
+                            'phase_name': str,
+                            'duration': float,
+                            'next_switch': float,
+                            'performance': {
+                                'waiting_vehicles': int,
+                                'total_vehicles': int,
+                                'efficiency_score': float,
+                                'performance_grade': str,
+                                'congestion_level': str
+                            }
+                        }
+                    }
+                }
+        """
+        try:
+            traffic_lights = tls_snapshot.get('traffic_lights', {})
+            scenario = tls_snapshot.get('scenario', 'default')
+            simulation_time = tls_snapshot.get('timestamp', 0)
+            
+            if not traffic_lights:
+                print("⚠️ No traffic lights in snapshot")
+                return
+            
+            # Convert each traffic light to a log entry
+            for tl_id, tl_data in traffic_lights.items():
+                try:
+                    performance = tl_data.get('performance', {})
+                    
+                    # Build log data in the format expected by add_traffic_light_log
+                    log_data = {
+                        'id': str(uuid.uuid4()),
+                        'traffic_light_id': tl_id,
+                        'scenario': scenario,
+                        'simulation_time': simulation_time,
+                        'state': tl_data.get('state', ''),
+                        'phase': tl_data.get('phase', 0),
+                        'phase_name': tl_data.get('phase_name', 'UNKNOWN'),
+                        'duration': tl_data.get('duration', 0),
+                        'next_switch': tl_data.get('next_switch', 0),
+                        'vehicle_count': performance.get('total_vehicles', 0),
+                        'waiting_vehicles': performance.get('waiting_vehicles', 0),
+                        'efficiency_score': performance.get('efficiency_score', 0),
+                        'performance_grade': performance.get('performance_grade', 'D'),
+                        'created_at': datetime.utcnow()
+                    }
+                    
+                    # Queue this individual traffic light log
+                    self.add_traffic_light_log(log_data)
+                    
+                except Exception as tl_error:
+                    print(f"⚠️ Error queuing TLS {tl_id}: {tl_error}")
+                    continue
+            
+            print(f"✅ Queued {len(traffic_lights)} traffic light logs from snapshot")
+            
+        except Exception as e:
+            print(f"❌ Error queuing TLS snapshot: {e}")
+            import traceback
+            traceback.print_exc()
     
     # Traffic Log
     def add_traffic_light_log(self, log_data: Dict):
@@ -161,21 +236,6 @@ class DatabaseQueueService:
         if len(self.queue) >= 50:
             self.flush_queue()
     
-    # Emergency Vehicls Schedule
-    # def add_emergency_schedule(self, emergency_schedule_data: Dict):
-    #     """Queue emergency vehicle schedule for async writing"""
-    #     operation = {
-    #         'type': 'emergency_schedule',
-    #         'data': emergency_schedule_data,
-    #         'timestamp': datetime.utcnow()
-    #     }
-    #     self.queue.append(operation)
-    #     self.stats['operations_queued'] += 1
-
-    #     # Auto-flush if queue is getting large
-    #     if len(self.queue) >= 50:
-    #         self.flush_queue()
-    
     def flush_queue(self):
         """Flush all queued operations to database"""
         if not self.queue or not self.app:
@@ -224,6 +284,16 @@ class DatabaseQueueService:
                                 next_switch=log_data.get('next_switch', 0),
                                 vehicle_count=log_data.get('vehicle_count', 0),
                                 waiting_vehicles=log_data.get('waiting_vehicles', 0),
+                                
+                                # NEW: Vehicle type fields
+                                passenger_count=log_data.get('passenger_count', 0),
+                                truck_count=log_data.get('truck_count', 0),
+                                bus_count=log_data.get('bus_count', 0),
+                                motorcycle_count=log_data.get('motorcycle_count', 0),
+                                bicycle_count=log_data.get('bicycle_count', 0),
+                                emergency_count=log_data.get('emergency_count', 0),
+                                vehicle_type_distribution=log_data.get('vehicle_type_distribution', {}),
+                                
                                 efficiency_score=log_data.get('efficiency_score', 0),
                                 performance_grade=log_data.get('performance_grade', 'D'),
                                 created_at=log_data.get('created_at', datetime.utcnow())
@@ -332,109 +402,6 @@ class DatabaseQueueService:
                                 db.session.rollback()
                                 error_count += 1
 
-                        elif op['type'] == 'emergency_log':
-                            emergency_data = op['data']
-                            
-                            # FIX: Ensure details field is properly serialized to JSON
-                            details = emergency_data.get('details', {})
-                            if isinstance(details, dict):
-                                # Convert any datetime objects in details to strings
-                                details = self._convert_datetime_to_string(details)
-                                details_json = json.dumps(details, default=self._json_serializer)
-                            else:
-                                details_json = '{}'
-                                
-                            # FIX: Convert detected_at to datetime if it's a string
-                            detected_at = emergency_data.get('detected_at')
-                            if isinstance(detected_at, str):
-                                try:
-                                    detected_at = datetime.fromisoformat(detected_at.replace('Z', '+00:00'))
-                                except:
-                                    detected_at = datetime.utcnow()
-                            elif not isinstance(detected_at, datetime):
-                                detected_at = datetime.utcnow()
-                                
-                            # FIX: Convert cleared_at to datetime if it's a string or None
-                            cleared_at = emergency_data.get('cleared_at')
-                            if isinstance(cleared_at, str):
-                                try:
-                                    cleared_at = datetime.fromisoformat(cleared_at.replace('Z', '+00:00'))
-                                except:
-                                    cleared_at = None
-                            elif cleared_at is not None and not isinstance(cleared_at, datetime):
-                                cleared_at = None
-
-                            # Create EmergencyVehicleLog entry
-                            emergency_entry = EmergencyVehicleLog(
-                                id=emergency_data.get('id', f"emergency_{int(time.time())}_{random.randint(1000, 9999)}"),
-                                scenario=emergency_data['scenario'],
-                                vehicle_id=emergency_data['vehicle_id'],
-                                vehicle_type=emergency_data['vehicle_type'],
-                                vehicle_class=emergency_data.get('vehicle_class'),
-                                original_type=emergency_data.get('original_type'),
-                                traffic_light_id=emergency_data['traffic_light_id'],
-                                lane_id=emergency_data['lane_id'],
-                                road_id=emergency_data.get('road_id'),
-                                speed=float(emergency_data.get('speed', 0)),
-                                position=float(emergency_data.get('position', 0)),
-                                distance_to_intersection=float(emergency_data.get('distance_to_intersection', 0)),
-                                time_to_intersection=float(emergency_data.get('time_to_intersection', 0)),
-                                priority=emergency_data['priority'],
-                                is_scheduled=emergency_data.get('is_scheduled', False),
-                                detected_at=emergency_data.get('detected_at', datetime.utcnow()),
-                                scenario_timestamp=emergency_data['scenario_timestamp'],
-                                details=details_json  
-                            )
-
-                            db.session.add(emergency_entry)
-                            processed_count += 1
-                            print(f"✅ Created emergency log for vehicle {emergency_data['vehicle_id']}")
-                        
-                        # elif op['type'] == 'emergency_schedule':
-                        #     emergency_schedule_data = op['data']
-                            
-                        #     # FIX: Ensure details field is properly serialized to JSON
-                        #     details = emergency_schedule_data.get('details', {})
-                        #     if isinstance(details, dict):
-                        #         details = self._convert_datetime_to_string(details)
-                        #         details_json = json.dumps(details, default=self._json_serializer)
-                        #     else:
-                        #         details_json = '{}'
-
-                        #     # FIX: Handle route_edges serialization
-                        #     route_edges = emergency_schedule_data.get('route_edges', [])
-                        #     if isinstance(route_edges, (list, dict)):
-                        #         route_edges_json = json.dumps(route_edges, default=self._json_serializer)
-                        #     else:
-                        #         route_edges_json = '[]'
-
-                        #     # FIX: Handle estimated_arrival_times serialization
-                        #     arrival_times = emergency_schedule_data.get('estimated_arrival_times', {})
-                        #     if isinstance(arrival_times, dict):
-                        #         arrival_times_json = json.dumps(arrival_times, default=self._json_serializer)
-                        #     else:
-                        #         arrival_times_json = '{}'
-
-                        #     # Create EmergencyVehicleRegistry entry
-                        #     emergency_schedule_entry = EmergencyVehicleRegistry(
-                        #         id=emergency_schedule_data.get('id', f"emergency_{int(time.time())}_{random.randint(1000, 9999)}"),
-                        #         scenario=emergency_schedule_data['scenario'],
-                        #         vehicle_id=emergency_schedule_data['vehicle_id'],
-                        #         vehicle_type=emergency_schedule_data['vehicle_type'],
-                        #         scheduled_departure=float(emergency_schedule_data.get('scheduled_departure', 0)),
-                        #         from_edge=emergency_schedule_data['from_edge'],
-                        #         to_edge=emergency_schedule_data['to_edge'],
-                        #         route_edges=emergency_schedule_data['route_edges'],
-                        #         status=emergency_schedule_data.get('status', 'SCHEDULED'),
-                        #         estimated_arrival_time=float(emergency_schedule_data.get('estimated_arrival_time', 0)),
-                        #         created_at=datetime.utcnow(),
-                        #         details=details_json
-                        #     )
-
-                        #     db.session.add(emergency_schedule_entry)
-                        #     processed_count += 1
-                        #     print(f"✅ Created emergency schedule for vehicle {emergency_schedule_data['vehicle_id']}")
-
                     except Exception as op_error:
                         print(f"❌ Error processing operation {i}: {op_error}")
                         import traceback
@@ -517,21 +484,6 @@ class DatabaseQueueService:
                         traceback.print_exc()
                         error_count += len(emergency_logs)
                         db.session.rollback()
-                        
-                # Bulk insert Emergency Vehicle Schedules
-                # if emergency_schedule_logs:
-                #     try:
-                #         print("🔍 Adding Emergency Vehicle Schedules to session...")
-                #         db.session.add_all(emergency_schedule_logs)
-                #         print("🔍 Flushing Emergency Vehicle Schedules...")
-                #         db.session.flush()
-                #         print("✅ Successfully flushed Emergency Vehicle Schedules to session")
-                #     except Exception as e:
-                #         print(f"❌ Error during Emergency Vehicle Schedules flush: {e}")
-                #         import traceback
-                #         traceback.print_exc()
-                #         error_count += len(emergency_schedule_logs)
-                #         db.session.rollback()
 
                 # Commit all changes
                 if error_count == 0:
@@ -563,14 +515,6 @@ class DatabaseQueueService:
                             q_table_count = AIQTable.query.count()
                             print(f"🔍 Verification: Found {q_table_count} Q-table entries in DB")
                             
-                        if emergency_logs:
-                            emergency_count = EmergencyVehicleLog.query.count()
-                            print(f"🔍 Verification: Found {emergency_count} Emergency Vehicle Logs in DB")
-                            
-                        if emergency_schedule_logs:
-                            schedule_count = EmergencyVehicleRegistry.query.count()
-                            print(f"🔍 Verification: Found {schedule_count} Emergency Vehicle Schedules in DB")
-
                     except Exception as verify_error:
                         print(f"⚠️ Could not verify save: {verify_error}")
                 else:

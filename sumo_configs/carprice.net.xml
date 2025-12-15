@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2025-11-13 21:44:50 by Eclipse SUMO netedit Version 1.24.0
+<!-- generated on 2025-11-23 18:20:23 by Eclipse SUMO netedit Version 1.24.0
 <neteditConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/neteditConfiguration.xsd">
 
     <input>
+        <sumocfg-file value="C:\Users\JHOKER\Desktop\Vision_Traffic_AI_Main\sumo_configs\carprice.sumocfg"/>
+        <route-files value="C:\Users\JHOKER\Desktop\Vision_Traffic_AI_Main\sumo_configs\carprice.rou.xml"/>
         <sumo-net-file value="C:\Users\JHOKER\Desktop\Vision_Traffic_AI_Main\sumo_configs\carprice.net.xml"/>
     </input>
 
@@ -29,6 +31,11 @@
     <pedestrian>
         <walkingareas value="0"/>
     </pedestrian>
+
+    <netedit>
+        <ignore.additionalelements value="0"/>
+        <ignore.routeelements value="0"/>
+    </netedit>
 
 </neteditConfiguration>
 -->
@@ -183,9 +190,9 @@
         <lane id=":carprice_03_4_0" index="0" disallow="pedestrian" speed="5.99" length="7.49" shape="182.36,21.02 182.13,18.57 181.46,16.82 180.34,15.77 178.76,15.42"/>
     </edge>
     <edge id=":carprice_04_0" function="internal">
-        <lane id=":carprice_04_0_0" index="0" disallow="pedestrian" speed="13.89" length="17.77" shape="115.75,0.32 133.52,0.11"/>
-        <lane id=":carprice_04_0_1" index="1" disallow="pedestrian" speed="13.89" length="17.77" shape="115.75,3.52 133.52,3.31"/>
-        <lane id=":carprice_04_0_2" index="2" disallow="pedestrian" speed="13.89" length="17.77" shape="115.75,6.72 133.51,6.51"/>
+        <lane id=":carprice_04_0_0" index="0" disallow="pedestrian" speed="13.89" length="17.23" shape="116.02,-0.69 133.25,-0.62"/>
+        <lane id=":carprice_04_0_1" index="1" disallow="pedestrian" speed="13.89" length="17.23" shape="116.02,2.51 133.25,2.58"/>
+        <lane id=":carprice_04_0_2" index="2" disallow="pedestrian" speed="13.89" length="17.23" shape="116.02,5.71 133.26,5.78"/>
     </edge>
     <edge id=":carprice_05_0" function="internal">
         <lane id=":carprice_05_0_0" index="0" speed="13.89" length="14.44" shape="-29.54,90.14 -29.52,75.70"/>
@@ -346,17 +353,17 @@
         <lane id="E1.103_2" index="2" disallow="pedestrian" speed="13.89" length="47.36" shape="-148.64,3.31 -101.28,3.38"/>
         <lane id="E1.103_3" index="3" disallow="pedestrian" speed="13.89" length="47.36" shape="-148.65,6.51 -101.29,6.58"/>
     </edge>
-    <edge id="E1.112" from="carprice_01" to="carprice_04" priority="-1" spreadType="center" shape="-14.64,-3.22 14.86,-3.20 77.77,2.53 115.75,2.52">
-        <lane id="E1.112_0" index="0" allow="pedestrian" speed="13.89" length="130.65" width="2.00" shape="-14.64,-8.02 15.08,-8.00 77.99,-2.27 115.75,-2.28"/>
-        <lane id="E1.112_1" index="1" disallow="pedestrian" speed="13.89" length="130.65" shape="-14.64,-5.42 14.96,-5.40 77.87,0.33 115.75,0.32"/>
-        <lane id="E1.112_2" index="2" disallow="pedestrian" speed="13.89" length="130.65" shape="-14.64,-2.22 14.81,-2.20 77.72,3.53 115.75,3.52"/>
-        <lane id="E1.112_3" index="3" disallow="pedestrian" speed="13.89" length="130.65" shape="-14.64,0.98 14.67,1.00 77.58,6.73 115.75,6.72"/>
+    <edge id="E1.112" from="carprice_01" to="carprice_04" priority="-1" spreadType="center" shape="-14.64,-3.22 14.86,-3.20 77.22,1.52 116.02,1.51">
+        <lane id="E1.112_0" index="0" allow="pedestrian" speed="13.89" length="130.84" width="2.00" shape="-14.64,-8.02 15.04,-8.00 77.40,-3.28 116.02,-3.29"/>
+        <lane id="E1.112_1" index="1" disallow="pedestrian" speed="13.89" length="130.84" shape="-14.64,-5.42 14.94,-5.40 77.30,-0.68 116.02,-0.69"/>
+        <lane id="E1.112_2" index="2" disallow="pedestrian" speed="13.89" length="130.84" shape="-14.64,-2.22 14.82,-2.20 77.18,2.52 116.02,2.51"/>
+        <lane id="E1.112_3" index="3" disallow="pedestrian" speed="13.89" length="130.84" shape="-14.64,0.98 14.70,1.00 77.06,5.72 116.02,5.71"/>
     </edge>
-    <edge id="E1.261" from="carprice_04" to="J3" priority="-1" spreadType="center" shape="133.52,2.31 236.33,2.48">
-        <lane id="E1.261_0" index="0" allow="pedestrian" speed="13.89" length="102.81" width="2.00" shape="133.53,-2.49 236.34,-2.32"/>
-        <lane id="E1.261_1" index="1" disallow="pedestrian" speed="13.89" length="102.81" shape="133.52,0.11 236.33,0.28"/>
-        <lane id="E1.261_2" index="2" disallow="pedestrian" speed="13.89" length="102.81" shape="133.52,3.31 236.33,3.48"/>
-        <lane id="E1.261_3" index="3" disallow="pedestrian" speed="13.89" length="102.81" shape="133.51,6.51 236.32,6.68"/>
+    <edge id="E1.261" from="carprice_04" to="J3" priority="-1" spreadType="center" shape="133.25,1.58 236.33,1.43">
+        <lane id="E1.261_0" index="0" allow="pedestrian" speed="13.89" length="103.08" width="2.00" shape="133.24,-3.22 236.32,-3.37"/>
+        <lane id="E1.261_1" index="1" disallow="pedestrian" speed="13.89" length="103.08" shape="133.25,-0.62 236.33,-0.77"/>
+        <lane id="E1.261_2" index="2" disallow="pedestrian" speed="13.89" length="103.08" shape="133.25,2.58 236.33,2.43"/>
+        <lane id="E1.261_3" index="3" disallow="pedestrian" speed="13.89" length="103.08" shape="133.26,5.78 236.34,5.63"/>
     </edge>
     <edge id="E1.59" from="J11" to="carprice_01" priority="-1" spreadType="roadCenter" shape="-71.51,7.75 -62.39,7.77 -34.79,7.78">
         <lane id="E1.59_0" index="0" allow="pedestrian" speed="13.89" length="38.66" width="2.00" shape="-71.47,-9.25 -62.38,-9.23 -32.79,-9.22"/>
@@ -502,7 +509,7 @@
     </junction>
     <junction id="J14" type="dead_end" x="254.62" y="82.92" incLanes="-E4.192_0" intLanes="" shape="254.62,82.92 254.62,79.72 254.62,82.92"/>
     <junction id="J2" type="dead_end" x="-357.43" y="7.87" incLanes="" intLanes="" shape="-357.43,7.87 -357.41,-3.73"/>
-    <junction id="J3" type="dead_end" x="236.33" y="2.48" incLanes="E1.261_0 E1.261_1 E1.261_2 E1.261_3" intLanes="" shape="236.34,-3.32 236.32,8.28"/>
+    <junction id="J3" type="dead_end" x="236.33" y="1.43" incLanes="E1.261_0 E1.261_1 E1.261_2 E1.261_3" intLanes="" shape="236.32,-4.37 236.34,7.23"/>
     <junction id="J51" type="dead_end" x="-330.02" y="51.57" incLanes="" intLanes="" shape="-328.27,54.25 -331.77,48.89"/>
     <junction id="J56" type="dead_end" x="183.95" y="130.97" incLanes="E14_0" intLanes="" shape="183.95,130.97 187.15,130.97 183.95,130.97"/>
     <junction id="J8" type="dead_end" x="-24.73" y="134.07" incLanes="-E3.61_0 -E3.61_1" intLanes="" shape="-24.73,134.07 -31.13,134.07 -18.33,134.06"/>
@@ -594,7 +601,7 @@
         <request index="3" response="00000" foes="10000" cont="0"/>
         <request index="4" response="01110" foes="01110" cont="0"/>
     </junction>
-    <junction id="carprice_04" type="traffic_light" x="125.66" y="2.51" incLanes="E1.112_0 E1.112_1 E1.112_2 E1.112_3" intLanes=":carprice_04_0_0 :carprice_04_0_1 :carprice_04_0_2" shape="133.51,8.11 133.53,-3.49 115.75,-3.28 115.75,8.32">
+    <junction id="carprice_04" type="traffic_light" x="125.66" y="2.51" incLanes="E1.112_0 E1.112_1 E1.112_2 E1.112_3" intLanes=":carprice_04_0_0 :carprice_04_0_1 :carprice_04_0_2" shape="133.26,7.38 133.24,-4.22 116.02,-4.29 116.02,7.31">
         <request index="0" response="000" foes="000" cont="0"/>
         <request index="1" response="000" foes="000" cont="0"/>
         <request index="2" response="000" foes="000" cont="0"/>

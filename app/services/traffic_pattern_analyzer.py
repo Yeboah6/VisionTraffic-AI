@@ -26,10 +26,10 @@ class TrafficPatternAnalyzer:
         self.app = app
         # FIXED: Use 500-second intervals to capture more logs per interval
         # With logging every 30-60 seconds, 500s interval will have ~8-16 logs
-        self.simulation_interval_size = 500  # 500-second intervals (0-500, 500-1000, etc.)
-        self.min_samples_for_pattern = 5
+        self.simulation_interval_size = 150  # 150-second intervals (0-150, 150-300, etc.)
+        self.min_samples_for_pattern = 3
         self.pattern_cache = {}
-        self.auto_analysis_enabled = True
+        self.auto_analysis_enabled = False
         self.verbose_logging = True  # Set to False to reduce console output
         
         # Real-time scheduling for automatic analysis
@@ -42,7 +42,7 @@ class TrafficPatternAnalyzer:
         self.analysis_history = deque(maxlen=100)
         
         # Add deferred analysis mode
-        self.deferred_mode = True
+        self.deferred_mode = False
         self.pending_analysis_queue = []
         
     def init_app(self, app):

@@ -181,31 +181,29 @@ class TLSDataService:
             return 8  # For complex intersections
     
     def _get_comprehensive_tl_data(self, traci, tl_id: str, current_time: float, scenario: str) -> Dict[str, Any]:
-        """Get comprehensive data for a single traffic light"""
+        """Get comprehensive data for a single traffic light including vehicle types"""
         
         try:
-            # Basic TLS information - using correct TraCI method names
+            # Basic TLS information
             state = traci.trafficlight.getRedYellowGreenState(tl_id)
             phase = traci.trafficlight.getPhase(tl_id)
             phase_duration = traci.trafficlight.getPhaseDuration(tl_id)
             program_id = traci.trafficlight.getProgram(tl_id)
             next_switch = traci.trafficlight.getNextSwitch(tl_id) - current_time
             
-            # Get phase count safely - this method might not exist in all SUMO versions
             try:
                 phase_count = traci.trafficlight.getPhaseNumber(tl_id)
             except Exception:
-                # Fallback: estimate phase count based on common patterns
                 phase_count = self._estimate_phase_count(state)
             
-            # Controlled lanes and traffic data
+            # Controlled lanes and traffic data (NOW INCLUDES VEHICLE TYPES)
             controlled_lanes = traci.trafficlight.getControlledLanes(tl_id)
             lane_data = self._get_lane_traffic_data(traci, controlled_lanes)
             
             current_phase_name = self._get_phase_name(state)
             
-            # Calculate performance metrics
-            performance = self._calculate_tl_performance(traci, tl_id, controlled_lanes, state)
+            # Calculate performance metrics (PASS lane_data to avoid duplicate calls)
+            performance = self._calculate_tl_performance(traci, tl_id, controlled_lanes, state, lane_data)
             
             # Build comprehensive data structure
             tl_data = {
@@ -231,7 +229,6 @@ class TLSDataService:
             
         except Exception as e:
             print(f"❌ Error in _get_comprehensive_tl_data for {tl_id}: {e}")
-            # Return basic data even if some methods fail
             return self._get_basic_tl_data(traci, tl_id, current_time, scenario)
     
     def _get_basic_tl_data(self, traci, tl_id: str, current_time: float, scenario: str) -> Dict[str, Any]:
@@ -254,12 +251,176 @@ class TLSDataService:
             return None
     
     def _get_lane_traffic_data(self, traci, lane_ids: List[str]) -> Dict[str, Any]:
-        """Get traffic data for controlled lanes"""
+        """Get traffic data for controlled lanes including vehicle types"""
         lane_data = {}
         total_vehicles = 0
         total_waiting = 0
         total_speed = 0
         lane_count = 0
+
+        # Vehicle type counters
+        vehicle_type_counts = {
+            'passenger': 0,
+            'truck': 0,
+            'bus': 0,
+            'motorcycle': 0,
+            'bicycle': 0,
+            'emergency': 0,
+            'other': 0
+        }
+
+        for lane_id in lane_ids:
+            try:
+                vehicles = traci.lane.getLastStepVehicleNumber(lane_id)
+                waiting = traci.lane.getLastStepHaltingNumber(lane_id)
+                speed = traci.lane.getLastStepMeanSpeed(lane_id)
+                occupancy = traci.lane.getLastStepOccupancy(lane_id)
+
+                # NEW: Get vehicle IDs on this lane and classify them
+                vehicle_ids = traci.lane.getLastStepVehicleIDs(lane_id)
+                lane_vehicle_types = self._classify_vehicles_on_lane(traci, vehicle_ids)
+
+                # Aggregate vehicle types
+                for vtype, count in lane_vehicle_types.items():
+                    vehicle_type_counts[vtype] += count
+
+                lane_data[lane_id] = {
+                    'vehicle_count': vehicles,
+                    'waiting_vehicles': waiting,
+                    'average_speed': speed * 3.6,  # Convert to km/h
+                    'occupancy': occupancy,
+                    'length': traci.lane.getLength(lane_id),
+                    'max_speed': traci.lane.getMaxSpeed(lane_id) * 3.6,
+                    'vehicle_types': lane_vehicle_types  # NEW: vehicle types on this lane
+                }
+
+                total_vehicles += vehicles
+                total_waiting += waiting
+                total_speed += speed
+                lane_count += 1
+
+            except Exception as e:
+                continue
+            
+        avg_speed = (total_speed / lane_count * 3.6) if lane_count > 0 else 0
+
+        return {
+            'lanes': lane_data,
+            'summary': {
+                'total_vehicles': total_vehicles,
+                'total_waiting': total_waiting,
+                'average_speed': round(avg_speed, 2),
+                'total_lanes': len(lane_ids),
+                'successful_lanes': lane_count
+            },
+            'vehicle_type_distribution': vehicle_type_counts  # NEW: overall distribution
+        }
+    
+    def _classify_vehicles_on_lane(self, traci, vehicle_ids: List[str]) -> Dict[str, int]:
+        """
+        Classify vehicles by type - CUSTOMIZED for carprice.rou.xml vehicle types
+        
+        Your vehicle types from the route file:
+        - passenger_car (will be added)
+        - DEFAULT_BIKETYPE (motorcycle class)
+        - Police (authority class)
+        - ambulance (emergency class)
+        - bus (bus class)
+        - truck (truck class)
+        
+        Plus flows without types (blue-car, green-car, etc.) default to passenger
+        """
+        type_counts = {
+            'passenger': 0,
+            'truck': 0,
+            'bus': 0,
+            'motorcycle': 0,
+            'bicycle': 0,
+            'emergency': 0,
+            'other': 0
+        }
+        
+        for veh_id in vehicle_ids:
+            try:
+                # Get SUMO vehicle type ID (exactly as defined in your .rou.xml)
+                vtype = traci.vehicle.getTypeID(veh_id)
+                
+                # Also get vehicle class for better classification
+                try:
+                    vclass = traci.vehicle.getVehicleClass(veh_id).lower()
+                except:
+                    vclass = ""
+                
+                # EXACT MATCHING for your specific vehicle types
+                if vtype == 'passenger_car':
+                    type_counts['passenger'] += 1
+                    
+                elif vtype == 'truck':
+                    type_counts['truck'] += 1
+                    
+                elif vtype == 'bus':
+                    type_counts['bus'] += 1
+                    
+                elif vtype == 'DEFAULT_BIKETYPE':
+                    type_counts['motorcycle'] += 1
+                    
+                elif vtype in ['ambulance', 'Police']:
+                    type_counts['emergency'] += 1
+                    
+                # Fallback to vehicle class if type doesn't match
+                elif 'passenger' in vclass:
+                    type_counts['passenger'] += 1
+                    
+                elif 'truck' in vclass or 'trailer' in vclass:
+                    type_counts['truck'] += 1
+                    
+                elif 'bus' in vclass:
+                    type_counts['bus'] += 1
+                    
+                elif 'motorcycle' in vclass or 'moped' in vclass:
+                    type_counts['motorcycle'] += 1
+                    
+                elif 'bicycle' in vclass:
+                    type_counts['bicycle'] += 1
+                    
+                elif 'emergency' in vclass or 'authority' in vclass:
+                    type_counts['emergency'] += 1
+                    
+                else:
+                    # DEFAULT: If type is empty or unrecognized, assume passenger car
+                    # This handles flows without type specification (blue-car, green-car, etc.)
+                    type_counts['passenger'] += 1
+                    
+            except Exception as e:
+                # If we can't get vehicle type, count as passenger (most common)
+                type_counts['passenger'] += 1
+                continue
+            
+        return type_counts
+    
+    def _get_lane_traffic_data_with_debug(self, traci, lane_ids: List[str]) -> Dict[str, Any]:
+        """
+        Enhanced version with debugging to see what's happening
+        """
+        lane_data = {}
+        total_vehicles = 0
+        total_waiting = 0
+        total_speed = 0
+        lane_count = 0
+        
+        # Vehicle type counters
+        vehicle_type_counts = {
+            'passenger': 0,
+            'truck': 0,
+            'bus': 0,
+            'motorcycle': 0,
+            'bicycle': 0,
+            'emergency': 0,
+            'other': 0
+        }
+        
+        # DEBUG: Check if we're getting any vehicles at all
+        total_vehicles_found = 0
         
         for lane_id in lane_ids:
             try:
@@ -268,13 +429,27 @@ class TLSDataService:
                 speed = traci.lane.getLastStepMeanSpeed(lane_id)
                 occupancy = traci.lane.getLastStepOccupancy(lane_id)
                 
+                # Get vehicle IDs on this lane
+                vehicle_ids = traci.lane.getLastStepVehicleIDs(lane_id)
+                total_vehicles_found += len(vehicle_ids)
+                
+                print(f"🚗 Lane {lane_id}: {len(vehicle_ids)} vehicles - IDs: {vehicle_ids[:3]}")  # Show first 3
+                
+                # Classify vehicles
+                lane_vehicle_types = self._classify_vehicles_on_lane(traci, vehicle_ids)
+                
+                # Aggregate vehicle types
+                for vtype, count in lane_vehicle_types.items():
+                    vehicle_type_counts[vtype] += count
+                
                 lane_data[lane_id] = {
                     'vehicle_count': vehicles,
                     'waiting_vehicles': waiting,
-                    'average_speed': speed * 3.6,  # Convert to km/h
+                    'average_speed': speed * 3.6,
                     'occupancy': occupancy,
                     'length': traci.lane.getLength(lane_id),
-                    'max_speed': traci.lane.getMaxSpeed(lane_id) * 3.6
+                    'max_speed': traci.lane.getMaxSpeed(lane_id) * 3.6,
+                    'vehicle_types': lane_vehicle_types
                 }
                 
                 total_vehicles += vehicles
@@ -283,9 +458,12 @@ class TLSDataService:
                 lane_count += 1
                 
             except Exception as e:
+                print(f"❌ Error processing lane {lane_id}: {e}")
                 continue
         
         avg_speed = (total_speed / lane_count * 3.6) if lane_count > 0 else 0
+        
+        print(f"📊 FINAL COUNTS: Total vehicles: {total_vehicles_found}, Distribution: {vehicle_type_counts}")
         
         return {
             'lanes': lane_data,
@@ -295,27 +473,119 @@ class TLSDataService:
                 'average_speed': round(avg_speed, 2),
                 'total_lanes': len(lane_ids),
                 'successful_lanes': lane_count
-            }
+            },
+            'vehicle_type_distribution': vehicle_type_counts
         }
     
-    def _calculate_tl_performance(self, traci, tl_id: str, controlled_lanes: List[str], state: str) -> Dict[str, Any]:
-        """Calculate performance metrics for traffic light"""
+    
+    def diagnose_vehicle_types(self, traci):
+        """
+        DIAGNOSTIC FUNCTION: Call this once to see what vehicle types exist in your simulation
+        Add this to your simulation initialization to debug
+        """
+        print("\n" + "="*60)
+        print("🔍 VEHICLE TYPE DIAGNOSTIC")
+        print("="*60)
         
+        try:
+            # Get all vehicles in simulation
+            all_vehicles = traci.vehicle.getIDList()
+            print(f"✅ Total vehicles in simulation: {len(all_vehicles)}")
+            
+            if len(all_vehicles) == 0:
+                print("⚠️  WARNING: No vehicles found in simulation!")
+                print("   Check if simulation has started and vehicles are loaded")
+                return
+            
+            # Sample first 20 vehicles
+            sample_vehicles = all_vehicles[:min(20, len(all_vehicles))]
+            
+            type_distribution = {}
+            class_distribution = {}
+            
+            print(f"\n📋 Sampling {len(sample_vehicles)} vehicles:\n")
+            
+            for veh_id in sample_vehicles:
+                try:
+                    vtype = traci.vehicle.getTypeID(veh_id)
+                    
+                    # Count types
+                    type_distribution[vtype] = type_distribution.get(vtype, 0) + 1
+                    
+                    # Try to get vehicle class
+                    try:
+                        vclass = traci.vehicle.getVehicleClass(veh_id)
+                        class_distribution[vclass] = class_distribution.get(vclass, 0) + 1
+                        print(f"  {veh_id}: type='{vtype}', class='{vclass}'")
+                    except:
+                        print(f"  {veh_id}: type='{vtype}', class=N/A")
+                        
+                except Exception as e:
+                    print(f"  {veh_id}: ERROR - {e}")
+            
+            print(f"\n📊 Type Distribution:")
+            for vtype, count in sorted(type_distribution.items(), key=lambda x: x[1], reverse=True):
+                print(f"  '{vtype}': {count} vehicles")
+            
+            print(f"\n📊 Vehicle Class Distribution:")
+            for vclass, count in sorted(class_distribution.items(), key=lambda x: x[1], reverse=True):
+                print(f"  '{vclass}': {count} vehicles")
+            
+            # Recommendations
+            print(f"\n💡 RECOMMENDATIONS:")
+            
+            if len(type_distribution) == 1 and 'DEFAULT_VEHTYPE' in list(type_distribution.keys())[0].upper():
+                print("  ⚠️  All vehicles have the same default type!")
+                print("  ➡️  You need to define vehicle types in your .rou.xml file")
+                print("  ➡️  Example:")
+                print("      <vType id='passenger_car' vClass='passenger' length='4.5'/>")
+                print("      <vType id='truck' vClass='truck' length='7.5'/>")
+                print("      <vehicle id='veh_1' type='passenger_car' depart='0'>")
+            else:
+                print("  ✅ Multiple vehicle types detected!")
+                print("  ➡️  Update classification logic to match these type names")
+            
+            print("="*60 + "\n")
+            
+        except Exception as e:
+            print(f"❌ Diagnostic failed: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    def _calculate_tl_performance(self, traci, tl_id: str, controlled_lanes: List[str], 
+                              state: str, lane_data: Dict = None) -> Dict[str, Any]:
+        """Calculate performance metrics for traffic light including vehicle types"""
+
         # Get lane data for performance calculation
         total_vehicles = 0
         total_waiting = 0
-        
-        for lane_id in controlled_lanes:
-            try:
-                total_vehicles += traci.lane.getLastStepVehicleNumber(lane_id)
-                total_waiting += traci.lane.getLastStepHaltingNumber(lane_id)
-            except:
-                continue
-        
+        vehicle_types = {
+            'passenger': 0,
+            'truck': 0,
+            'bus': 0,
+            'motorcycle': 0,
+            'bicycle': 0,
+            'emergency': 0
+        }
+
+        # If lane_data is provided, use it (to avoid duplicate TraCI calls)
+        if lane_data and 'vehicle_type_distribution' in lane_data:
+            vehicle_types = lane_data['vehicle_type_distribution']
+            total_vehicles = lane_data['summary']['total_vehicles']
+            total_waiting = lane_data['summary']['total_waiting']
+        else:
+            # Fallback: calculate from scratch
+            for lane_id in controlled_lanes:
+                try:
+                    total_vehicles += traci.lane.getLastStepVehicleNumber(lane_id)
+                    total_waiting += traci.lane.getLastStepHaltingNumber(lane_id)
+                except:
+                    continue
+                
         # Calculate efficiency metrics
         green_ratio = state.count('G') / len(state) if state else 0
         efficiency_score = green_ratio * 100
-        
+
         # Determine congestion level
         if total_waiting > 10:
             congestion_level = 'HIGH'
@@ -323,7 +593,7 @@ class TLSDataService:
             congestion_level = 'MEDIUM'
         else:
             congestion_level = 'LOW'
-        
+
         return {
             'efficiency_score': round(efficiency_score, 2),
             'congestion_level': congestion_level,
@@ -331,7 +601,8 @@ class TLSDataService:
             'waiting_vehicles': total_waiting,
             'green_ratio': round(green_ratio, 2),
             'throughput': total_vehicles,
-            'performance_grade': self._calculate_performance_grade(efficiency_score, total_waiting)
+            'performance_grade': self._calculate_performance_grade(efficiency_score, total_waiting),
+            'vehicle_types': vehicle_types  # NEW: Include vehicle type breakdown
         }
     
     def _calculate_optimization_metrics(self, performance: Dict, lane_data: Dict) -> Dict[str, Any]:
@@ -513,14 +784,18 @@ class TLSDataService:
             return 'D'
     
     def _queue_tls_log(self, tl_data: Dict, scenario: str):
-        """Queue TLS data for database storage using queue service"""
-        # mode = ai_controller.get_data_collection_mode()
-        
+        """Queue TLS data for database storage with vehicle type information"""
+
         if not db_queue_service:
             print("❌ DB Queue Service not available")
             return
 
         try:
+            performance = tl_data.get('performance', {})
+            vehicle_types = performance.get('vehicle_types', {})
+            lane_data = tl_data.get('lane_data', {})
+            vehicle_distribution = lane_data.get('vehicle_type_distribution', {})
+
             log_data = {
                 'id': str(uuid.uuid4()),
                 'traffic_light_id': tl_data['id'],
@@ -531,24 +806,40 @@ class TLSDataService:
                 'phase_name': tl_data['phase_name'],
                 'duration': tl_data.get('phase_duration', 0),
                 'next_switch': tl_data.get('next_switch', 0),
-                'vehicle_count': tl_data.get('performance', {}).get('total_vehicles', 0),
-                'waiting_vehicles': tl_data.get('performance', {}).get('waiting_vehicles', 0),
-                'efficiency_score': tl_data.get('performance', {}).get('efficiency_score', 0),
-                'performance_grade': tl_data.get('performance', {}).get('performance_grade', 'D'),
+
+                # Total counts
+                'vehicle_count': performance.get('total_vehicles', 0),
+                'waiting_vehicles': performance.get('waiting_vehicles', 0),
+
+                # NEW: Vehicle type breakdown
+                'passenger_count': vehicle_types.get('passenger', 0),
+                'truck_count': vehicle_types.get('truck', 0),
+                'bus_count': vehicle_types.get('bus', 0),
+                'motorcycle_count': vehicle_types.get('motorcycle', 0),
+                'bicycle_count': vehicle_types.get('bicycle', 0),
+                'emergency_count': vehicle_types.get('emergency', 0),
+
+                # NEW: Detailed distribution as JSON
+                'vehicle_type_distribution': vehicle_distribution,
+
+                # Performance metrics
+                'efficiency_score': performance.get('efficiency_score', 0),
+                'performance_grade': performance.get('performance_grade', 'D'),
+
+                # Metadata
                 'collection_mode': None,
                 'ai_enabled_during_collection': False,
                 'created_at': datetime.utcnow()
             }
 
-            print(f"📤 Queueing TLS log for {tl_data['id']}")
+            print(f"📤 Queueing TLS log for {tl_data['id']} with vehicle types: {vehicle_types}")
 
             if self.app:
                 with self.app.app_context():
                     db_queue_service.add_traffic_light_log(log_data)
-                    # MANUALLY TRIGGER FLUSH TO SEE WHAT HAPPENS
-                    print(f"🔍 Queue size: {len(db_queue_service.queue)}")
-                    if len(db_queue_service.queue) >= 1:  # Flush even with 1 item for testing
-                        print("🔍 Manually triggering flush...")
+                    print(f"📊 Queue size: {len(db_queue_service.queue)}")
+                    if len(db_queue_service.queue) >= 1:
+                        print("🔄 Manually triggering flush...")
                         db_queue_service.flush_queue()
             else:
                 print("❌ No app context available")

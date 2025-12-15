@@ -34,11 +34,6 @@ class AIDecisionLog(db.Model):
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationships
-    # scenario_configs = db.relationship('TrafficLightConfig', 
-    #                                  foreign_keys=[scenario],
-    #                                  backref=db.backref('ai_decisions', lazy='dynamic'))
-    
     def to_dict(self):
         return {
             'id': self.id,
@@ -91,11 +86,6 @@ class AIQTable(db.Model):
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Relationships
-    # config = db.relationship('TrafficLightConfig', 
-    #                        foreign_keys=[traffic_light_id, scenario],
-    #                        backref=db.backref('q_table_entries', lazy='dynamic'))
     
     # Unique constraint
     __table_args__ = (
@@ -154,11 +144,6 @@ class AIPerformance(db.Model):
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationships
-    # scenario_configs = db.relationship('TrafficLightConfig', 
-    #                                  foreign_keys=[scenario],
-    #                                  backref=db.backref('ai_performance', lazy='dynamic'))
-    
     def to_dict(self):
         return {
             'id': self.id,
@@ -183,5 +168,38 @@ class AIPerformance(db.Model):
             'avg_reward_per_decision': self.avg_reward_per_decision,
             'q_table_size': self.q_table_size,
             'learning_progress': self.learning_progress,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+        
+
+class AI_Decision(db.Model):
+    __tablename__ = 'ai_decisions'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    traffic_light_id = db.Column(db.String(50), nullable=False)
+    decision_type = db.Column(db.String(20), nullable=False)  # EXTEND_GREEN, REDUCE_GREEN, MAINTAIN
+    decision_parameters = db.Column(db.JSON, nullable=False)
+    confidence_score = db.Column(db.Float, default=0.5)
+    q_value = db.Column(db.Float, default=0.0)
+    state_key = db.Column(db.String(100))
+    applied_at = db.Column(db.DateTime, default=datetime.utcnow)
+    simulation_step = db.Column(db.Integer, default=0)
+    scenario = db.Column(db.String(50))
+    reasoning = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'traffic_light_id': self.traffic_light_id,
+            'decision_type': self.decision_type,
+            'decision_parameters': self.decision_parameters,
+            'confidence_score': self.confidence_score,
+            'q_value': self.q_value,
+            'state_key': self.state_key,
+            'applied_at': self.applied_at.isoformat() if self.applied_at else None,
+            'simulation_step': self.simulation_step,
+            'scenario': self.scenario,
+            'reasoning': self.reasoning,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }

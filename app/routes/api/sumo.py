@@ -1,9 +1,10 @@
 from flask import Blueprint, render_template, jsonify, request, current_app
+from typing import Dict
 from app.extensions import db
 
 # Services
 from app.services.optimized_sumo_service import optimized_sumo_service as sumo_service
-# from app.services.ai_traffic_service import ai_traffic_service
+
 
 sumo_bp = Blueprint('sumo', __name__, url_prefix='/sumo')
 
@@ -12,13 +13,11 @@ def dashboard():
     """SUMO simulation dashboard"""
     status = sumo_service.get_status()
     scenarios = sumo_service.get_available_scenarios()
-    discovered = sumo_service.auto_discover_scenarios()
     sumo_check = sumo_service.check_sumo_availability()
     
     return render_template('sumo/dashboard.html',
                          status=status,
                          scenarios=scenarios,
-                         discovered=discovered,
                          sumo_available=sumo_check['available'],
                          traci_available=sumo_check.get('traci_available', False))
 
@@ -27,7 +26,14 @@ def dashboard():
 @sumo_bp.route('/api/status', methods=['GET'])
 def get_status():
     """Get simulation status"""
-    return jsonify(sumo_service.get_status())
+    try:
+        status = sumo_service.get_status()
+        return jsonify({
+            'success': True,
+            'status': status
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # Scenario Management Endpoints
 @sumo_bp.route('/api/scenarios', methods=['GET'])
@@ -78,6 +84,11 @@ def start_simulation():
             gui = True  # Default to true for any other type
             
         result = sumo_service.start_simulation(scenario, gui)
+        
+        # Enable AI if specified
+        if data.get('enable_ai', False):
+            sumo_service.enable_ai()
+            
         # Return the result immediately instead of waiting
         if result.get("success"):
             return jsonify({
@@ -96,8 +107,11 @@ def start_simulation():
 @sumo_bp.route('/api/stop', methods=['POST'])
 def stop_simulation():
     """Stop SUMO simulation"""
-    result = sumo_service.stop_simulation()
-    return jsonify(result)
+    try:
+        result = sumo_service.stop_simulation()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # Check SUMO availability
 @sumo_bp.route('/api/check-sumo', methods=['GET'])
@@ -105,3 +119,81 @@ def check_sumo():
     """Check SUMO availability"""
     result = sumo_service.check_sumo_availability()
     return jsonify(result)
+
+@sumo_bp.route('/api/tls/performance', methods=['GET'])
+def get_performance_data():
+    """Get overall performance metrics"""
+    try:
+        sim_data = sumo_service.get_simulation_data()
+        tls_data = sumo_service.get_tls_data()
+        
+        if not tls_data.get('tls_snapshot'):
+            return jsonify({
+                'success': True,
+                'performance': {
+                    'average_efficiency': 0,
+                    'overall_performance_grade': 'N/A',
+                    'average_waiting_vehicles': 0,
+                    'total_tls': 0,
+                    'total_vehicles_observed': 0,
+                    'scenario': 'N/A',
+                    'timestamp': 0,
+                    'successful_collections': 0,
+                    'collection_errors': 0,
+                    'logged_instances': 0,
+                    'performance_grade_distribution': {'A': 0, 'B': 0, 'C': 0, 'D': 0}
+                }
+            })
+        
+        summary = tls_data['tls_snapshot'].get('summary', {})
+        
+        # Calculate grade distribution
+        grade_dist = {'A': 0, 'B': 0, 'C': 0, 'D': 0}
+        for tl_info in tls_data['tls_snapshot'].get('traffic_lights', {}).values():
+            grade = tl_info.get('performance', {}).get('performance_grade', 'D')
+            if grade in grade_dist:
+                grade_dist[grade] += 1
+        
+        return jsonify({
+            'success': True,
+            'performance': {
+                'average_efficiency': summary.get('avg_efficiency', 0),
+                'overall_performance_grade': _calculate_overall_grade(grade_dist),
+                'average_waiting_vehicles': summary.get('total_waiting', 0) / max(1, summary.get('total_tls', 1)),
+                'total_tls': summary.get('total_tls', 0),
+                'total_vehicles_observed': summary.get('total_vehicles', 0),
+                'scenario': sumo_service.current_config or 'N/A',
+                'timestamp': tls_data['tls_snapshot'].get('timestamp', 0),
+                'successful_collections': summary.get('total_tls', 0),
+                'collection_errors': 0,
+                'logged_instances': len(tls_data['tls_snapshot'].get('traffic_lights', {})),
+                'performance_grade_distribution': grade_dist
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    
+def _calculate_overall_grade(grade_dist: Dict[str, int]) -> str:
+    """Calculate overall performance grade from distribution"""
+    total = sum(grade_dist.values())
+    if total == 0:
+        return 'N/A'
+    
+    # Calculate weighted score (A=4, B=3, C=2, D=1)
+    weighted_sum = (
+        grade_dist.get('A', 0) * 4 +
+        grade_dist.get('B', 0) * 3 + 
+        grade_dist.get('C', 0) * 2 +
+        grade_dist.get('D', 0) * 1
+    )
+    
+    average = weighted_sum / total
+    
+    if average >= 3.5:
+        return 'A'
+    elif average >= 2.5:
+        return 'B'
+    elif average >= 1.5:
+        return 'C'
+    else:
+        return 'D'

@@ -15,12 +15,25 @@ class TrafficLightLog(db.Model):
     phase_name = db.Column(db.String(50))
     duration = db.Column(db.Float)
     next_switch = db.Column(db.Float)
+    
     vehicle_count = db.Column(db.Integer, default=0)
     waiting_vehicles = db.Column(db.Integer, default=0)
+    
+    passenger_count = db.Column(db.Integer, default=0)  # Cars/sedans
+    truck_count = db.Column(db.Integer, default=0)      # Trucks/lorries
+    bus_count = db.Column(db.Integer, default=0)        # Buses
+    motorcycle_count = db.Column(db.Integer, default=0) # Motorcycles/bikes
+    bicycle_count = db.Column(db.Integer, default=0)    # Bicycles
+    emergency_count = db.Column(db.Integer, default=0)  # Emergency vehicles
+    
+    vehicle_type_distribution = db.Column(db.JSON, default=dict)
+    
     efficiency_score = db.Column(db.Integer, default=0)
     performance_grade = db.Column(db.String(50))
+    
     collection_mode = db.Column(db.String(50), default='BASELINE')
     ai_enabled_during_collection = db.Column(db.Boolean, default=False)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
@@ -36,9 +49,50 @@ class TrafficLightLog(db.Model):
             'next_switch': self.next_switch,
             'vehicle_count': self.vehicle_count,
             'waiting_vehicles': self.waiting_vehicles,
+            'vehicle_types': {
+                'passenger': self.passenger_count,
+                'truck': self.truck_count,
+                'bus': self.bus_count,
+                'motorcycle': self.motorcycle_count,
+                'bicycle': self.bicycle_count,
+                'emergency': self.emergency_count
+            },
             'efficiency_score': self.efficiency_score,
             'performance_grade': self.performance_grade,
             'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+    def get_vehicle_distribution_summary(self):
+        """Get a summary of vehicle distribution"""
+        total = self.vehicle_count or 0
+        if total == 0:
+            return {}
+        
+        return {
+            'passenger': {
+                'count': self.passenger_count,
+                'percentage': round((self.passenger_count / total) * 100, 1)
+            },
+            'truck': {
+                'count': self.truck_count,
+                'percentage': round((self.truck_count / total) * 100, 1)
+            },
+            'bus': {
+                'count': self.bus_count,
+                'percentage': round((self.bus_count / total) * 100, 1)
+            },
+            'motorcycle': {
+                'count': self.motorcycle_count,
+                'percentage': round((self.motorcycle_count / total) * 100, 1)
+            },
+            'bicycle': {
+                'count': self.bicycle_count,
+                'percentage': round((self.bicycle_count / total) * 100, 1)
+            },
+            'emergency': {
+                'count': self.emergency_count,
+                'percentage': round((self.emergency_count / total) * 100, 1)
+            }
         }
 
 class TrafficLightConfig(db.Model):
@@ -106,4 +160,66 @@ class TrafficPattern(db.Model):
     
     def __repr__(self):
         return f'<TrafficPattern {self.traffic_light_id} {self.interval_start} {self.pattern_type}>'
+
+
+class TLSOptimization(db.Model):
+    """
+    Stores applied TLS optimizations during simulation.
+    Tracks what AI recommendations were actually applied to traffic lights.
+    """
+    __tablename__ = 'tls_optimizations'
     
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    
+    # Traffic light identification
+    traffic_light_id = db.Column(db.String(50), nullable=False, index=True)
+    scenario = db.Column(db.String(50), nullable=False, index=True)
+    
+    # Timing
+    simulation_time = db.Column(db.Float, nullable=False, index=True)
+    applied_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
+    
+    # Optimization details
+    optimization_type = db.Column(db.String(50), nullable=False)  # EXTEND_GREEN, REDUCE_GREEN, etc.
+    ai_confidence = db.Column(db.Float, nullable=False)
+    decision_source = db.Column(db.String(50), nullable=False)  # PATTERN_BASED, Q_LEARNING, HYBRID
+    
+    # Parameters and impact
+    parameters = db.Column(db.JSON)  # Duration changes, etc.
+    expected_impact = db.Column(db.JSON)  # Expected efficiency, waiting changes
+    actual_impact = db.Column(db.JSON)  # Measured impact (populated later)
+    
+    # AI reasoning
+    reasoning = db.Column(db.Text)
+    
+    # Performance tracking
+    before_state = db.Column(db.JSON)  # TLS state before optimization
+    after_state = db.Column(db.JSON)   # TLS state after optimization (measured later)
+    
+    # Success tracking
+    success = db.Column(db.Boolean, default=None)  # Evaluated later
+    success_score = db.Column(db.Float)  # 0-1 score based on impact
+    
+    def __repr__(self):
+        return f"<TLSOptimization {self.traffic_light_id} @ {self.simulation_time}s: {self.optimization_type}>"
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'traffic_light_id': self.traffic_light_id,
+            'scenario': self.scenario,
+            'simulation_time': self.simulation_time,
+            'applied_at': self.applied_at.isoformat() if self.applied_at else None,
+            'optimization_type': self.optimization_type,
+            'ai_confidence': self.ai_confidence,
+            'decision_source': self.decision_source,
+            'parameters': self.parameters,
+            'expected_impact': self.expected_impact,
+            'actual_impact': self.actual_impact,
+            'reasoning': self.reasoning,
+            'before_state': self.before_state,
+            'after_state': self.after_state,
+            'success': self.success,
+            'success_score': self.success_score
+        }

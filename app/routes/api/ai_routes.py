@@ -1,754 +1,636 @@
 """
-AI Recommendations API Endpoints
-Flask routes for accessing AI decision recommendations
+AI API Endpoints - Updated for Q-Learning Integration
 """
 
-from flask import Blueprint, app, request, jsonify
-from datetime import datetime, timedelta
+from flask import Blueprint, request, jsonify
+from datetime import datetime
 from typing import Dict, List, Any
-from collections import defaultdict
 
-from app.services.ai_decision import enhanced_ai_decision_service
-from app.services.q_learning import q_learning
-
-from app.models.ai import AIDecisionLog
-from app.extensions import db
+# Services
+from app.services.q_learning import simple_ai_optimizer
+from app.services.optimized_sumo_service import optimized_sumo_service
 
 ai_bp = Blueprint('ai', __name__)
 
+def success_response(data=None, message=None, **kwargs):
+    """Create standardized success response"""
+    response = {'success': True}
+    if data is not None:
+        response['data'] = data
+    if message:
+        response['message'] = message
+    response.update(kwargs)
+    return jsonify(response)
 
-# @ai_bp.route('/api/ai/recommendations', methods=['GET'])
-# def get_ai_recommendations():
-#     """
-#     Get current AI recommendations for all traffic lights
-#     SMART MODE: Automatically switches between LIVE and PATTERN mode
-#     """
-#     try:
-#         scenario = request.args.get('scenario', 'accra')
-#         limit = int(request.args.get('limit', 10))
-#         force_pattern = request.args.get('force_pattern', 'false').lower() == 'true'
-        
-#         # Get decision statistics
-#         stats = enhanced_ai_decision_service.get_decision_statistics()
-#         current_mode = stats.get('current_mode', 'UNKNOWN')
-        
-#         print(f"📊 AI Recommendations API called - Mode: {current_mode}, Scenario: {scenario}")
-        
-#         # Use smart mode detection
-#         recommendations = enhanced_ai_decision_service.get_recommendations(
-#             scenario=scenario,
-#             limit=limit,
-#             force_pattern_mode=force_pattern
-#         )
-        
-#         # Format recommendations
-#         formatted_recommendations = []
-#         total_confidence = 0
-        
-#         for rec in recommendations:
-#             # Handle both dict and recommendation objects
-#             if isinstance(rec, dict):
-#                 formatted_recommendations.append({
-#                     'tl_id': rec.get('tl_id'),
-#                     'timestamp': rec.get('timestamp'),
-#                     'action': rec.get('action'),
-#                     'action_type': rec.get('action_type'),
-#                     'parameters': rec.get('parameters', {}),
-#                     'confidence': rec.get('confidence', 0),
-#                     'success_rate': rec.get('success_rate', 0.5),
-#                     'pattern_matched': rec.get('pattern_matched', False),
-#                     'pattern_type': rec.get('pattern_type'),
-#                     'match_type': rec.get('match_type'),
-#                     'reasoning': rec.get('reasoning', ''),
-#                     'recommendations': rec.get('recommendations', []),
-#                     'expected_impact': rec.get('expected_impact', {}),
-#                     'display_priority': rec.get('display_priority', 'MEDIUM'),
-#                     'mode': rec.get('mode', current_mode),
-#                     'interval_info': rec.get('interval_info'),
-#                     'metrics_summary': rec.get('metrics_summary')
-#                 })
-#                 total_confidence += rec.get('confidence', 0)
-        
-#         # Calculate average confidence
-#         avg_confidence = round((total_confidence / len(formatted_recommendations) * 100), 1) if formatted_recommendations else 0
-        
-#         # Enhanced statistics
-#         enhanced_stats = {
-#             **stats,
-#             'avg_confidence': avg_confidence,
-#             'active_recommendations': len(formatted_recommendations),
-#             'scenario': scenario,
-#             'mode': current_mode,
-#             'mode_description': 'Live simulation data' if current_mode == 'LIVE' else 'Historical pattern analysis'
-#         }
-        
-#         print(f"✅ Returning {len(formatted_recommendations)} recommendations in {current_mode} mode")
-        
-#         return jsonify({
-#             'success': True,
-#             'recommendations': formatted_recommendations,
-#             'statistics': enhanced_stats,
-#             'timestamp': datetime.utcnow().isoformat(),
-#             'mode': current_mode
-#         })
-        
-#     except Exception as e:
-#         print(f"❌ Error getting AI recommendations: {e}")
-#         import traceback
-#         traceback.print_exc()
-#         return jsonify({
-#             'success': False,
-#             'error': str(e),
-#             'recommendations': [],
-#             'statistics': {},
-#             'mode': 'ERROR'
-#         }), 500
+def error_response(error, status_code=500, **kwargs):
+    """Create standardized error response"""
+    response = {'success': False, 'error': str(error)}
+    response.update(kwargs)
+    return jsonify(response), status_code
 
+# ==================== AI STATUS AND CONTROL ====================
 
-# @ai_bp.route('/api/ai/recommendations/<tl_id>', methods=['GET'])
-# def get_tl_recommendations(tl_id: str):
-#     """
-#     Get recommendations for a specific traffic light
-#     """
-#     try:
-#         scenario = request.args.get('scenario', 'accra')
-        
-#         # Get recommendations for this traffic light
-#         recommendations = enhanced_ai_decision_service.get_tl_recommendations(tl_id, scenario)
-        
-#         if not recommendations:
-#             return jsonify({
-#                 'success': True,
-#                 'traffic_light_id': tl_id,
-#                 'recommendations': [],
-#                 'message': 'No recommendations found for this traffic light'
-#             })
-        
-#         # Format recommendations
-#         formatted_recs = []
-#         for rec in recommendations:
-#             rec_data = rec.get('recommendation', {})
-#             formatted_recs.append({
-#                 'timestamp': rec.get('timestamp'),
-#                 'action': rec_data.get('action'),
-#                 'confidence': rec_data.get('confidence'),
-#                 'reasoning': rec_data.get('reasoning'),
-#                 'pattern_matched': rec_data.get('pattern_matched')
-#             })
-        
-#         return jsonify({
-#             'success': True,
-#             'traffic_light_id': tl_id,
-#             'recommendations': formatted_recs,
-#             'total': len(formatted_recs)
-#         })
-        
-#     except Exception as e:
-#         print(f"❌ Error getting TL recommendations: {e}")
-#         return jsonify({
-#             'success': False,
-#             'error': str(e),
-#             'recommendations': []
-#         }), 500
-
-
-# @ai_bp.route('/api/ai/statistics', methods=['GET'])
-# def get_ai_statistics():
-#     """
-#     Get detailed AI performance statistics
-#     """
-#     try:
-#         # Get decision statistics
-#         stats = enhanced_ai_decision_service.get_decision_statistics()
-        
-#         # Query database for historical performance
-#         last_24h = datetime.utcnow() - timedelta(hours=24)
-        
-#         db_decisions = AIDecisionLog.query.filter(
-#             AIDecisionLog.created_at >= last_24h
-#         ).all()
-        
-#         # Calculate additional metrics
-#         if db_decisions:
-#             total_db_decisions = len(db_decisions)
-#             avg_confidence_db = sum(d.confidence for d in db_decisions) / total_db_decisions
-#             pattern_matched_db = sum(1 for d in db_decisions if d.pattern_matched)
-            
-#             db_stats = {
-#                 'total_decisions_24h': total_db_decisions,
-#                 'avg_confidence_24h': round(avg_confidence_db * 100, 1),
-#                 'pattern_match_rate_24h': round(pattern_matched_db / total_db_decisions * 100, 1) if total_db_decisions > 0 else 0
-#             }
-#         else:
-#             db_stats = {
-#                 'total_decisions_24h': 0,
-#                 'avg_confidence_24h': 0,
-#                 'pattern_match_rate_24h': 0
-#             }
-        
-#         return jsonify({
-#             'success': True,
-#             'statistics': {
-#                 **stats,
-#                 **db_stats
-#             },
-#             'timestamp': datetime.utcnow().isoformat()
-#         })
-        
-#     except Exception as e:
-#         print(f"❌ Error getting AI statistics: {e}")
-#         return jsonify({
-#             'success': False,
-#             'error': str(e)
-#         }), 500
-
-
-# @ai_bp.route('/api/ai/pattern-cache/refresh', methods=['POST'])
-# def refresh_pattern_cache():
-#     """
-#     Manually refresh the AI pattern cache
-#     """
-#     try:
-#         enhanced_ai_decision_service._refresh_pattern_cache()
-        
-#         stats = enhanced_ai_decision_service.get_decision_statistics()
-        
-#         return jsonify({
-#             'success': True,
-#             'message': 'Pattern cache refreshed successfully',
-#             'patterns_loaded': stats.get('patterns_in_cache', 0),
-#             'timestamp': datetime.utcnow().isoformat()
-#         })
-        
-#     except Exception as e:
-#         print(f"❌ Error refreshing pattern cache: {e}")
-#         return jsonify({
-#             'success': False,
-#             'error': str(e)
-#         }), 500
-
-
-# @ai_bp.route('/api/ai/decision-history', methods=['GET'])
-# def get_decision_history():
-#     """
-#     Get historical AI decisions from database
-#     """
-#     try:
-#         tl_id = request.args.get('tl_id')
-#         scenario = request.args.get('scenario', 'accra')
-#         hours = int(request.args.get('hours', 24))
-#         limit = int(request.args.get('limit', 50))
-        
-#         # Query database
-#         cutoff_time = datetime.utcnow() - timedelta(hours=hours)
-        
-#         query = AIDecisionLog.query.filter(
-#             AIDecisionLog.created_at >= cutoff_time,
-#             AIDecisionLog.scenario == scenario
-#         )
-        
-#         if tl_id:
-#             query = query.filter(AIDecisionLog.traffic_light_id == tl_id)
-        
-#         decisions = query.order_by(
-#             AIDecisionLog.created_at.desc()
-#         ).limit(limit).all()
-        
-#         # Format results
-#         history = []
-#         for decision in decisions:
-#             history.append({
-#                 'id': decision.id,
-#                 'traffic_light_id': decision.traffic_light_id,
-#                 'scenario': decision.scenario,
-#                 'simulation_time': decision.simulation_time,
-#                 'recommended_action': decision.recommended_action,
-#                 'action_type': decision.action_type,
-#                 'confidence': round(decision.confidence * 100, 1),
-#                 'pattern_matched': decision.pattern_matched,
-#                 'reasoning': decision.reasoning,
-#                 'current_waiting': decision.current_waiting,
-#                 'current_efficiency': decision.current_efficiency,
-#                 'created_at': decision.created_at.isoformat()
-#             })
-        
-#         return jsonify({
-#             'success': True,
-#             'history': history,
-#             'total': len(history),
-#             'time_range_hours': hours,
-#             'traffic_light_id': tl_id,
-#             'scenario': scenario
-#         })
-        
-#     except Exception as e:
-#         print(f"❌ Error getting decision history: {e}")
-#         import traceback
-#         traceback.print_exc()
-#         return jsonify({
-#             'success': False,
-#             'error': str(e),
-#             'history': []
-#         }), 500
-
-
-# @ai_bp.route('/api/ai/patterns/matched', methods=['GET'])
-# def get_matched_patterns():
-#     """
-#     Get information about patterns that have been matched
-#     """
-#     try:
-#         scenario = request.args.get('scenario', 'accra')
-        
-#         # Get pattern match statistics from decision history
-#         recent_decisions = list(enhanced_ai_decision_service.decision_history)[-50:]
-        
-#         matched_patterns = []
-#         pattern_types = defaultdict(int)
-#         match_types = defaultdict(int)
-        
-#         for decision in recent_decisions:
-#             rec = decision.get('recommendation', {})
-#             if rec.get('pattern_matched'):
-#                 matched_patterns.append({
-#                     'tl_id': decision.get('tl_id'),
-#                     'timestamp': decision.get('timestamp'),
-#                     'pattern_type': rec.get('pattern_type'),
-#                     'match_type': rec.get('match_type'),
-#                     'confidence': rec.get('confidence'),
-#                     'action': rec.get('action')
-#                 })
-                
-#                 pattern_types[rec.get('pattern_type', 'UNKNOWN')] += 1
-#                 match_types[rec.get('match_type', 'UNKNOWN')] += 1
-        
-#         return jsonify({
-#             'success': True,
-#             'matched_patterns': matched_patterns[-20:],  # Last 20
-#             'pattern_type_distribution': dict(pattern_types),
-#             'match_type_distribution': dict(match_types),
-#             'total_matches': len(matched_patterns),
-#             'scenario': scenario
-#         })
-        
-#     except Exception as e:
-#         print(f"❌ Error getting matched patterns: {e}")
-#         return jsonify({
-#             'success': False,
-#             'error': str(e)
-#         }), 500
-
-
-@ai_bp.route('/ai/status', methods=['GET'])
+@ai_bp.route('/api/ai/status', methods=['GET'])
 def get_ai_status():
-    """Get comprehensive AI status including Q-learning"""
+    """Get comprehensive AI status"""
     try:
-        status = enhanced_ai_decision_service.get_ai_status()
+        # Get optimizer status
+        optimizer_status = simple_ai_optimizer.get_status()
         
-        return jsonify({
-            'success': True,
-            'ai_enabled': enhanced_ai_decision_service.current_ai_mode != 'DISABLED',
-            'current_mode': status['current_mode'],
-            'mode': status['current_mode'],
-            'q_learning': status.get('q_learning', {}),
-            'pattern_based': status.get('pattern_based', {}),
-            'stats': {
-                'total_decisions': status.get('pattern_based', {}).get('total_decisions', 0),
-                'pattern_match_rate': status.get('pattern_based', {}).get('pattern_match_rate', 0),
-                'patterns_in_cache': status.get('pattern_based', {}).get('patterns_in_cache', 0),
-                'applied_optimizations': 0,
-                'baseline_collections': 0
-            },
-            'implications': _get_mode_implications(status['current_mode'])
-        })
+        # Get integration status from SUMO service
+        integration_status = optimized_sumo_service.get_ai_status()
+        
+        return success_response(
+            data={
+                'optimizer': optimizer_status,
+                'integration': integration_status,
+                'summary': {
+                    'ai_enabled': integration_status['ai_enabled'],
+                    'simulation_running': optimized_sumo_service.is_running,
+                    'decisions_made': optimizer_status['decisions_made'],
+                    'episodes_learned': optimizer_status['episodes_learned'],
+                    'success_rate': f"{optimizer_status['success_rate']}%",
+                    'states_learned': optimizer_status['states_learned'],
+                    'patterns_created': optimizer_status['patterns_created'],
+                    'exploration_rate': optimizer_status['exploration_rate']
+                }
+            }
+        )
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return error_response(e)
 
-@ai_bp.route('/ai/toggle', methods=['POST'])
+@ai_bp.route('/api/ai/enable', methods=['POST'])
+def enable_ai():
+    """
+    Enable AI optimization
+    
+    ⚠️ IMPORTANT: AI can only be toggled when simulation is running
+    """
+    try:
+        if not optimized_sumo_service.is_running:
+            return error_response(
+                "Cannot enable AI - no simulation running. Start a simulation first.",
+                status_code=400
+            )
+        
+        optimized_sumo_service.enable_ai()
+        
+        return success_response(
+            message='AI optimization enabled - will apply decisions every 30 simulation steps',
+            status=optimized_sumo_service.get_ai_status(),
+            note='AI will begin optimizing traffic lights in the current simulation'
+        )
+    except Exception as e:
+        return error_response(e)
+
+@ai_bp.route('/api/ai/disable', methods=['POST'])
+def disable_ai():
+    """
+    Disable AI optimization
+    
+    Note: This stops AI from making new decisions but doesn't revert previous optimizations
+    """
+    try:
+        optimized_sumo_service.disable_ai()
+        
+        return success_response(
+            message='AI optimization disabled',
+            status=optimized_sumo_service.get_ai_status(),
+            note='AI will stop making optimization decisions. Learning data is preserved.'
+        )
+    except Exception as e:
+        return error_response(e)
+
+@ai_bp.route('/api/ai/toggle', methods=['POST'])
 def toggle_ai():
     """Toggle AI optimization on/off"""
     try:
         data = request.get_json() or {}
         enabled = data.get('enabled', True)
         
+        if not optimized_sumo_service.is_running:
+            return error_response(
+                "Cannot toggle AI - no simulation running",
+                status_code=400
+            )
+        
         if enabled:
-            enhanced_ai_decision_service.set_ai_mode('HYBRID')
+            optimized_sumo_service.enable_ai()
         else:
-            enhanced_ai_decision_service.set_ai_mode('DISABLED')
+            optimized_sumo_service.disable_ai()
         
-        status = enhanced_ai_decision_service.get_ai_status()
-        
-        return jsonify({
-            'success': True,
-            'current_state': enabled,
-            'mode': status['current_mode'],
-            'stats': {
-                'total_decisions': status.get('pattern_based', {}).get('total_decisions', 0)
-            },
-            'implications': _get_mode_implications(status['current_mode'])
-        })
+        return success_response(
+            message=f"AI optimization {'enabled' if enabled else 'disabled'}",
+            enabled=enabled,
+            status=optimized_sumo_service.get_ai_status()
+        )
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-        
-@ai_bp.route('/ai/set-mode', methods=['POST'])
-def set_ai_mode():
-    """Set AI operation mode"""
-    try:
-        data = request.get_json() or {}
-        mode = data.get('mode', 'HYBRID')
-        
-        valid_modes = ['PATTERN_ONLY', 'Q_LEARNING', 'HYBRID', 'DISABLED']
-        if mode not in valid_modes:
-            return jsonify({
-                'success': False,
-                'error': f'Invalid mode. Valid modes: {valid_modes}'
-            }), 400
-        
-        enhanced_ai_decision_service.set_ai_mode(mode)
-        status = enhanced_ai_decision_service.get_ai_status()
-        
-        return jsonify({
-            'success': True,
-            'mode': mode,
-            'status': status,
-            'message': f'AI mode set to {mode}'
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return error_response(e)
 
-# ==================== Q-LEARNING MANAGEMENT ====================
+# ==================== LEARNING MANAGEMENT ====================
 
-@ai_bp.route('/ai/q-learning/status', methods=['GET'])
-def get_q_learning_status():
-    """Get detailed Q-learning status"""
+@ai_bp.route('/api/ai/learning/status', methods=['GET'])
+def get_learning_status():
+    """Get detailed learning status"""
     try:
-        status = q_learning.get_learning_status()
+        status = simple_ai_optimizer.get_status()
         
-        return jsonify({
-            'success': True,
-            'status': status,
-            'summary': {
-                'is_active': status['learning_running'],
-                'is_learning': status['is_learning'],
-                'states_learned': status['q_table_size'],
-                'episodes': status['learning_stats']['episodes_processed'],
-                'convergence': f"{status['learning_stats']['convergence_rate']*100:.1f}%"
+        return success_response(
+            data={
+                'decisions_made': status['decisions_made'],
+                'episodes_learned': status['episodes_learned'],
+                'success_rate': status['success_rate'],
+                'total_reward': status['total_reward'],
+                'exploration_rate': status['exploration_rate'],
+                'states_learned': status['states_learned'],
+                'patterns_created': status['patterns_created'],
+                'learning_parameters': {
+                    'learning_rate': simple_ai_optimizer.learning_rate,
+                    'discount_factor': simple_ai_optimizer.discount_factor,
+                    'min_exploration': simple_ai_optimizer.min_exploration
+                }
             }
-        })
+        )
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return error_response(e)
 
-@ai_bp.route('/ai/q-learning/start', methods=['POST'])
-def start_q_learning():
-    """Start background Q-learning"""
+@ai_bp.route('/api/ai/learning/save', methods=['POST'])
+def save_learning():
+    """Manually save learning state to disk"""
     try:
-        q_learning.start_background_learning()
+        simple_ai_optimizer._save_q_table()
         
-        return jsonify({
-            'success': True,
-            'message': 'Background Q-learning started',
-            'status': q_learning.get_learning_status()
-        })
+        return success_response(
+            message="Learning state saved to simple_q_table.json",
+            stats=simple_ai_optimizer.get_status(),
+            file_location='project root directory'
+        )
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return error_response(e)
 
-@ai_bp.route('/ai/q-learning/pause', methods=['POST'])
-def pause_q_learning():
-    """Pause Q-learning (keeps thread running but stops updates)"""
+@ai_bp.route('/api/ai/learning/reset', methods=['POST'])
+def reset_learning():
+    """Reset learning (clear Q-table) - REQUIRES CONFIRMATION"""
     try:
-        q_learning.disable_learning()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Q-learning paused',
-            'is_learning': q_learning.is_learning
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@ai_bp.route('/ai/q-learning/resume', methods=['POST'])
-def resume_q_learning():
-    """Resume Q-learning"""
-    try:
-        q_learning.enable_learning()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Q-learning resumed',
-            'is_learning': q_learning.is_learning
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@ai_bp.route('/ai/q-learning/stop', methods=['POST'])
-def stop_q_learning():
-    """Stop background Q-learning (preserves Q-table)"""
-    try:
-        q_learning.stop_background_learning()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Background Q-learning stopped (Q-table preserved)',
-            'status': q_learning.get_learning_status()
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@ai_bp.route('/ai/q-learning/reset', methods=['POST'])
-def reset_q_learning():
-    """Reset Q-learning (clears Q-table and stats)"""
-    try:
-        # Confirm reset
         data = request.get_json() or {}
         confirm = data.get('confirm', False)
         
         if not confirm:
-            return jsonify({
-                'success': False,
-                'error': 'Please confirm reset by setting confirm=true',
-                'warning': 'This will delete all learned Q-values!'
-            }), 400
+            return error_response(
+                "Please confirm reset by setting confirm=true",
+                status_code=400,
+                warning="This will delete all learned Q-values and reset AI to initial state"
+            )
         
-        q_learning.reset_learning()
+        # Clear Q-table
+        simple_ai_optimizer.q_table.clear()
+        simple_ai_optimizer.stats = {
+            'decisions': 0,
+            'learned_episodes': 0,
+            'success_rate': 0.5,
+            'total_reward': 0,
+            'patterns_created': 0
+        }
+        simple_ai_optimizer.exploration_rate = 0.3
+        simple_ai_optimizer.created_patterns.clear()
         
-        return jsonify({
-            'success': True,
-            'message': 'Q-learning reset complete',
-            'status': q_learning.get_learning_status()
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@ai_bp.route('/ai/q-learning/params', methods=['GET'])
-def get_q_learning_params():
-    """Get current Q-learning parameters"""
-    try:
-        return jsonify({
-            'success': True,
-            'params': {
-                'learning_rate': q_learning.learning_rate,
-                'discount_factor': q_learning.discount_factor,
-                'exploration_rate': q_learning.exploration_rate,
-                'min_exploration': q_learning.min_exploration,
-                'exploration_decay': q_learning.exploration_decay
-            },
-            'training_config': q_learning.training_config,
-            'reward_weights': q_learning.reward_weights
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@ai_bp.route('/ai/q-learning/params', methods=['POST'])
-def set_q_learning_params():
-    """Update Q-learning parameters"""
-    try:
-        data = request.get_json() or {}
+        # Clear last state tracking
+        simple_ai_optimizer.last_state = {}
+        simple_ai_optimizer.last_action = {}
+        simple_ai_optimizer.last_performance = {}
         
-        q_learning.set_learning_parameters(
-            learning_rate=data.get('learning_rate'),
-            discount_factor=data.get('discount_factor'),
-            exploration_rate=data.get('exploration_rate')
+        return success_response(
+            message="Learning reset complete - all Q-values cleared",
+            status=simple_ai_optimizer.get_status(),
+            note="AI will start learning from scratch"
         )
-        
-        return jsonify({
-            'success': True,
-            'message': 'Parameters updated',
-            'params': {
-                'learning_rate': q_learning.learning_rate,
-                'discount_factor': q_learning.discount_factor,
-                'exploration_rate': q_learning.exploration_rate
-            }
-        })
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return error_response(e)
 
+# ==================== Q-TABLE AND KNOWLEDGE ====================
+
+@ai_bp.route('/api/ai/knowledge/q-table', methods=['GET'])
+def get_q_table():
+    """Get Q-table information"""
+    try:
+        limit = int(request.args.get('limit', 20))
+        
+        top_strategies = simple_ai_optimizer._get_top_strategies(limit)
+        
+        # Calculate action distribution
+        action_counts = {'EXTEND_GREEN': 0, 'REDUCE_GREEN': 0, 'MAINTAIN': 0}
+        for state_key, q_values in simple_ai_optimizer.q_table.items():
+            best_action = max(q_values, key=q_values.get)
+            action_counts[best_action] = action_counts.get(best_action, 0) + 1
+        
+        return success_response(
+            data={
+                'total_states': simple_ai_optimizer.get_status()['states_learned'],
+                'top_strategies': top_strategies,
+                'action_distribution': action_counts,
+                'exploration_rate': simple_ai_optimizer.exploration_rate,
+                'q_table_size': len(simple_ai_optimizer.q_table)
+            }
+        )
+    except Exception as e:
+        return error_response(e)
+
+@ai_bp.route('/api/ai/knowledge/state/<state_key>', methods=['GET'])
+def get_state_knowledge(state_key):
+    """Get knowledge for a specific state"""
+    try:
+        if state_key not in simple_ai_optimizer.q_table:
+            return error_response(
+                f"State '{state_key}' not found in Q-table",
+                status_code=404,
+                available_states=list(simple_ai_optimizer.q_table.keys())[:10]
+            )
+        
+        q_values = simple_ai_optimizer.q_table[state_key]
+        best_action = max(q_values, key=q_values.get)
+        
+        return success_response(
+            data={
+                'state': state_key,
+                'q_values': q_values,
+                'best_action': best_action,
+                'best_q_value': q_values[best_action],
+                'confidence': min(0.95, q_values[best_action] / 10.0) if q_values[best_action] > 0 else 0.5
+            }
+        )
+    except Exception as e:
+        return error_response(e)
+
+@ai_bp.route('/api/ai/knowledge/export', methods=['GET'])
+def export_knowledge():
+    """Export all AI knowledge"""
+    try:
+        export_data = {
+            'q_table': dict(simple_ai_optimizer.q_table),
+            'stats': simple_ai_optimizer.stats,
+            'exploration_rate': simple_ai_optimizer.exploration_rate,
+            'created_patterns': list(simple_ai_optimizer.created_patterns),
+            'top_strategies': simple_ai_optimizer._get_top_strategies(50),
+            'exported_at': datetime.utcnow().isoformat(),
+            'parameters': {
+                'learning_rate': simple_ai_optimizer.learning_rate,
+                'discount_factor': simple_ai_optimizer.discount_factor,
+                'min_exploration': simple_ai_optimizer.min_exploration
+            }
+        }
+        
+        return success_response(
+            data=export_data,
+            message="AI knowledge exported successfully"
+        )
+    except Exception as e:
+        return error_response(e)
 
 # ==================== RECOMMENDATIONS ====================
 
-@ai_bp.route('/ai/recommendations', methods=['GET'])
+@ai_bp.route('/api/ai/recommendations', methods=['GET'])
 def get_ai_recommendations():
-    """Get AI recommendations for traffic signals"""
+    """Get AI recommendations based on learned strategies"""
     try:
-        scenario = request.args.get('scenario', 'accra')
-        limit = int(request.args.get('limit', 10))
-        force_pattern = request.args.get('force_pattern', 'false').lower() == 'true'
+        limit = int(request.args.get('limit', 5))
         
-        recommendations = enhanced_ai_decision_service.get_recommendations(
-            scenario=scenario,
-            limit=limit,
-            force_pattern_mode=force_pattern
+        top_strategies = simple_ai_optimizer._get_top_strategies(limit)
+        
+        # Convert to recommendation format
+        recommendations = []
+        for strategy in top_strategies:
+            recommendations.append({
+                'state': strategy['state'],
+                'action': strategy['action'],
+                'confidence': min(0.95, strategy['q_value'] / 10.0),
+                'q_value': strategy['q_value'],
+                'reasoning': f"Learned from {simple_ai_optimizer.stats['learned_episodes']} episodes",
+                'expected_impact': _get_impact_for_action(strategy['action']),
+                'source': 'Q_LEARNING'
+            })
+        
+        # Get current simulation recommendations if available
+        current_recommendations = []
+        if optimized_sumo_service.is_running:
+            current_recommendations = optimized_sumo_service.monitoring_data.get('ai_recommendations', [])
+        
+        return success_response(
+            data={
+                'learned_recommendations': recommendations,
+                'current_simulation_recommendations': current_recommendations,
+                'count': len(recommendations),
+                'total_learned_states': simple_ai_optimizer.get_status()['states_learned']
+            }
         )
-        
-        # Get statistics
-        stats = enhanced_ai_decision_service.get_decision_statistics()
-        q_stats = q_learning.get_learning_status()
-        
-        # Calculate average confidence
-        confidences = [r.get('confidence', 0) for r in recommendations if r]
-        avg_confidence = sum(confidences) / len(confidences) * 100 if confidences else 0
-        
-        return jsonify({
-            'success': True,
-            'recommendations': recommendations,
-            'count': len(recommendations),
-            'statistics': {
-                'total_decisions': stats.get('total_decisions', 0),
-                'pattern_match_rate': stats.get('pattern_match_rate', 0),
-                'patterns_in_cache': stats.get('patterns_in_cache', 0),
-                'avg_confidence': round(avg_confidence, 1),
-                'current_mode': enhanced_ai_decision_service.get_current_mode(),
-                'q_learning_episodes': q_stats['learning_stats']['episodes_processed'],
-                'q_learning_convergence': q_stats['learning_stats']['convergence_rate']
-            },
-            'mode': enhanced_ai_decision_service.current_ai_mode,
-            'scenario': scenario
-        })
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e),
-            'recommendations': [],
-            'statistics': {}
-        }), 500
+        return error_response(e)
 
-@ai_bp.route('/ai/recommendations/<tl_id>', methods=['GET'])
-def get_tl_recommendations(tl_id):
-    """Get recommendations for a specific traffic light"""
+# ==================== SIMULATION INTEGRATION ====================
+
+@ai_bp.route('/api/ai/simulation/status', methods=['GET'])
+def get_simulation_ai_status():
+    """Get AI status specifically for current simulation"""
     try:
-        scenario = request.args.get('scenario', 'accra')
+        if not optimized_sumo_service.is_running:
+            return success_response(
+                data={
+                    'simulation_running': False,
+                    'message': 'No simulation currently running'
+                }
+            )
         
-        recommendations = enhanced_ai_decision_service.get_tl_recommendations(
-            tl_id=tl_id,
-            scenario=scenario
+        ai_status = optimized_sumo_service.get_ai_status()
+        sim_data = optimized_sumo_service.get_simulation_data()
+        
+        return success_response(
+            data={
+                'simulation_running': True,
+                'ai_enabled': ai_status['ai_enabled'],
+                'current_step': ai_status['simulation_step'],
+                'ai_optimization_interval': ai_status['ai_optimization_interval'],
+                'recent_recommendations': ai_status['last_recommendations'][:5],
+                'scenario': optimized_sumo_service.current_config,
+                'tls_count': len(sim_data['monitoring'].get('tls_snapshot', {}).get('traffic_lights', {}))
+            }
         )
-        
-        return jsonify({
-            'success': True,
-            'traffic_light_id': tl_id,
-            'recommendations': recommendations,
-            'count': len(recommendations)
-        })
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return error_response(e)
 
+# ==================== STATISTICS AND ANALYTICS ====================
+
+@ai_bp.route('/api/ai/statistics/summary', methods=['GET'])
+def get_ai_statistics():
+    """Get AI performance statistics"""
+    try:
+        status = simple_ai_optimizer.get_status()
+        
+        # Calculate averages
+        avg_reward = (status['total_reward'] / max(1, status['episodes_learned']))
+        
+        return success_response(
+            data={
+                'learning_statistics': {
+                    'decisions_made': status['decisions_made'],
+                    'episodes_learned': status['episodes_learned'],
+                    'total_reward': round(status['total_reward'], 2),
+                    'avg_reward_per_episode': round(avg_reward, 3),
+                    'success_rate': status['success_rate']
+                },
+                'knowledge_statistics': {
+                    'states_learned': status['states_learned'],
+                    'patterns_created': status['patterns_created'],
+                    'exploration_rate': status['exploration_rate']
+                },
+                'top_strategies': status['top_strategies']
+            }
+        )
+    except Exception as e:
+        return error_response(e)
+
+@ai_bp.route('/api/ai/statistics/performance', methods=['GET'])
+def get_performance_metrics():
+    """Get detailed performance metrics"""
+    try:
+        status = simple_ai_optimizer.get_status()
+        
+        # Get all strategies grouped by action
+        strategies_by_action = {
+            'EXTEND_GREEN': [],
+            'REDUCE_GREEN': [],
+            'MAINTAIN': []
+        }
+        
+        for state_key, q_values in simple_ai_optimizer.q_table.items():
+            for action, q_value in q_values.items():
+                if q_value > 0:
+                    strategies_by_action[action].append({
+                        'state': state_key,
+                        'q_value': q_value
+                    })
+        
+        # Calculate average Q-values per action
+        action_performance = {}
+        for action, strategies in strategies_by_action.items():
+            if strategies:
+                avg_q = sum(s['q_value'] for s in strategies) / len(strategies)
+                action_performance[action] = {
+                    'count': len(strategies),
+                    'avg_q_value': round(avg_q, 2),
+                    'max_q_value': round(max(s['q_value'] for s in strategies), 2)
+                }
+            else:
+                action_performance[action] = {
+                    'count': 0,
+                    'avg_q_value': 0,
+                    'max_q_value': 0
+                }
+        
+        return success_response(
+            data={
+                'performance_by_action': action_performance,
+                'overall': {
+                    'success_rate': status['success_rate'],
+                    'total_reward': status['total_reward'],
+                    'episodes': status['episodes_learned']
+                }
+            }
+        )
+    except Exception as e:
+        return error_response(e)
+
+# ==================== SYSTEM HEALTH ====================
+
+@ai_bp.route('/api/ai/health', methods=['GET'])
+def get_ai_health():
+    """Get AI system health status"""
+    try:
+        status = simple_ai_optimizer.get_status()
+        integration_status = optimized_sumo_service.get_ai_status()
+        
+        # Calculate health score (0-100)
+        health_score = 0
+        
+        # Integration health (20%)
+        if integration_status['ai_enabled'] and optimized_sumo_service.is_running:
+            health_score += 20
+        
+        # Learning activity health (30%)
+        if status['episodes_learned'] > 100:
+            health_score += 30
+        elif status['episodes_learned'] > 50:
+            health_score += 20
+        elif status['episodes_learned'] > 10:
+            health_score += 10
+        
+        # Knowledge health (30%)
+        states_learned = status['states_learned']
+        if states_learned > 20:
+            health_score += 30
+        elif states_learned > 10:
+            health_score += 20
+        elif states_learned > 5:
+            health_score += 10
+        
+        # Performance health (20%)
+        success_rate = status['success_rate']
+        health_score += min(20, (success_rate / 100) * 20)
+        
+        # Determine status
+        if health_score >= 70:
+            health_status = 'HEALTHY'
+        elif health_score >= 40:
+            health_status = 'DEGRADED'
+        else:
+            health_status = 'UNHEALTHY'
+        
+        return success_response(
+            data={
+                'health_score': round(health_score),
+                'health_status': health_status,
+                'components': {
+                    'ai_enabled': integration_status['ai_enabled'],
+                    'simulation_running': optimized_sumo_service.is_running,
+                    'episodes_learned': status['episodes_learned'],
+                    'states_learned': states_learned,
+                    'success_rate': f"{success_rate}%",
+                    'patterns_created': status['patterns_created']
+                },
+                'recommendations': _get_health_recommendations(health_score, status, integration_status)
+            }
+        )
+    except Exception as e:
+        return error_response(e)
+
+def _get_health_recommendations(health_score: int, optimizer_status: Dict, integration_status: Dict) -> List[str]:
+    """Get health recommendations"""
+    recommendations = []
+    
+    if not optimized_sumo_service.is_running:
+        recommendations.append("Start a simulation to enable AI learning")
+    
+    if not integration_status['ai_enabled'] and optimized_sumo_service.is_running:
+        recommendations.append("Enable AI optimization in the running simulation to start learning")
+    
+    if optimizer_status['episodes_learned'] < 50:
+        recommendations.append("Run simulation longer to collect more learning data")
+    
+    if optimizer_status['states_learned'] < 10:
+        recommendations.append("More diverse traffic conditions needed for better learning")
+    
+    if optimizer_status['success_rate'] < 50:
+        recommendations.append("Success rate is low - AI needs more training time")
+    
+    if optimizer_status['exploration_rate'] > 0.2 and optimizer_status['episodes_learned'] > 200:
+        recommendations.append("Exploration rate is still high - consider reducing it")
+    
+    if not recommendations:
+        recommendations.append("System is healthy - AI is learning effectively")
+    
+    return recommendations
+
+# ==================== TESTING & DEBUG ENDPOINTS ====================
+
+@ai_bp.route('/api/ai/test/decision', methods=['POST'])
+def test_ai_decision():
+    """Test AI decision making with sample data"""
+    try:
+        data = request.get_json() or {}
+        
+        # Sample traffic light data
+        sample_tl_data = data.get('tl_data', {
+            'id': 'test_tl_01',
+            'phase_name': 'green',
+            'performance': {
+                'waiting_vehicles': data.get('waiting', 5),
+                'total_vehicles': data.get('total', 8),
+                'efficiency_score': data.get('efficiency', 60)
+            }
+        })
+        
+        # Get current state
+        state = simple_ai_optimizer._get_state(sample_tl_data)
+        state_key = simple_ai_optimizer._state_to_key(state)
+        
+        # Make decision
+        action, confidence = simple_ai_optimizer._make_decision(state_key, state)
+        
+        # Get Q-values
+        q_values = simple_ai_optimizer.q_table[state_key]
+        
+        # Get parameters
+        parameters = simple_ai_optimizer._get_action_parameters(action, sample_tl_data)
+        
+        return success_response(
+            data={
+                'input': sample_tl_data,
+                'state': state,
+                'state_key': state_key,
+                'decision': {
+                    'action': action,
+                    'confidence': confidence,
+                    'parameters': parameters,
+                    'q_values': q_values
+                },
+                'note': 'This is a test decision - not applied to simulation'
+            }
+        )
+    except Exception as e:
+        return error_response(e)
+
+@ai_bp.route('/api/ai/debug/info', methods=['GET'])
+def get_debug_info():
+    """Get debug information about AI system"""
+    try:
+        return success_response(
+            data={
+                'optimizer': {
+                    'class': 'SimpleAIOptimizer',
+                    'q_table_size': len(simple_ai_optimizer.q_table),
+                    'learning_rate': simple_ai_optimizer.learning_rate,
+                    'discount_factor': simple_ai_optimizer.discount_factor,
+                    'exploration_rate': simple_ai_optimizer.exploration_rate,
+                    'min_exploration': simple_ai_optimizer.min_exploration,
+                    'pattern_threshold': simple_ai_optimizer.pattern_threshold
+                },
+                'integration': {
+                    'service': 'OptimizedSumoService',
+                    'ai_enabled': optimized_sumo_service.ai_enabled,
+                    'simulation_running': optimized_sumo_service.is_running,
+                    'optimization_interval': optimized_sumo_service.performance_config.get('ai_optimization_interval', 30)
+                },
+                'files': {
+                    'q_table_file': 'simple_q_table.json',
+                    'location': 'project root directory'
+                }
+            }
+        )
+    except Exception as e:
+        return error_response(e)
 
 # ==================== HELPER FUNCTIONS ====================
-def _get_mode_implications(mode: str) -> list:
-    """Get human-readable implications for AI mode"""
-    implications = {
-        'HYBRID': [
-            'AI combines pattern matching and Q-learning',
-            'Best accuracy with learned optimizations',
-            'Background learning continues improving'
-        ],
-        'Q_LEARNING': [
-            'Pure reinforcement learning mode',
-            'Decisions based on learned Q-values',
-            'May be less accurate until fully trained'
-        ],
-        'PATTERN_ONLY': [
-            'Uses historical pattern matching only',
-            'No Q-learning optimization',
-            'Good for stable, predictable traffic'
-        ],
-        'DISABLED': [
-            'AI optimization disabled',
-            'Baseline data collection mode',
-            'Manual signal timing only'
-        ]
+
+def _get_impact_for_action(action: str) -> Dict[str, str]:
+    """Get expected impact for an action"""
+    impacts = {
+        'EXTEND_GREEN': {
+            'efficiency': '+5-15%',
+            'waiting': '-20-40%',
+            'congestion': 'DECREASE'
+        },
+        'REDUCE_GREEN': {
+            'efficiency': '+3-8%',
+            'waiting': '+5-15%',
+            'congestion': 'SLIGHT_INCREASE'
+        },
+        'MAINTAIN': {
+            'efficiency': 'STABLE',
+            'waiting': 'STABLE',
+            'congestion': 'STABLE'
+        }
     }
-    return implications.get(mode, ['Unknown mode'])
+    return impacts.get(action, impacts['MAINTAIN'])
 
-# @ai_bp.route('/ai/recommendations', methods=['GET'])
-# def get_ai_recommendations():
-#     """Get AI recommendations (supports all modes)"""
-#     try:
-#         scenario = request.args.get('scenario', 'accra')
-#         limit = int(request.args.get('limit', 10))
-        
-#         recommendations = enhanced_ai_decision_service.generate_recommendations_from_patterns(
-#             scenario, limit
-#         )
-        
-#         return jsonify({
-#             'success': True,
-#             'recommendations': recommendations,
-#             'count': len(recommendations),
-#             'scenario': scenario,
-#             'ai_mode': enhanced_ai_decision_service.current_ai_mode
-#         })
-#     except Exception as e:
-#         return jsonify({
-#             'success': False,
-#             'error': f"Failed to get AI recommendations: {str(e)}"
-#         }), 500
-
-# @ai_bp.route('/ai/q-learning/reset', methods=['POST'])
-# def reset_q_learning():
-#     """Reset Q-learning (clear Q-table)"""
-#     try:
-#         from app.services.q_learning import q_learning_ai_service
-#         q_learning_ai_service.reset_learning()
-        
-#         return jsonify({
-#             'success': True,
-#             'message': "Q-learning reset successfully"
-#         })
-#     except Exception as e:
-#         return jsonify({
-#             'success': False,
-#             'error': f"Failed to reset Q-learning: {str(e)}"
-#         }), 500
-
-# @ai_bp.route('/ai/q-learning/statistics', methods=['GET'])
-# def get_q_learning_stats():
-#     """Get Q-learning statistics"""
-#     try:
-#         from app.services.q_learning import q_learning_ai_service
-#         stats = q_learning_ai_service.get_learning_status()
-        
-#         return jsonify({
-#             'success': True,
-#             'statistics': stats
-#         })
-#     except Exception as e:
-#         return jsonify({
-#             'success': False,
-#             'error': f"Failed to get Q-learning statistics: {str(e)}"
-#         }), 500
+def init_ai_routes(app):
+    """Initialize AI routes with app context"""
+    simple_ai_optimizer.init_app(app)
+    print("✅ AI routes initialized with Q-learning")

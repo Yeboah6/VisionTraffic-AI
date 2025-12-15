@@ -9,9 +9,9 @@
             <a href="{{ url_for('signal.signals') }}"
                class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('signal') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
                 <div class="w-5 h-5 flex items-center justify-center mr-3">
-                    <i class="ri-traffic-light-line"></i>
+                    <i class="ri-dashboard-line"></i>
                 </div>
-                <span>Signal</span>
+                <span>Dashboard</span>
             </a>
             <a href="{{ url_for('location.location') }}"
                class="flex items-center px-4 py-3 rounded-button {% if request.endpoint.startswith('location') %}text-white bg-primary{% else %}text-slate-300 hover:bg-slate-800{% endif %}">
